@@ -1,0 +1,153 @@
+
+if fp == 1
+    % passive computation files
+    dm_CPM1_NX = '01_POST_CPM_5L_trial1.tsv';  % LEFT
+    dm_CPM2_NX = '01_POST_CPM_5L_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '01_POST_ROM_5L_trial2.tsv';
+    dm_ROM6_NX = '01_POST_ROM_5L_trial8.tsv';
+    % active computation files
+    dm_isokin45_NX = '01_POST_isokinetic_5L_trial3.tsv'; %trial3
+    % active control files
+    dm_isokinDF_NX = '01_POST_isokinetic_5L_trial1.tsv';
+    dm_isokin30_NX = '01_POST_isokinetic_5L_trial2.tsv';
+    dm_isokin90_NX = '01_POST_isokinetic_5L_trial5.tsv';
+    dm_isomP10_1_NX = '01_POST_isometric_5L_trial1.tsv';
+    dm_isomP10_2_NX = '01_POST_isometric_5L_trial2.tsv';
+    dm_isomD10_1_NX = '01_POST_isometric_5L_trial10.tsv';
+    dm_isomD10_2_NX = '01_POST_isometric_5L_trial11.tsv';
+    % Norm ROM L POST = 40
+
+elseif fp == 3
+    % passive computation files
+    dm_CPM1_NX = '03_POST_CPM_5L_trial1.tsv';
+    dm_CPM2_NX = '03_POST_CPM_5L_trial3.tsv';
+    % passive control files
+    dm_ROM1_NX = '03_POST_ROM_5L_part1_trial1.tsv';
+    dm_ROM6_NX = '03_POST_ROM_5L_part2_trial1.tsv';
+    % active computation files
+    dm_isokin45_NX = '03_POST_isokinetic_5L_trial4.tsv';
+    % active control files
+    dm_isokinDF_NX = '03_POST_isokinetic_5L_trial1.tsv';   % alternativt trial2
+    dm_isokin30_NX = '03_POST_isokinetic_5L_trial3.tsv';
+    dm_isokin90_NX = '03_POST_isokinetic_5L_trial6.tsv';
+    dm_isomP10_1_NX = '03_POST_isometric_5L_part1_trial1.tsv';
+    dm_isomP10_2_NX = '03_POST_isometric_5L_part2_trial1.tsv';
+    dm_isomD10_1_NX = '03_POST_isometric_5L_part3_trial5.tsv';
+    dm_isomD10_2_NX = '03_POST_isometric_5L_part3_trial6.tsv';
+    % Norm ROM L POST = 29
+    
+elseif fp == 5 % RIGHT
+    % passive computation files
+    dm_CPM1_NX = '05_POST_CPM_5R_trial1.tsv';  
+    dm_CPM2_NX = '05_POST_CPM_5R_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '05_POST_ROM_5R_trial2.tsv';
+    dm_ROM6_NX = '05_POST_ROM_5R_trial8.tsv';
+    % active computation files
+    dm_isokin45_NX = '05_POST_isokinetic_5R_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '05_POST_isokinetic_5R_trial1.tsv';
+    dm_isokin30_NX = '05_POST_isokinetic_5R_trial2.tsv';
+    dm_isokin90_NX = '05_POST_isokinetic_5R_trial5.tsv';
+    dm_isomP10_1_NX = '05_POST_isometric_5R_trial1.tsv';
+    dm_isomP10_2_NX = '05_POST_isometric_5R_trial2.tsv';
+    dm_isomD10_1_NX = '05_POST_isometric_5R_trial7.tsv';
+    dm_isomD10_2_NX = '05_POST_isometric_5R_trial8.tsv';
+    % Norm ROM R POST = 30
+    
+elseif fp == 8
+    % passive computation files
+    dm_CPM1_NX = '08_POST_CPM_5R_trial1.tsv';
+    dm_CPM2_NX = '08_POST_CPM_5R_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '08_POST_ROM_5R_trial1.tsv';
+    dm_ROM6_NX = '08_POST_ROM_5R_trial7.tsv';
+    % active computation files
+    dm_isokin45_NX = '08_POST_isokinetic_5R_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '08_POST_isokinetic_5R_trial1.tsv';
+    dm_isokin30_NX = '08_POST_isokinetic_5R_trial2.tsv';
+    dm_isokin90_NX = '08_POST_isokinetic_5R_trial5.tsv';
+    dm_isomP10_1_NX = '08_POST_isometric_5R_trial1.tsv';
+    dm_isomP10_2_NX = '08_POST_isometric_5R_trial2.tsv';
+    dm_isomD10_1_NX = '08_POST_isometric_5R_trial7.tsv';
+    dm_isomD10_2_NX = '08_POST_isometric_5R_trial8.tsv';
+    % Norm ROM R POST = 29
+    
+elseif fp == 10
+    % passive computation files
+    dm_CPM1_NX = '10_PRE_CPM_2L_trial1.tsv'; % NB, more noise on angle than usual. The third and last constant angle range is detected as shorter than usual
+    dm_CPM2_NX = '10_PRE_CPM_2L_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '10_PRE_ROM_2L_trial1.tsv';
+    dm_ROM6_NX = '10_PRE_ROM_2L_trial6.tsv';
+    % active computation files
+    dm_isokin45_NX = '10_PRE_isokinetic_2L_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '10_PRE_isokinetic_2L_trial1.tsv';
+    dm_isokin30_NX = '10_PRE_isokinetic_2L_trial2.tsv';
+    dm_isokin90_NX = '10_PRE_isokinetic_2L_trial5.tsv';
+    dm_isomP10_1_NX = '10_PRE_isometric_2L_trial1.tsv';
+    dm_isomP10_2_NX = '10_PRE_isometric_2L_trial2.tsv';
+    dm_isomD10_1_NX = '10_PRE_isometric_2L_trial7.tsv';
+    dm_isomD10_2_NX = '10_PRE_isometric_2L_trial8.tsv';
+    % Norm ROM L PRE = 20
+    
+elseif fp == 11
+    % passive computation files
+    dm_CPM1_NX = '11_PRE_CPM_2L_trial2.tsv';
+    dm_CPM2_NX = '11_PRE_CPM_2L_trial3.tsv';
+    % passive control files
+    dm_ROM1_NX = '11_PRE_ROM_2L_trial1.tsv';
+    dm_ROM6_NX = '11_PRE_ROM_2L_trial7.tsv';
+    % active computation files
+    dm_isokin45_NX = '11_PRE_isokinetic_2L_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '11_PRE_isokinetic_2L_trial1.tsv';
+    dm_isokin30_NX = '11_PRE_isokinetic_2L_trial2.tsv';
+    dm_isokin90_NX = '11_PRE_isokinetic_2L_trial5.tsv';
+    dm_isomP10_1_NX = '11_PRE_isometric_2L_trial1.tsv';
+    dm_isomP10_2_NX = '11_PRE_isometric_2L_trial2.tsv';
+    dm_isomD10_1_NX = '11_PRE_isometric_2L_trial7.tsv';
+    dm_isomD10_2_NX = '11_PRE_isometric_2L_trial8.tsv';
+    % Norm ROM L PRE = 25
+    
+elseif fp == 15
+    % passive computation files
+    dm_CPM1_NX = '15_PRE_CPM_2R_trial1.tsv';
+    dm_CPM2_NX = '15_PRE_CPM_2R_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '15_PRE_ROM_2R_trial2.tsv';
+    dm_ROM6_NX = '15_PRE_ROM_2R_trial8.tsv';
+    % active computation files
+    dm_isokin45_NX = '15_PRE_isokinetic_2R_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '15_PRE_isokinetic_2R_trial1.tsv';
+    dm_isokin30_NX = '15_PRE_isokinetic_2R_trial2.tsv';
+    dm_isokin90_NX = '15_PRE_isokinetic_2R_trial5.tsv';
+    dm_isomP10_1_NX = '15_PRE_isometric_2R_trial2.tsv';
+    dm_isomP10_2_NX = '15_PRE_isometric_2R_trial3.tsv';
+    dm_isomD10_1_NX = '15_PRE_isometric_2R_trial8.tsv';
+    dm_isomD10_2_NX = '15_PRE_isometric_2R_trial9.tsv';
+    % Norm ROM R PRE = 14
+    
+elseif fp == 16
+    % passive computation files
+    dm_CPM1_NX = '16_PRE_CPM_2R_trial1.tsv';
+    dm_CPM2_NX = '16_PRE_CPM_2R_trial2.tsv';
+    % passive control files
+    dm_ROM1_NX = '16_PRE_ROM_2R_trial1.tsv';
+    dm_ROM6_NX = '16_PRE_ROM_2R_trial8.tsv';
+    % active computation files
+    dm_isokin45_NX = '16_PRE_isokinetic_2R_trial3.tsv';
+    % active control files
+    dm_isokinDF_NX = '16_PRE_isokinetic_2R_trial1.tsv';
+    dm_isokin30_NX = '16_PRE_isokinetic_2R_trial2.tsv';
+    dm_isokin90_NX = '16_PRE_isokinetic_2R_trial5.tsv';
+    dm_isomP10_1_NX = '16_PRE_isometric_2R_trial1.tsv';
+    dm_isomP10_2_NX = '16_PRE_isometric_2R_trial2.tsv';
+    dm_isomD10_1_NX = '16_PRE_isometric_2R_trial7.tsv';
+    dm_isomD10_2_NX = '16_PRE_isometric_2R_trial8.tsv';
+    % Norm ROM R PRE = 20
+end

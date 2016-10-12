@@ -31,37 +31,7 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     emg_sol2 = varargin{15};
     time2 = varargin{16};
     
-    
-% OLD DELETE MMM TODO    
-%     %%% curve fitting gonio data
-%     
-%     % method 1: fit 4th order polynomial to averaged gonio-angle curve
-%     fit_gonio1 = polyfit(angle1, gonio1, 4);
-%     fit_gonio2 = polyfit(angle2, gonio2, 4);
-%     
-%     % create array across angles
-%     gonio_new1(1:length(angle1),1) = zeros;
-%     for ang = 1:length(angle1)
-%         gonio_new1(ang) = (fit_gonio1(1) * angle1(ang)^4) + (fit_gonio1(2) * angle1(ang)^3) + (fit_gonio1(3) * angle1(ang)^2) + (fit_gonio1(4) * angle1(ang)) + fit_gonio1(5);
-%     end
-%     gonio_new2(1:length(angle2),1) = zeros;
-%     for ang = 1:length(angle2)
-%         gonio_new2(ang) = (fit_gonio2(1) * angle2(ang)^4) + (fit_gonio2(2) * angle2(ang)^3) + (fit_gonio2(3) * angle2(ang)^2) + (fit_gonio2(4) * angle2(ang)) + fit_gonio2(5);
-%     end
-%     
-%     %    % method 2: cubic smoothing spline
-%     %    p = 0.0005; % 0 = least squares straight line fit, 1 = natural cubic spline interpolant   %VAR
-%     %    gonio_new = csaps(angle1, gonio1, p, time_torque_ascend); 
-%     
-%     % plot check gonio curve fit
-%     figure,plot(angle1,gonio1,'r--')
-%     hold on
-%     plot(angle1,gonio_new1,'b')
-%     plot(angle2,gonio2,'r--')
-%     plot(angle2,gonio_new2,'b')
-%     legend('ang-gon','ang-new','ang-gon2','ang-new2')
-     
-    
+
     
     %%% curve fitting GONIO data to TIME array
     
@@ -174,7 +144,7 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
         average_emg_sol_gonio = (common_emg_sol1_gonio + common_emg_sol2_gonio) / 2;
     end
     
-    % plot curve fitting, splining and averaging
+    % plot ANGLE curve fitting, splining and averaging
     if plot_norm
         plottitle = horzcat('Gonio-torque fit/avg, ', subject_id, ' (SOL/GMMTJ/GMFAS)');
         figure('Name',plottitle);

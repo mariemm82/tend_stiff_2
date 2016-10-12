@@ -484,36 +484,36 @@ function [] = passiveUS(input_plot)
             % if 2 GM trials exist (none of variables are 'null')
 
             % GM Lichtwark: perform averaging of trial 1 and trial 2
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, 'GM fascicles');
+            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
 
             % SOL Lichtwark: check for existence of SOL data
             if GMFAS_licht_SOL_1_exists && GMFAS_licht_SOL_2_exists
                 % average two trials:
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, 'SOL fascicles');
+                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
             elseif GMFAS_licht_SOL_1_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, 'SOL fascicles');
+                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
             elseif GMFAS_licht_SOL_2_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, 'SOL fascicles');
+                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
             else % no SOL exists
                 data_GMFAS_licht_SOL = zeros(1,3);
             end
             
         elseif(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0) % only trial 1 exists
             % keep GM trial 1
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, 'GM fascicles');
+            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, 'GM fascicles');
             % keep eventual SOL trial 1
             if GMFAS_licht_SOL_1_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, 'SOL fascicles');
+                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
             else % no SOL exists
                 data_GMFAS_licht_SOL = zeros(1,3);
             end    
             
         elseif(strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0) % only trial 2 exists
             % keep GM trial 2
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, 'GM fascicles');
+            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
             % keep eventual SOL trial 2
             if GMFAS_licht_SOL_2_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, 'SOL fascicles');
+                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
             else % no SOL exists
                 data_GMFAS_licht_SOL = zeros(1,3);
             end    
@@ -1182,7 +1182,13 @@ function [] = passiveUS(input_plot)
                 spline(BD_angle_vars_norm{1,BD_count}(:,1), BD_angle_vars_norm{1,BD_count}(:,11), 0:0.05:100)', ...
                 spline(BD_angle_vars_norm{1,BD_count}(:,1), BD_angle_vars_norm{1,BD_count}(:,12), 0:0.05:100)', ...
                 spline(BD_angle_vars_norm{1,BD_count}(:,1), BD_angle_vars_norm{1,BD_count}(:,13), 0:0.05:100)'];
-           
+            
+            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
+            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+            BD_angle_vars_norm_gonio_ind{BD_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
+            
+                        
+            
         else % CON subject
             
             % all data in ONE cell, common angles, RAW data:
@@ -1218,9 +1224,6 @@ function [] = passiveUS(input_plot)
                 (CON_angle_vars{1,CON_count}(:,12)-CON_angle_vars{1,CON_count}(1,12)) *100/(10*str2double(dm_leg_length{line})) ...       12 leg length - to initial leg length (converting from cm to mm)
                 CON_angle_vars{1,CON_count}(:,13)*100/max(CON_angle_vars{1,CON_count}(:,13)) ...       13 torque - to max torque in trial
                 ];
-
-            
-            
             
             % reshape
             CON_angle_vars_norm{CON_count} = [ (0:0.05:100)', ...
@@ -1236,6 +1239,10 @@ function [] = passiveUS(input_plot)
                 spline(CON_angle_vars_norm{1,CON_count}(:,1), CON_angle_vars_norm{1,CON_count}(:,11), 0:0.05:100)', ...
                 spline(CON_angle_vars_norm{1,CON_count}(:,1), CON_angle_vars_norm{1,CON_count}(:,12), 0:0.05:100)', ...
                 spline(CON_angle_vars_norm{1,CON_count}(:,1), CON_angle_vars_norm{1,CON_count}(:,13), 0:0.05:100)'];
+            
+            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
+            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+            CON_angle_vars_norm_gonio_ind{CON_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
         end
         
         
@@ -1587,6 +1594,8 @@ function [] = passiveUS(input_plot)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - ARRAYS
     
+    
+    
     %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
     % BD_angle_vars_mean, CON_angle_vars_mean
     
@@ -1606,6 +1615,10 @@ function [] = passiveUS(input_plot)
             BD_angle_vars_mean_tmp(:,:,i) = BD_angle_vars{i}(1:loc_end,:);
         end
         BD_angle_vars_mean = nanmean(BD_angle_vars_mean_tmp, 3);
+        
+        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
+        length_reshaped = linspace(1, length(BD_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+        BD_angle_vars_norm_gonio = spline((1:length(BD_angle_vars_mean(:,1))), BD_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
     end
     
     if CON_count > 0
@@ -1624,6 +1637,10 @@ function [] = passiveUS(input_plot)
             CON_angle_vars_mean_tmp(:,:,i) = CON_angle_vars{i}(1:loc_end,:);
         end
         CON_angle_vars_mean = nanmean(CON_angle_vars_mean_tmp, 3);
+        
+        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
+        length_reshaped = linspace(1, length(CON_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+        CON_angle_vars_norm_gonio = spline((1:length(CON_angle_vars_mean(:,1))), CON_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
     end
     
     
@@ -1747,9 +1764,9 @@ function [] = passiveUS(input_plot)
             % NORMALIZED ONLY Y AXIS
             plottitle = horzcat('GRP force vs angle - 4B NORMALIZED Y AXIS');
             figure('Name',plottitle)
-            plot(BD_angle_vars_mean(:,1), BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
+            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
             hold on
-            plot(CON_angle_vars_mean(:,1), CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
+            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
             axis([-2 35 0 100]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Force (% of ind max)')
@@ -1854,9 +1871,9 @@ function [] = passiveUS(input_plot)
             % NORMALIZED ONLY Y AXIS
             plottitle = horzcat('GRP torque vs angle - 4B NORMALIZED Y AXIS');
             figure('Name',plottitle)
-            plot(BD_angle_vars_mean(:,1), BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
+            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
             hold on
-            plot(CON_angle_vars_mean(:,1), CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
+            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
             axis([-2 35 0 100]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Torque (% of ind max)')
@@ -1964,9 +1981,9 @@ function [] = passiveUS(input_plot)
             % NORMALIZED ONLY Y AXIS
             plottitle = horzcat('GRP length free AT vs angle - 4B NORMALIZED Y AXIS');
             figure('Name',plottitle)
-            plot(BD_angle_vars_mean(:,1), BD_angle_vars_norm_mean(:,10),'r','LineWidth',2)
+            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,10),'r','LineWidth',2)
             hold on
-            plot(CON_angle_vars_mean(:,1), CON_angle_vars_norm_mean(:,10),'b','LineWidth',2)
+            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,10),'b','LineWidth',2)
             axis([-2 35 -1 22]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')
@@ -2126,9 +2143,9 @@ function [] = passiveUS(input_plot)
             % NORMALIZED ONLY Y AXIS
             plottitle = horzcat('GRP length aponeur. (isolated) vs angle - 4B NORMALIZED Y AXIS');
             figure('Name',plottitle)
-            plot(BD_angle_vars_mean(:,1), BD_angle_vars_norm_mean(:,11),'r','LineWidth',2)
+            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,11),'r','LineWidth',2)
             hold on
-            plot(CON_angle_vars_mean(:,1), CON_angle_vars_norm_mean(:,11),'b','LineWidth',2)
+            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,11),'b','LineWidth',2)
             axis([-2 35 -1 6]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')
@@ -2339,12 +2356,12 @@ function [] = passiveUS(input_plot)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
     if BD_count > 1 && CON_count > 1 && plot_check
-            % NORMALIZED Y AXIS
+            % NORMALIZED ONLY Y AXIS
             plottitle = horzcat('GRP length full MTU vs angle - 4B NORMALIZED Y AXIS');
             figure('Name',plottitle)
-            plot(BD_angle_vars_mean(:,1), BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
+            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
             hold on
-            plot(CON_angle_vars_mean(:,1), CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
+            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
             axis([-2 35 0 6]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')

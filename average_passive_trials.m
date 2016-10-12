@@ -167,7 +167,6 @@ end
 
 
 
-output_array = rot90([average_displ_gonio; average_angle_array; average_torque_gonio],3);
-% rotate 270 degrees --> torque, gonio, displ
+output_array = [average_torque_gonio; average_angle_array; average_displ_gonio]';
 
 end

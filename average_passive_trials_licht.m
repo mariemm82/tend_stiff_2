@@ -235,6 +235,8 @@ end
 
 
 
+output_array = [average_angle_array; average_faslen_gonio; average_pennation_gonio];
+
 output_array = rot90([average_pennation_gonio; average_faslen_gonio; average_angle_array],3);
 % rotate 270 degrees --> angle, faslen, pennation
 

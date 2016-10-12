@@ -205,12 +205,12 @@ function []=create_angles_passive(input_plot)
             % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
             force_gmmtj_1 = zeros(0);
         else 
-            [force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1] = extract_force_displ_singletrial_passive(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
+            [force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1, time_gmmtj_1] = extract_force_displ_singletrial_passive(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
         end
         if(strcmp(dm_ROM_gmmtj2_NX{line}, 'null'))
             force_gmmtj_2 = zeros(0);
         else 
-            [force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2] = extract_force_displ_singletrial_passive(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
+            [force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2, time_gmmtj_2] = extract_force_displ_singletrial_passive(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
         end
 
         % average two passive trials
@@ -246,15 +246,15 @@ function []=create_angles_passive(input_plot)
                 legend('Trial 1','Trial 2','Location','Southeast');
             end
 
-            data_gmmtj = average_passive_trials(force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1, force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2);
+            data_gmmtj = average_passive_trials_EMG(force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1, 0,0,0, time_gmmtj_1, force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2, 0,0,0, time_gmmtj_2);
 
         elseif(strcmp(dm_ROM_gmmtj1_NX{line}, 'null')==0)
             % keep first trial
-            data_gmmtj = average_passive_trials(force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1);
+            data_gmmtj = average_passive_trials_EMG(force_gmmtj_1, gonio_gmmtj_1, angle_gmmtj_1, displacement_gmmtj_1, 0,0,0, time_gmmtj_1);
             angle_gmmtj_2 = 10000;
         else
             % keep second trial
-            data_gmmtj = average_passive_trials(force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2);
+            data_gmmtj = average_passive_trials_EMG(force_gmmtj_2, gonio_gmmtj_2, angle_gmmtj_2, displacement_gmmtj_2, 0,0,0, time_gmmtj_2);
             angle_gmmtj_1 = 10000;
         end
 
@@ -273,12 +273,12 @@ function []=create_angles_passive(input_plot)
             % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
             force_gmfas_1 = zeros(0);
         else 
-            [force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1] = extract_force_displ_singletrial_passive(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMfas1');
+            [force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1, time_gmfas_1] = extract_force_displ_singletrial_passive(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMfas1');
         end
         if(strcmp(dm_ROM_gmfas2_NX{line}, 'null'))
             force_gmfas_2 = zeros(0);
         else 
-            [force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2] = extract_force_displ_singletrial_passive(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMfas2');    
+            [force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2, time_gmfas_2] = extract_force_displ_singletrial_passive(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'GMfas2');    
         end
 
         % average two passive trials
@@ -312,14 +312,14 @@ function []=create_angles_passive(input_plot)
 
             end
 
-            data_gmfas = average_passive_trials(force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1, force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2);
+            data_gmfas = average_passive_trials_EMG(force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1, 0,0,0, time_gmfas_1, force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2, 0,0,0, time_gmfas_2);
         elseif(strcmp(dm_ROM_gmfas1_NX{line}, 'null')==0) % trial 1 not null
             % keep first trial
-            data_gmfas = average_passive_trials(force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1);
+            data_gmfas = average_passive_trials_EMG(force_gmfas_1, gonio_gmfas_1, angle_gmfas_1, displacement_gmfas_1, 0,0,0, time_gmfas_1);
             angle_gmfas_2 = 10000;
         else
             % keep second trial
-            data_gmfas = average_passive_trials(force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2);
+            data_gmfas = average_passive_trials_EMG(force_gmfas_2, gonio_gmfas_2, angle_gmfas_2, displacement_gmfas_2, 0,0,0, time_gmfas_2);
             angle_gmfas_1 = 10000;
         end
 
@@ -335,12 +335,12 @@ function []=create_angles_passive(input_plot)
             % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
             force_sol_1 = zeros(0);
         else 
-            [force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1] = extract_force_displ_singletrial_passive(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'sol1');
+            [force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1, time_sol_1] = extract_force_displ_singletrial_passive(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'sol1');
         end
         if(strcmp(dm_ROM_sol2_NX{line}, 'null'))
             force_sol_2 = zeros(0);
         else 
-            [force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2] = extract_force_displ_singletrial_passive(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'sol2');    
+            [force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2, time_sol_2] = extract_force_displ_singletrial_passive(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_GM, EMG_max_GL, EMG_max_SOL, dm_leg_length{line}, dm_side{line}, line, 'sol2');    
         end
 
         % average two passive trials
@@ -374,17 +374,16 @@ function []=create_angles_passive(input_plot)
 
             end
 
-            data_sol = average_passive_trials(force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1, force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2);
+            data_sol = average_passive_trials_EMG(force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1, 0,0,0, time_sol_1, force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2, 0,0,0, time_sol_2);
         elseif(strcmp(dm_ROM_sol1_NX{line}, 'null')==0)
             % keep first trial
-            data_sol = average_passive_trials(force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1);
+            data_sol = average_passive_trials_EMG(force_sol_1, gonio_sol_1, angle_sol_1, displacement_sol_1, 0,0,0, time_sol_1);
             angle_sol_2 = 10000;
         else
             % keep second trial
-            data_sol = average_passive_trials(force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2);
+            data_sol = average_passive_trials_EMG(force_sol_2, gonio_sol_2, angle_sol_2, displacement_sol_2, 0,0,0, time_sol_2);
             angle_sol_1 = 10000;
         end
-
 
 
 

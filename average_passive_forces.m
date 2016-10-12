@@ -24,6 +24,6 @@ function [output_array] = average_passive_forces(data_sol, data_gmmtj, data_gmfa
     common_force_gonio_gmfas = spline(data_gmfas(:,placement_gonio), data_gmfas(:,placement_force), average_angle_array);
     average_force_gonio = (common_force_gonio_sol + common_force_gonio_gmmtj + common_force_gonio_gmfas) / 3;
 
-    output_array = rot90([average_angle_array; average_force_gonio],3);
-    % rotate 270 degrees --> (force, angle)
+    output_array = [average_force_gonio; average_angle_array]';
+
 end

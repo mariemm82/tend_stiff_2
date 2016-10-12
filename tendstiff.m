@@ -1,4 +1,4 @@
-ut%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main file for tendon stiffness
 % Marie Moltubakk 17.5.2013
 % 
@@ -343,27 +343,6 @@ else
 end
 
 
-
-
-% ========================================
-
-%%% TODONOW
-
-% ankle moment arm from tendon excursion
-% TODO2014 now using fixed moment arm. replace 0,0 -> (noraxon_momentarm, usdata_momentarm)
-
-% alternative ankle rotation:% 
-% http://www.mathworks.se/help/matlab/ref/pchip.html
-
-
-
-% confirm conversion factors Norm
-
-
-%%% TODOLATER
-% Residual analysis to determine filters for various Norm data and US data
-% strain rate
-% if movement (variation) during first frames of US, set zero displacement elsewhere
 
 
 

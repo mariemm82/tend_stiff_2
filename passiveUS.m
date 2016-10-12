@@ -35,8 +35,9 @@ function [] = passiveUS(input_plot)
     else
         plot_individual = 0;
     end
-    plot_conversion = 0; % turn on/off plots for data conversion Norm
     plot_norm = 0; % turn on/off Norm/checkpoint data plots (LEVEL 2)
+
+    plot_conversion = 0; % turn on/off plots for data conversion Norm
     plot_us = 0; % tracked feature vs external marker 
     plot_emg = 0; % RMS 3 EMG channels per trial
     plot_achilles = 0; % turn on/off Achilles machine plots

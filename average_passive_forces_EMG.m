@@ -48,6 +48,5 @@ function [output_array] = average_passive_forces_EMG(data_SOL, data_GMMTJ, data_
     common_emg_gl_gonio_GMFAS = spline(data_GMFAS(:,placement_gonio), data_GMFAS(:,placement_emg_gl), average_angle_array);
     average_emg_gl_gonio = (common_emg_gl_gonio_SOL + common_emg_gl_gonio_GMMTJ + common_emg_gl_gonio_GMFAS) / 3;
     
-    output_array = rot90([average_emg_sol_gonio; average_emg_gl_gonio; average_emg_gm_gonio; average_angle_array; average_force_gonio],3);
-    % rotate 270 degrees --> (force, gonio, (no displ), gm, gl, sol)
+    output_array = [average_force_gonio; average_angle_array; average_emg_gm_gonio; average_emg_gl_gonio; average_emg_sol_gonio]';
 end

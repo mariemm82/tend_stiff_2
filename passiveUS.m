@@ -753,7 +753,7 @@ function [] = passiveUS(input_plot)
         out_F_ind_max = data_force_gonio(loc_frame,col_force);
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_common_max,1,'first'); 
         out_F_common_max = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle)>=0,1,'first'); % zero angle   % MMM TODO of zero angle does not exist?
+        loc_frame = find(data_force_gonio(:,col_angle)>=0,1,'first'); % zero angle
         out_F_zero = data_force_gonio(loc_frame,col_force);
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_1,1,'first'); 
         out_F_submax_1 = data_force_gonio(loc_frame,col_force);
@@ -1023,7 +1023,14 @@ function [] = passiveUS(input_plot)
         %       ind L max force
         %   extracting gonio angle in degrees --- MMM TODO - add %-wise angle data here??
         
-        % data = input_for_pre_r input_for_pre_l input_for_post_r input_for_post_l input_for_ind_max input_for_common_max input_for_ind_rmax input_for_ind_lmax
+        % data = input_for_pre_r 
+        %        input_for_pre_l 
+        %        input_for_post_r 
+        %        input_for_post_l 
+        %        input_for_ind_max 
+        %        input_for_common_max 
+        %        input_for_ind_rmax 
+        %        input_for_ind_lmax
         
         % print error if forces do not exist --> create_angles_passive needs to be run
         if str2double(input_for_ind_max{subjectno}) == 10000
@@ -1183,9 +1190,9 @@ function [] = passiveUS(input_plot)
                 spline(BD_angle_vars_norm{1,BD_count}(:,1), BD_angle_vars_norm{1,BD_count}(:,12), 0:0.05:100)', ...
                 spline(BD_angle_vars_norm{1,BD_count}(:,1), BD_angle_vars_norm{1,BD_count}(:,13), 0:0.05:100)'];
             
-            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
-            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
-            BD_angle_vars_norm_gonio_ind{BD_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
+%            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
+%            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+%            BD_angle_vars_norm_gonio_ind{BD_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
             
                         
             
@@ -1240,9 +1247,9 @@ function [] = passiveUS(input_plot)
                 spline(CON_angle_vars_norm{1,CON_count}(:,1), CON_angle_vars_norm{1,CON_count}(:,12), 0:0.05:100)', ...
                 spline(CON_angle_vars_norm{1,CON_count}(:,1), CON_angle_vars_norm{1,CON_count}(:,13), 0:0.05:100)'];
             
-            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
-            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
-            CON_angle_vars_norm_gonio_ind{CON_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
+%            % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - PER SUBJECT 
+%            length_reshaped = linspace(1, length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+%            CON_angle_vars_norm_gonio_ind{CON_count} = spline((1:length(data_force_gonio(loc_angle_start:loc_angle_stop,col_angle))), data_force_gonio(loc_angle_start:loc_angle_stop,col_angle), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
         end
         
         
@@ -1753,7 +1760,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -1767,7 +1774,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
-            axis([-2 35 0 100]) %VAR
+            axis([-2 35 0 110]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -1781,7 +1788,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,2))
             end
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -1795,7 +1802,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,2))
             end
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -1860,7 +1867,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -1874,7 +1881,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
-            axis([-2 35 0 100]) %VAR
+            axis([-2 35 0 110]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -1888,7 +1895,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,13))
             end
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -1902,7 +1909,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,13))
             end
-            axis([-1 100 0 100]) %VAR
+            axis([-1 100 0 110]) %VAR
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -1928,7 +1935,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_L_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 110]) %VAR
+            axis([-2 35 0 120]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -1942,7 +1949,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,10))
             end
-            axis([-2 35 0 110]) %VAR
+            axis([-2 35 0 120]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -1956,7 +1963,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,10))
             end
-              axis([-2 35 0 110]) %VAR
+              axis([-2 35 0 120]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -1984,6 +1991,8 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,10),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,10),'b','LineWidth',2)
+            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,10)), BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,10)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with Mean&SD of elongation (%) at ind max ROM?
             axis([-2 35 -1 22]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')
@@ -2146,6 +2155,8 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,11),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,11),'b','LineWidth',2)
+            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,11)), BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,11)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with appropriate average?
             axis([-2 35 -1 6]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')
@@ -2362,6 +2373,8 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
+            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,12)), BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,12)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with appropriate average?
             axis([-2 35 0 6]) %VAR
             xlabel('Gonio angle (deg)')
             ylabel('Elongation (% of initial length)')

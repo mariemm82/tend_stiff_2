@@ -10,7 +10,8 @@
 
 
 function [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(subjectno, side, timepoint, line, act_or_pas)
-global dm_CPM_calc_NX dm_CPM_sol_NX % dm_MVC_PF dm_MVC_DF  dm_CPM_calc_US dm_CPM_calc_US_frame  dm_CPM_sol_US dm_CPM_sol_US_frame
+global dm_isokinP30 dm_isokinP45 dm_CPM_calc_NX dm_CPM_sol_NX
+global dm_isomet_P10_1 dm_isomet_P10_2 dm_isomet_D00_1 dm_isomet_D00_2 dm_isomet_D05_1 dm_isomet_D05_2 dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
 global filepath
 
 % input:
@@ -50,7 +51,6 @@ global angle_cutoff velocity_cutoff angle_cutoff_active velocity_cutoff_active %
 
 
 if strcmpi(act_or_pas,'passive') == 1
-    dm_trial = 'PASSIVE';
     % using two CPM trials (from scans on SOL and CALC) for conversion
     
     
@@ -117,7 +117,6 @@ if strcmpi(act_or_pas,'passive') == 1
     
     
 elseif strcmpi(act_or_pas,'stiffness') == 1
-    dm_trial = 'STIFFNESS';
     % stiffness analyses only need ANGLE data. Using two CPM trials (from scans on SOL and CALC) for conversion.
     
     %%% Calculate individual Norm conversion factors (y = ax + b) for ANGLE
@@ -145,44 +144,40 @@ elseif strcmpi(act_or_pas,'stiffness') == 1
     
     
     
-else % ACTIVE
-    dm_trial = 'ACTIVE';
-    %%% note MMM 01.08.2016  ---- TODO MMM
-    %%% analyses for active trials not completed
-    %%% references to files from which conversion factors will be computed
-    %%% should be modified.
-    %%% should probably replace:
-        % horzcat('data_convert\', dm_isokin45_NX))
-        % horzcat(filepath, dm_isokin45_NX{line}), side)
     
-    %%% this is the old, manual method:
-    %%% retrieve names of files to be used for Norm volt to values conversion
-    if strcmpi(subjectno,'1') == 1 && strcmpi(side,'L') == 1 && strcmpi(timepoint,'POST') == 1
-        dm_isokin45_NX = '01_POST_isokinetic_5L_trial3.tsv';
-    else
-        % error!!!
-    end
+    
+else % ACTIVE
+    % file/velocity options: dm_isokinD30 dm_isokinP30 dm_isokinP45 dm_isokinP60 dm_isokinP90
+    file = horzcat(filepath, dm_isokinP45{line});
+    velocity = 45;
+    % file options ISOMETRIC: global dm_isomet_P10_1 dm_isomet_P10_2 dm_isomet_D00_1 dm_isomet_D00_2 dm_isomet_D05_1 dm_isomet_D05_2 dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
+    file1 = horzcat(filepath, dm_isomet_P10_2{line});
+    file2 = horzcat(filepath, dm_isomet_D00_2{line});
     
     
     
     
     %%% Calculate individual Norm offset for DIRECTION
-    convert_norm_direction_b = calculate_direction_constants(horzcat('data_convert\', dm_isokin45_NX));
+    convert_norm_direction_b = calculate_direction_constants(file);
     
+
     
-    
-    
-    %%% Calculate individual Norm conversion factors (y = ax + b) for ANGLE
+%    %%% Calculate individual Norm conversion factors (y = ax + b) for ANGLE
+
+%    2016-11-FG02: REMOVED use of angle constants from isokinetic file. There
+%    is no guarantee that each subject performed the test to maximal
+%    dorsiflexion angle. Changed to isometric trials.
+
     % Reads raw data from Norm, filter
     % Produces individual conversion factors for angle, prints report
-    [convert_norm_angle_a, convert_norm_angle_b] = calculate_angle_constants_active(angle_cutoff_active, horzcat('data_convert\', dm_isokin45_NX));
+    [convert_norm_angle_a, convert_norm_angle_b] = calculate_angle_constants_active(angle_cutoff_active, file1, file2, side);
     
     
-    
+        
     %%% Calculate individual Norm conversion factors (y = ax + b) for VELOCITY
     % Reads raw data from Norm, filter
     % Produces individual conversion factors for velocity, prints report
-    [convert_norm_velocity_a, convert_norm_velocity_b] = calculate_velocity_constants_active(velocity_cutoff_active, horzcat('data_convert\', dm_isokin45_NX));
+    [convert_norm_velocity_a, convert_norm_velocity_b] = calculate_velocity_constants_active(velocity_cutoff_active, file, side, velocity);
     
     
     
@@ -195,9 +190,12 @@ else % ACTIVE
     convert_norm_torque_a = norm_volt_per_nm_a;
     
     % make an array of the three mV values for B constants from direction 7, angle 2, velocity 6
-    convert_ind_torque_b_volt = [convert_norm_direction_b convert_norm_angle_b/convert_norm_angle_a convert_norm_velocity_b/convert_norm_velocity_a];
+    % MMM TODO? include conversion factors from ANGLE in line below?
+    convert_ind_torque_b_volt = [convert_norm_direction_b convert_norm_velocity_b/convert_norm_velocity_a]; % removed 2016-11-02: convert_norm_angle_b/convert_norm_angle_a
     % create new B constant by combining offset from Noraxon (in mv * A constant) with default offset from Norm system (in mv * A constant)
     convert_norm_torque_b = (mean(convert_ind_torque_b_volt) * norm_volt_per_nm_a) + norm_volt_per_nm_b;
+    
+    
     
     % output torque conversion numbers to screen, as text
     cprintf('magenta', horzcat('INDI Torque conversion factors: a = ', num2str(convert_norm_torque_a), ', b = ', num2str(convert_norm_torque_b), '. Offset in millivolt = ', num2str(mean(convert_ind_torque_b_volt)), ' mV.\n' ));

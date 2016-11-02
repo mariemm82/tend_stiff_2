@@ -10,9 +10,8 @@
 
 
 
-function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_constants_active(freq_cutoff, inputfile)
+function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_constants_active(freq_cutoff, inputfile, side, velocity)
     global plot_conversion plot_check subject_id
-    global dm_side
     global column_norm_velocity
     global norm_volt_per_degree norm_volt_per_nm norm_volt_per_velocity norm_mv2nm_a norm_mv2nm_b
     
@@ -107,14 +106,14 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     %%% Calculate conversion - section that is common for both methods
     
     % choose only highest and lowest average volt values (REAL constant velocity phases)
-    voltvalues_sort = sort(voltvalues);
+    voltvalues_sort = sort(voltvalues(1:end-1)); %discarding LAST volt value, as this one sometimes includes a "swinging tail" at end of data
     len = length(voltvalues_sort);
     tolerance_mV = 0.97; %VAR - how many % mV of the largest/smallest mV phase to accept as another valid phase (phase = max dorsiflexion / max plantarflexion)
 %    tolerance_to_zero = 200; %VAR - mV from extreme value to zero
     
     % movement into plantar flexion
 %    y1 = +45;
-    if dm_side == 'L' % PF = low (first) values, zero = high values
+    if side == 'L' % PF = low (first) values, zero = high values
         if voltvalues_sort(3) < voltvalues_sort(1) * tolerance_mV
             x1_array = voltvalues_sort(1:3);
             x1_no = 3;
@@ -140,7 +139,7 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     
     % pauses at zero velocity
 %    y2 = 0;
-    if dm_side == 'L' % PF = low (first) values, zero = high values
+    if side == 'L' % PF = low (first) values, zero = high values
         x2_no = 1;
         i = x1_no+1;
         x2_array = [0 0 0];
@@ -163,7 +162,6 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
             i = i - 1;
         end
     end
-    % TODO MMM shave off excessive zero values? if 8 values are detected, delete those outside x% of mean value...? 
     x1 = mean(x1_array);
     x2 = mean(x2_array);
     
@@ -219,17 +217,17 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     
     % movement into plantarflexion
     % x1 - from common section
-    if dm_side == 'L'
-        y1 = -45;
+    if side == 'L'
+        y1 = -velocity;
     else
-        y1 = 45;
+        y1 = velocity;
     end
     z1 = y1 * norm_volt_per_velocity;
     q1 = x1 - z1;
     
     % stop phases at zero velocity
     % x2 - from common section
-    if dm_side == 'L'
+    if side == 'L'
         y2 = 0;
     else
         y2 = 0;
@@ -237,7 +235,7 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     z2 = y2 * norm_volt_per_velocity;
     q2 = x2 - z2;
     
-    if dm_side == 'L'
+    if side == 'L'
         convert_ind_velocity_a = -1/norm_volt_per_velocity;
         convert_ind_velocity_b = ((q1 + q2)/2) / norm_volt_per_velocity;
     else % R side

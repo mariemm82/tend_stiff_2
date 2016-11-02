@@ -72,7 +72,7 @@ function [convert_ind_direction_b_volt] = calculate_direction_constants(inputfil
     
     %%% plot phases
     if plot_check && plot_conversion
-        plottitle = horzcat('CPM direction zone check for ', subject_id);
+        plottitle = horzcat('Norm DIRECTION zone check for ', subject_id);
         figure('Name', plottitle)
         plot(norm_direction,'b')
         hold on
@@ -81,7 +81,6 @@ function [convert_ind_direction_b_volt] = calculate_direction_constants(inputfil
             plot ([phases(i,2) phases(i,2)], [min(norm_direction) max(norm_direction)],'r')
         end
         xlabel('Time (frames)'),ylabel('Angle (mV)'),title(plottitle);
-        % legend('CPM','Location','Southeast');
     end
     
     

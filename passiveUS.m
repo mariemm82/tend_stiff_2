@@ -1463,10 +1463,12 @@ function [] = passiveUS(input_plot)
     if BD_count > 0
         % preallocate array
         BD_max(BD_count,n_o_array_elements) = zeros;
+        BD_max_norm(BD_count,n_o_array_elements) = zeros;
         % collect variables per subject
         for i = 1:BD_count % per subject
             for j = 1:n_o_array_elements % per element in arrays
                 BD_max(i,j) = max(BD_angle_vars{1,i}(:,j));
+                BD_max_norm(i,j) = max(BD_angle_vars_norm{1,i}(:,j));
             end
         end
         % calculate mean and SD of max values across subjects
@@ -1496,6 +1498,17 @@ function [] = passiveUS(input_plot)
         BD_L_MTU_SD = std(BD_max(:,12));
         BD_torque_mean = mean(BD_max(:,13));
         BD_torque_SD = std(BD_max(:,13));
+%         % calculate mean and SD of max values across subjects - NORMALIZED
+%         BD_F_norm_mean = mean(BD_max_norm(:,2));
+%         BD_F_norm_SD = std(BD_max_norm(:,2));
+%         BD_torque_norm_mean = mean(BD_max_norm(:,13));
+%         BD_torque_norm_SD = std(BD_max_norm(:,13));
+%         BD_L_norm_at_SOL_mean = mean(BD_max_norm(:,10));
+%         BD_L_norm_at_SOL_SD = std(BD_max_norm(:,10));
+%         BD_L_norm_at_GM_mean = mean(BD_max_norm(:,11));
+%         BD_L_norm_at_GM_SD = std(BD_max_norm(:,11));
+%         BD_L_norm_MTU_mean = mean(BD_max_norm(:,12));
+%         BD_L_norm_MTU_SD = std(BD_max_norm(:,12));
         % determine common angle range
         BD_common_ROM = min(BD_max(:,1));
     end
@@ -1503,10 +1516,12 @@ function [] = passiveUS(input_plot)
     if CON_count > 0
         % preallocate array
         CON_max(CON_count,n_o_array_elements) = zeros;
+        CON_max_norm(CON_count,n_o_array_elements) = zeros;
         % collect variables per subject
         for i = 1:CON_count % per subject
             for j = 1:n_o_array_elements % per element in arrays
                 CON_max(i,j) = max(CON_angle_vars{1,i}(:,j));
+                CON_max_norm(i,j) = max(CON_angle_vars_norm{1,i}(:,j));
             end
         end
         % calculate mean and SD of max values across subjects
@@ -1536,7 +1551,17 @@ function [] = passiveUS(input_plot)
         CON_L_MTU_SD = std(CON_max(:,12));
         CON_torque_mean = mean(CON_max(:,13));
         CON_torque_SD = std(CON_max(:,13));
-        
+%         % calculate mean and SD of max values across subjects - NORMALIZED
+%         CON_F_norm_mean = mean(CON_max_norm(:,2));
+%         CON_F_norm_SD = std(CON_max_norm(:,2));
+%         CON_torque_norm_mean = mean(CON_max_norm(:,13));
+%         CON_torque_norm_SD = std(CON_max_norm(:,13));
+%         CON_L_norm_at_SOL_mean = mean(CON_max_norm(:,10));
+%         CON_L_norm_at_SOL_SD = std(CON_max_norm(:,10));
+%         CON_L_norm_at_GM_mean = mean(CON_max_norm(:,11));
+%         CON_L_norm_at_GM_SD = std(CON_max_norm(:,11));
+%         CON_L_norm_MTU_mean = mean(CON_max_norm(:,12));
+%         CON_L_norm_MTU_SD = std(CON_max_norm(:,12));
         % determine common angle range
         CON_common_ROM = min(CON_max(:,1));
     end
@@ -1622,10 +1647,11 @@ function [] = passiveUS(input_plot)
             BD_angle_vars_mean_tmp(:,:,i) = BD_angle_vars{i}(1:loc_end,:);
         end
         BD_angle_vars_mean = nanmean(BD_angle_vars_mean_tmp, 3);
+        BD_angle_vars_SD = nanstd(BD_angle_vars_mean_tmp,1,3);
         
-        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
-        length_reshaped = linspace(1, length(BD_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
-        BD_angle_vars_norm_gonio = spline((1:length(BD_angle_vars_mean(:,1))), BD_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
+%        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
+%        length_reshaped = linspace(1, length(BD_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+%        BD_angle_vars_norm_gonio = spline((1:length(BD_angle_vars_mean(:,1))), BD_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
     end
     
     if CON_count > 0
@@ -1644,10 +1670,11 @@ function [] = passiveUS(input_plot)
             CON_angle_vars_mean_tmp(:,:,i) = CON_angle_vars{i}(1:loc_end,:);
         end
         CON_angle_vars_mean = nanmean(CON_angle_vars_mean_tmp, 3);
+        CON_angle_vars_SD = nanstd(CON_angle_vars_mean_tmp,1,3);
         
-        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
-        length_reshaped = linspace(1, length(CON_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
-        CON_angle_vars_norm_gonio = spline((1:length(CON_angle_vars_mean(:,1))), CON_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
+%        % reshape raw gonio to length of normalized data, for plotting raw X, normalized Y - AVERAGED VALUE
+%        length_reshaped = linspace(1, length(CON_angle_vars_mean(:,1)), 2001); %VAR - 2001 is the number of values in (0:0.05:100)
+%        CON_angle_vars_norm_gonio = spline((1:length(CON_angle_vars_mean(:,1))), CON_angle_vars_mean(:,1), length_reshaped); % orig X axis (1,2,3...), orig Y-axis (orig gonio), new X-axis (from linspace)
     end
     
     
@@ -1767,20 +1794,25 @@ function [] = passiveUS(input_plot)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
-    if BD_count > 1 && CON_count > 1 && plot_check            
-            % NORMALIZED ONLY Y AXIS
-            plottitle = horzcat('GRP force vs angle - 4B NORMALIZED Y AXIS');
-            figure('Name',plottitle)
-            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
-            hold on
-            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
-            axis([-2 35 0 110]) %VAR
-            xlabel('Gonio angle (deg)')
-            ylabel('Force (% of ind max)')
-            title(plottitle)
-            legend('Dancer avg', 'Control avg','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+%     if BD_count > 1 && CON_count > 1 && plot_check            
+%             % NORMALIZED ONLY Y AXIS
+%             %%% NB MMM X axis is not realistic - e.g. 10 degrees represents an average of many different angle values (really 50% of full ROM)
+%             plottitle = horzcat('GRP force vs angle - 4B NORMALIZED Y AXIS'); 
+%             figure('Name',plottitle)
+%             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
+%             hold on
+%             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
+%             errorbar(BD_ROM_mean, BD_F_norm_mean, BD_F_norm_SD, '*r', 'MarkerFaceColor', 'r')
+%             errorbar(CON_ROM_mean, CON_F_norm_mean, CON_F_norm_SD, '*b', 'MarkerFaceColor', 'b')
+%             herrorbar(BD_ROM_mean, BD_F_norm_mean, BD_ROM_SD, '*r')
+%             herrorbar(CON_ROM_mean, CON_F_norm_mean, CON_ROM_SD, '*b')
+%             axis([-2 35 0 110]) %VAR
+%             xlabel('Gonio angle (deg)')
+%             ylabel('Force (% of ind max)')
+%             title(plottitle)
+%             legend('Dancer avg', 'Control avg','Location','Northwest')
+%             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%     end
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP force vs angle - 5 NORMALIZED IND, dancers');
             figure('Name',plottitle)
@@ -1874,20 +1906,25 @@ function [] = passiveUS(input_plot)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
-    if BD_count > 1 && CON_count > 1 && plot_check
-            % NORMALIZED ONLY Y AXIS
-            plottitle = horzcat('GRP torque vs angle - 4B NORMALIZED Y AXIS');
-            figure('Name',plottitle)
-            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
-            hold on
-            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
-            axis([-2 35 0 110]) %VAR
-            xlabel('Gonio angle (deg)')
-            ylabel('Torque (% of ind max)')
-            title(plottitle)
-            legend('Dancer avg', 'Control avg','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+%     if BD_count > 1 && CON_count > 1 && plot_check
+%             % NORMALIZED ONLY Y AXIS
+%             %%% NB MMM X axis is not realistic - e.g. 10 degrees represents an average of many different angle values (really 50% of full ROM)
+%             plottitle = horzcat('GRP torque vs angle - 4B NORMALIZED Y AXIS');
+%             figure('Name',plottitle)
+%             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
+%             hold on
+%             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
+%             errorbar(BD_ROM_mean, BD_torque_norm_mean, BD_torque_norm_SD, '*r', 'MarkerFaceColor', 'r')
+%             errorbar(CON_ROM_mean, CON_torque_norm_mean, CON_torque_norm_SD, '*b', 'MarkerFaceColor', 'b')
+%             herrorbar(BD_ROM_mean, BD_torque_norm_mean, BD_ROM_SD, '*r')
+%             herrorbar(CON_ROM_mean, CON_torque_norm_mean, CON_ROM_SD, '*b')
+%             axis([-2 35 0 110]) %VAR
+%             xlabel('Gonio angle (deg)')
+%             ylabel('Torque (% of ind max)')
+%             title(plottitle)
+%             legend('Dancer avg', 'Control avg','Location','Northwest')
+%             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%     end
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP torque vs angle - 5 NORMALIZED IND, dancers');
             figure('Name',plottitle)
@@ -1984,22 +2021,25 @@ function [] = passiveUS(input_plot)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
-    if BD_count > 1 && CON_count > 1 && plot_check
-            % NORMALIZED ONLY Y AXIS
-            plottitle = horzcat('GRP length free AT vs angle - 4B NORMALIZED Y AXIS');
-            figure('Name',plottitle)
-            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,10),'r','LineWidth',2)
-            hold on
-            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,10),'b','LineWidth',2)
-            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,10)), BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,10)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with Mean&SD of elongation (%) at ind max ROM?
-            axis([-2 35 -1 22]) %VAR
-            xlabel('Gonio angle (deg)')
-            ylabel('Elongation (% of initial length)')
-            title(plottitle)
-            legend('Dancer avg', 'Control avg','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+%     if BD_count > 1 && CON_count > 1 && plot_check
+%             % NORMALIZED ONLY Y AXIS
+%             %%% NB MMM X axis is not realistic - e.g. 10 degrees represents an average of many different angle values (really 50% of full ROM)
+%             plottitle = horzcat('GRP length free AT vs angle - 4B NORMALIZED Y AXIS');
+%             figure('Name',plottitle)
+%             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,10),'r','LineWidth',2)
+%             hold on
+%             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,10),'b','LineWidth',2)
+%             errorbar(BD_ROM_mean, BD_L_norm_at_SOL_mean, BD_L_norm_at_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+%             errorbar(CON_ROM_mean, CON_L_norm_at_SOL_mean, CON_L_norm_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+%             herrorbar(BD_ROM_mean, BD_L_norm_at_SOL_mean, BD_ROM_SD, '*r')
+%             herrorbar(CON_ROM_mean, CON_L_norm_at_SOL_mean, CON_ROM_SD, '*b')
+%             axis([-2 35 -1 22]) %VAR
+%             xlabel('Gonio angle (deg)')
+%             ylabel('Elongation (% of initial length)')
+%             title(plottitle)
+%             legend('Dancer avg', 'Control avg','Location','Northwest')
+%             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%     end
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP length free AT vs angle - 5 NORMALIZED IND, dancers');
             figure('Name',plottitle)
@@ -2148,22 +2188,25 @@ function [] = passiveUS(input_plot)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
-    if BD_count > 1 && CON_count > 1 && plot_check
-            % NORMALIZED ONLY Y AXIS
-            plottitle = horzcat('GRP length aponeur. (isolated) vs angle - 4B NORMALIZED Y AXIS');
-            figure('Name',plottitle)
-            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,11),'r','LineWidth',2)
-            hold on
-            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,11),'b','LineWidth',2)
-            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,11)), BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,11)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with appropriate average?
-            axis([-2 35 -1 6]) %VAR
-            xlabel('Gonio angle (deg)')
-            ylabel('Elongation (% of initial length)')
-            title(plottitle)
-            legend('Dancer avg', 'Control avg','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+%     if BD_count > 1 && CON_count > 1 && plot_check
+%             % NORMALIZED ONLY Y AXIS
+%             %%% NB MMM X axis is not realistic - e.g. 10 degrees represents an average of many different angle values (really 50% of full ROM)
+%             plottitle = horzcat('GRP length aponeur. (isolated) vs angle - 4B NORMALIZED Y AXIS');
+%             figure('Name',plottitle)
+%             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,11),'r','LineWidth',2)
+%             hold on
+%             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,11),'b','LineWidth',2)
+%             errorbar(BD_ROM_mean, BD_L_norm_at_GM_mean, BD_L_norm_at_GM_SD, '*r', 'MarkerFaceColor', 'r')
+%             errorbar(CON_ROM_mean, CON_L_norm_at_GM_mean, CON_L_norm_at_GM_SD, '*b', 'MarkerFaceColor', 'b')
+%             herrorbar(BD_ROM_mean, BD_L_norm_at_GM_mean, BD_ROM_SD, '*r')
+%             herrorbar(CON_ROM_mean, CON_L_norm_at_GM_mean, CON_ROM_SD, '*b')
+%             axis([-2 35 -1 6]) %VAR
+%             xlabel('Gonio angle (deg)')
+%             ylabel('Elongation (% of initial length)')
+%             title(plottitle)
+%             legend('Dancer avg', 'Control avg','Location','Northwest')
+%             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%     end
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP length aponeur. (isolated) vs angle - 5 NORMALIZED IND, dancers');
             figure('Name',plottitle)
@@ -2366,22 +2409,25 @@ function [] = passiveUS(input_plot)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
-    if BD_count > 1 && CON_count > 1 && plot_check
-            % NORMALIZED ONLY Y AXIS
-            plottitle = horzcat('GRP length full MTU vs angle - 4B NORMALIZED Y AXIS');
-            figure('Name',plottitle)
-            plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
-            hold on
-            plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
-            herrorbar(BD_ROM_mean, max(BD_angle_vars_norm_mean(:,12)), BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, max(CON_angle_vars_norm_mean(:,12)), CON_ROM_SD, '*b') % TODO MMM? replace Y axis value with appropriate average?
-            axis([-2 35 0 6]) %VAR
-            xlabel('Gonio angle (deg)')
-            ylabel('Elongation (% of initial length)')
-            title(plottitle)
-            legend('Dancer avg', 'Control avg','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+%     if BD_count > 1 && CON_count > 1 && plot_check
+%             % NORMALIZED ONLY Y AXIS
+%             %%% NB MMM X axis is not realistic - e.g. 10 degrees represents an average of many different angle values (really 50% of full ROM)
+%             plottitle = horzcat('GRP length full MTU vs angle - 4B NORMALIZED Y AXIS');
+%             figure('Name',plottitle)
+%             plot(BD_angle_vars_norm_gonio, BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
+%             hold on
+%             plot(CON_angle_vars_norm_gonio, CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
+%             errorbar(BD_ROM_mean, BD_L_norm_MTU_mean, BD_L_norm_MTU_SD, '*r', 'MarkerFaceColor', 'r') %%% is this MMM TODO aponeur ONLY?
+%             errorbar(CON_ROM_mean, CON_L_norm_MTU_mean, CON_L_norm_MTU_SD, '*b', 'MarkerFaceColor', 'b')
+%             herrorbar(BD_ROM_mean, BD_L_norm_MTU_mean, BD_ROM_SD, '*r')
+%             herrorbar(CON_ROM_mean, CON_L_norm_MTU_mean, CON_ROM_SD, '*b')
+%             axis([-2 35 0 6]) %VAR
+%             xlabel('Gonio angle (deg)')
+%             ylabel('Elongation (% of initial length)')
+%             title(plottitle)
+%             legend('Dancer avg', 'Control avg','Location','Northwest')
+%             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%     end
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP length full MTU vs angle - 5 NORMALIZED IND, dancers');
             figure('Name',plottitle)
@@ -2463,6 +2509,47 @@ function [] = passiveUS(input_plot)
             %legend
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
+    
+    
+
+    
+    % lengths ALL MTU components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP length ALL MTU components vs angle - 1 ABSOLUTE');
+            figure('Name',plottitle)
+            hold on
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,12),'r','LineWidth',2) % full MTU
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,11),'r','LineWidth',2) % GM
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,10),'r','LineWidth',2) % SOL
+            
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12),'b','LineWidth',2) % full MTU
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,11),'b','LineWidth',2) % GM
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,10),'b','LineWidth',2) % SOL
+            
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,12)+BD_angle_vars_SD(:,12),'r','LineWidth',0.25)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,12)-BD_angle_vars_SD(:,12),'r','LineWidth',0.25)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,11)+BD_angle_vars_SD(:,11),'r','LineWidth',0.25)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,11)-BD_angle_vars_SD(:,11),'r','LineWidth',0.25)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,10)+BD_angle_vars_SD(:,10),'r','LineWidth',0.25)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,10)-BD_angle_vars_SD(:,10),'r','LineWidth',0.25)
+
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12)+CON_angle_vars_SD(:,12),'b','LineWidth',0.25)
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12)-CON_angle_vars_SD(:,12),'b','LineWidth',0.25)
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,11)+CON_angle_vars_SD(:,11),'b','LineWidth',0.25)
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,11)-CON_angle_vars_SD(:,11),'b','LineWidth',0.25)
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,10)+CON_angle_vars_SD(:,10),'b','LineWidth',0.25)
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,10)-CON_angle_vars_SD(:,10),'b','LineWidth',0.25)
+            
+            axis([-2 22 -0 500]) %VAR
+            xlabel('Gonio angle (deg)')
+            ylabel('Length (mm)')
+            title(plottitle)
+            legend('Dancer MTU', 'Dancer GM apo','Dancer free AT','Control MTU','Control GM apo','Control free AT','Location','Southeast')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+    
+    
     
    
     

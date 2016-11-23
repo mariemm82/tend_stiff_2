@@ -109,14 +109,14 @@ function [] = strength_analysis(input_plot)
     global filepath
     dm_filename = 'data_strength/datamaster_strength.tsv';
     dm_columns = 22; % number of data columns entered per subject % PROJECTSPECIFIC
-    linestotal = read_datamaster_strength(dm_filename,dm_columns); % MMM TODO
+    linestotal = read_datamaster_strength(dm_filename,dm_columns);
     
     
     
     
+    % MMM TODO
     %%% preallocate output arrays
     % common arrays for all subjects:
-    % MMM TODO
     all_strength_output = zeros(ceil(linestotal),50); 
     all_strength_output_txt = cell(ceil(linestotal),4);
 
@@ -225,9 +225,10 @@ function [] = strength_analysis(input_plot)
         for i = 1:length(isokinetic_data)
             if(strcmpi(isokinetic_data{i}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
+                isokinetic_torque_angle_work(i,1) = 0;
             else 
                 [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i});
-                % torque, angle, velocity, work, arrays
+                % torque, angle, velocity, work, data arrays
             end
         end
         
@@ -253,6 +254,7 @@ function [] = strength_analysis(input_plot)
         if plot_check
             plottitle = horzcat('Isokinetic PLANTAR FLEXION torque/velocity ', subject_id);
             figure('Name',plottitle)
+            plot(isokinetic_torque_angle_work(1,3), isokinetic_torque_angle_work(1,1), 'LineStyle','none','Marker','o','MarkerSize',6) % dorsiflexion - tweak to get colors of remaining lines to match other plots
             hold on
             for i = 2:length(isokinetic_torque_angle_work) % not including first entry (dorsiflexion)
                 plot(isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,1), 'LineStyle','none','Marker','o','MarkerSize',6)
@@ -263,16 +265,17 @@ function [] = strength_analysis(input_plot)
             xlabel('Velocity (deg/s)')
             ylabel('Isokinetic peak torque (Nm)')
             title(plottitle)
-            legend(isokinetic_labels(2:end),'location','SouthWest')
+            legend(isokinetic_labels(1:end),'location','SouthWest')
             % saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         
         
-        % MMM TODO GOON further calculations
+        % MMM TODO GOON
+        % further calculations and averages for isokinetic output
         
         
         
-    
+        
         
         
 
@@ -300,7 +303,12 @@ function [] = strength_analysis(input_plot)
         if plot_check
             plottitle = horzcat('Isometric torque-angle ', subject_id);
             figure('Name',plottitle)
-            plot(isometric_torque_angle(:,2), isometric_torque_angle(:,1), 'LineStyle','none','Marker','o','MarkerSize',6)
+            hold on
+            for i = 1:length(isometric_torque_angle(:,2))
+                if isometric_torque_angle(i,1) ~= 0
+                    plot(isometric_torque_angle(i,2), isometric_torque_angle(i,1), 'LineStyle','none','Marker','o','MarkerSize',6)
+                end
+            end
             axis([-17 12 min(isometric_torque_angle(:,1))*.9 max(isometric_torque_angle(:,1))*1.1]) %VAR
             ax = gca;
             set(ax, 'xdir','reverse')
@@ -316,15 +324,8 @@ function [] = strength_analysis(input_plot)
         
         
         break
-        
-        
-        
-        
-        
-        
-        
-
-        
+        % MMM TODO GOON
+        % final output data
         
             
             % all data in ONE cell, common angles, RAW data:
@@ -350,7 +351,7 @@ function [] = strength_analysis(input_plot)
         
         
         %%% OUTPUT final individual data to file
-        % MMM TODO  - below are just examples from PASSIVE
+        % MMM TODO GOON - below are just examples from PASSIVE
         
         % add data to a common array for all subjects    
         i = 1;

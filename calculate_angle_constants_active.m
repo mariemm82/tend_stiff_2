@@ -43,9 +43,12 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
         norm_angle_filtered = norm_angle_filtered + angle_offset_180;
         %norm_angle_raw = noraxondata.data(:,column_norm_angle) + angle_offset_180;
     end
+
     
-    %norm_velocity = noraxondata.data(:,column_norm_velocity);
     
+    
+    
+        
     
     
     %%% Identify movement phases and stop phases
@@ -76,11 +79,10 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     %%% plot phases
     
     if plot_check && plot_conversion
-        plottitle = horzcat('Isometric ANGLE zone check, ', subject_id);
+        plottitle = horzcat('Isometric ANGLE zone check 1, ', subject_id);
         figure('Name', plottitle)
         plot(norm_angle_filtered,'b')
         hold on
-        %plot(norm_velocity,'y')
         plot ([loc_frame loc_frame], [min(norm_angle_filtered) max(norm_angle_filtered)],'g')
         plot ([loc_frame+framestep loc_frame+framestep], [min(norm_angle_filtered) max(norm_angle_filtered)],'g')
         plot ([loc_frame+framestep+frameuse loc_frame+framestep+frameuse], [min(norm_angle_filtered) max(norm_angle_filtered)],'r')
@@ -148,7 +150,7 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     %%% plot phases
     
     if plot_check && plot_conversion
-        plottitle = horzcat('Isometric ANGLE zone check, ', subject_id);
+        plottitle = horzcat('Isometric ANGLE zone check 2, ', subject_id);
         figure('Name', plottitle)
         plot(norm_angle_filtered,'b')
         hold on
@@ -168,8 +170,8 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     
     %%%%%%%%%%%%%%%%%%%% CALCULATE RANGE/SCALE
     % input files =
-    % 1 - plantar 10
-    % 2 - dorsi 0
+    % 1 - plantar 10 degrees
+    % 2 - dorsi 0 degrees
     
     %%% Calculate conversion - new method, using Norm standard
     

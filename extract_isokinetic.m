@@ -24,6 +24,69 @@ function [torque_max, angle_at_torque_max, velocity_at_torque_max, work, array_o
     array_velocity = noraxon_prepped(:,column_norm_velocity);
     array_output = [array_torque array_angle];
     
+    
+    % separate trials, additional filter per trial (electrical noise removal)
+    
+    % identify movement phases
+    [~,loc_peaks] = findpeaks(array_angle,'MinPeakDistance',100);
+    
+    % TODO MMM: Remove multiple peaks at same level, remove "peaks" at mid
+    % value (near angle = zero), etc
+    
+    if length(loc_peaks) < 7
+        % add final part of dorsiflexion phase
+        loc_peaks(7) = length(array_angle);
+    end
+    
+    % TMP MMM
+    figure,plot(array_angle)
+    hold on
+    findpeaks(array_angle,'MinPeakDistance',100)
+    
+    % prepare filter
+    [B, A] = butter(8, 0.05, 'low'); %VAR
+    if strcmp(trial_name,'isokin DF 30')
+        % collect and filter dorsiflexion trials
+        df1 = [filtfilt(B, A, array_torque(loc_peaks(1):loc_peaks(2))) array_angle(loc_peaks(1):loc_peaks(2))];
+        df2 = [filtfilt(B, A, array_torque(loc_peaks(3):loc_peaks(4))) array_angle(loc_peaks(3):loc_peaks(4))];
+        df3 = [filtfilt(B, A, array_torque(loc_peaks(5):loc_peaks(6))) array_angle(loc_peaks(5):loc_peaks(6))];
+        
+        plottitle = horzcat('Dorsiflexion trials ', trial_name);
+        figure('Name',plottitle)
+        plot(df1(:,2),df1(:,1))
+        hold on
+        plot(df2(:,2),df2(:,1))
+        plot(df3(:,2),df3(:,1))
+        ax = gca;
+        set(ax, 'xdir','reverse')
+        xlabel('Ankle angle (deg)')
+        ylabel('Isokinetic torque (Nm)')
+        title(plottitle)
+        %legend('øeg','location','SouthWest')
+    else
+        % collect and filter plantar flexion trials
+        df1 = [filtfilt(B, A, array_torque(loc_peaks(2):loc_peaks(3))) array_angle(loc_peaks(2):loc_peaks(3))];
+        df2 = [filtfilt(B, A, array_torque(loc_peaks(4):loc_peaks(5))) array_angle(loc_peaks(4):loc_peaks(5))];
+        df3 = [filtfilt(B, A, array_torque(loc_peaks(6):loc_peaks(7))) array_angle(loc_peaks(6):loc_peaks(7))];
+        
+        plottitle = horzcat('Plantar flexion trials ', trial_name);
+        figure('Name',plottitle)
+        plot(df1(:,2),df1(:,1))
+        hold on
+        plot(df2(:,2),df2(:,1))
+        plot(df3(:,2),df3(:,1))
+        ax = gca;
+        xlabel('Ankle angle (deg)')
+        ylabel('Isokinetic torque (Nm)')
+        title(plottitle)
+        %legend('øeg','location','SouthWest')
+    end
+    
+
+
+
+    
+    
     % max data
     [torque_max,index] = max(array_torque);
     angle_at_torque_max = array_angle(index);
@@ -31,4 +94,8 @@ function [torque_max, angle_at_torque_max, velocity_at_torque_max, work, array_o
    
     % work data
     work = 0; % MMM TODO
+    
+    % MMM TODO - deal with dorsiflexion trial
+    
+    
 end

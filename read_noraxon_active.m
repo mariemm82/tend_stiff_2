@@ -65,9 +65,9 @@ function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, t
         angleadjust1 = 180;
     end
     norm_angle = angleadjust1 + (noraxondata.data(:,column_norm_angle) * convert_norm_angle_a) + convert_norm_angle_b;
-    if max(norm_angle) > 340
+    if max(norm_angle) > 325
         norm_angle = norm_angle - 360;
-    elseif max(norm_angle) < -340
+    elseif max(norm_angle) < -325
         norm_angle = norm_angle + 360;
     end
         
@@ -132,9 +132,6 @@ function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, t
     % filter torque lowpass
     [B, A] = butter(4, torque_cutoff_active, 'low');
     norm_torque_lowpass = filtfilt(B, A, norm_torque);
-     
-
-    
 
 
 

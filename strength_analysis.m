@@ -35,7 +35,7 @@ function [] = strength_analysis(input_plot)
     else
         plot_individual = 0;
     end
-    plot_conversion = 1;
+    plot_conversion = 0;
     
 
 
@@ -227,18 +227,23 @@ function [] = strength_analysis(input_plot)
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
                 isokinetic_torque_angle_work(i,1) = 0;
             else 
-                [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i});
+                [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i}, subject_id);
                 % torque, angle, velocity, work, data arrays
             end
         end
         
         % plot curves
         if plot_check
-            plottitle = horzcat('Isokinetic torque-angle trials ', subject_id);
+            plottitle = horzcat('ISOKINETIC torque-angle trials, ', subject_id);
             figure('Name',plottitle)
             hold on
             for i = 1:length(isokinetic_data)
                 plot(isokinetic_arrays{i}(:,2),isokinetic_arrays{i}(:,1))
+            end
+            ax = gca;
+            ax.ColorOrderIndex = 1;
+            for i = 1:length(isokinetic_data)
+                plot(isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,1), '*') %torque/angle of peak torque
             end
             % axis([-2 35 -1 2.5]) %VAR
             % set(ax, 'xdir','reverse')
@@ -246,27 +251,27 @@ function [] = strength_analysis(input_plot)
             ylabel('Isokinetic torque (Nm)')
             title(plottitle)
             legend(isokinetic_labels)
-            % saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         
         
         % plot summary of trials
         if plot_check
-            plottitle = horzcat('Isokinetic PLANTAR FLEXION torque/velocity ', subject_id);
+            plottitle = horzcat('ISOKINETIC torque-velocity, ', subject_id);
             figure('Name',plottitle)
-            plot(isokinetic_torque_angle_work(1,3), isokinetic_torque_angle_work(1,1), 'LineStyle','none','Marker','o','MarkerSize',6) % dorsiflexion - tweak to get colors of remaining lines to match other plots
+            plot(isokinetic_torque_angle_work(1,3), isokinetic_torque_angle_work(1,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto') % dorsiflexion - tweak to get colors of remaining lines to match other plots
             hold on
             for i = 2:length(isokinetic_torque_angle_work) % not including first entry (dorsiflexion)
-                plot(isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,1), 'LineStyle','none','Marker','o','MarkerSize',6)
+                plot(isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
             end
-             axis([-100 20 0 max(isokinetic_torque_angle_work(2:end,1))*1.1]) %VAR
+             axis([20 100 0 max(isokinetic_torque_angle_work(2:end,1))*1.1]) %VAR
             ax = gca;
-            set(ax, 'xdir','reverse')
+%            set(ax, 'xdir','reverse')
             xlabel('Velocity (deg/s)')
             ylabel('Isokinetic peak torque (Nm)')
             title(plottitle)
-            legend(isokinetic_labels(1:end),'location','SouthWest')
-            % saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+            legend(isokinetic_labels(1:end),'location','SouthEast')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         
         
@@ -301,12 +306,12 @@ function [] = strength_analysis(input_plot)
 
         % plot summary of trials
         if plot_check
-            plottitle = horzcat('Isometric torque-angle ', subject_id);
+            plottitle = horzcat('ISOMETRIC torque-angle trials, ', subject_id);
             figure('Name',plottitle)
             hold on
             for i = 1:length(isometric_torque_angle(:,2))
                 if isometric_torque_angle(i,1) ~= 0
-                    plot(isometric_torque_angle(i,2), isometric_torque_angle(i,1), 'LineStyle','none','Marker','o','MarkerSize',6)
+                    plot(isometric_torque_angle(i,2), isometric_torque_angle(i,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
                 end
             end
             axis([-17 12 min(isometric_torque_angle(:,1))*.9 max(isometric_torque_angle(:,1))*1.1]) %VAR
@@ -316,7 +321,7 @@ function [] = strength_analysis(input_plot)
             ylabel('Isometric peak torque (Nm)')
             title(plottitle)
             % legend(isometric_labels)
-            % saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         
 

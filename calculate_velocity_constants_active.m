@@ -58,7 +58,7 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
                
                 if phases(index,2)-phases(index,1) <= 2*framestep
                    % detected phase is too small, is not real, overwrite with next phase
-                   phases(index,:) = 0;
+                   phases(index,:) = []; % MMM 2016-12-07: was zero
                 else
                     index = index + 1;
                 end

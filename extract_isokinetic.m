@@ -51,12 +51,17 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
 
     % remove "peaks" at mid value (e.g. starting phase) in inverted data
     delete_peaks = [];
-    DF_peak = max(-array_angle) - 4; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
+    DF_peak = max(-array_angle) - 3; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
+    PF_peak = min(-array_angle) + 3; % approx -30 deg + 4 deg = -26 deg (PF, inverted)
     for i = 1:length(val_peaks)
-        if val_peaks(i) < DF_peak && val_peaks(i) > -15 % not near end angle range  (-10 to 30 /// inverted)
+        if val_peaks(i) < DF_peak && val_peaks(i) > PF_peak % not near end angle range
             delete_peaks = [delete_peaks, i];
         end
     end
+    % delete array entries selected above
+    val_peaks(delete_peaks) = [];
+    loc_peaks(delete_peaks) = [];
+    delete_peaks = [];
     
     % remove multiple peaks at same stop phase
     for i = 2:length(val_peaks)
@@ -66,7 +71,6 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
             delete_peaks = [delete_peaks, i-1];
         end
     end
-    
     % delete array entries selected above
     val_peaks(delete_peaks) = [];
     loc_peaks(delete_peaks) = [];
@@ -86,15 +90,18 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     end
     
     % refine peak points to movement phase start/stop
-    threshold = 0.03; % VAR
+    threshold = 0.035; % VAR
     loc_peak_start(1:length(loc_peaks)) = zeros;
     loc_peak_end(1:length(loc_peaks)) = zeros;
+    if loc_peaks(1) < 12
+        loc_peaks(1) = 12; % tweak when first peak is detected VERY soon
+    end
     for i = 1:length(loc_peaks)
         % START of phase
         found = 0;
         j = 0;
         while found == 0 && loc_peaks(i)+j < length(array_angle) % compare two adjacent values, two times (10 frames apart, both must change above threshold
-            if abs(array_angle(loc_peaks(i)+j) - array_angle(loc_peaks(i)+j+1)) > threshold && abs(array_angle(loc_peaks(i)+j+10) - array_angle(loc_peaks(i)+j+11)) > threshold
+            if abs(array_angle(loc_peaks(i)+j) - array_angle(loc_peaks(i)+j+1)) > threshold && abs(array_angle(loc_peaks(i)+j+10) - array_angle(loc_peaks(i)+j+11)) > 2*threshold
                 loc_peak_start(i) = loc_peaks(i)+j-1; % -1 is mathematically correct. Changed to -3 to include the initial force production (phase has started)
                 found = 1;
             else % not found, check next
@@ -106,18 +113,18 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
             % use end of array
             loc_peak_start(i) = length(array_angle);
         end
-        % end of phase
+        % END of phase
         found = 0;
         j = 0;
-        while found == 0 && loc_peaks(i)-j > 0 % compare two adjacent values, two times (10 frames apart, both must change above threshold
-            if abs(array_angle(loc_peaks(i)-j) - array_angle(loc_peaks(i)-j-1)) > threshold && abs(array_angle(loc_peaks(i)-j-10) - array_angle(loc_peaks(i)-j-11)) > threshold
+        while found == 0 && loc_peaks(i)-j-11 > 0 % compare two adjacent values, two times (10 frames apart, both must change above threshold
+            if abs(array_angle(loc_peaks(i)-j) - array_angle(loc_peaks(i)-j-1)) > threshold && abs(array_angle(loc_peaks(i)-j-10) - array_angle(loc_peaks(i)-j-11)) > 2*threshold
                 loc_peak_end(i) = loc_peaks(i)-j+0; % +0 is mathematically correct. Changed to +2 to include the initial force production (phase has started)
                 found = 1;
             else % not found, check next
                 j = j+1;
             end
-            % if no startpoint found
         end
+        % if no startpoint found
         if found == 0
             % use start of array
             loc_peak_end(i) = 1;
@@ -140,8 +147,8 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         ylabel('Isokinetic torque (Nm)')
         yyaxis left
         for i=1:length(loc_peak_start)
-            line([loc_peak_start(i) loc_peak_start(i)], [-30 10],'Color','g');
-            line([loc_peak_end(i) loc_peak_end(i)], [-30 10],'Color','y');
+            line([loc_peak_start(i) loc_peak_start(i)], [min(-array_angle) max(-array_angle)],'Color','g');
+            line([loc_peak_end(i) loc_peak_end(i)], [min(-array_angle) max(-array_angle)],'Color','y');
         end
         xlabel('Time (frames)')
         ylabel('Ankle angle (deg) INVERTED')
@@ -157,18 +164,15 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     trial2 = [filtfilt(B, A, array_torque(loc_peak_start(3):loc_peak_end(4))) array_angle(loc_peak_start(3):loc_peak_end(4))];
     if length(loc_peak_start) >= 5
         trial3 = [filtfilt(B, A, array_torque(loc_peak_start(5):loc_peak_end(6))) array_angle(loc_peak_start(5):loc_peak_end(6))];
+        trials = {trial1 trial2 trial3};
     else
-        trial3 = [];
+        trials = {trial1 trial2};
     end
 
     
     
     
     %%% calculate output variables
-    
-    trials = {trial1 trial2 trial3}; % would be more elegant to perform this higher up, but serves all practical purposes
-    
-    
     
     % peak torque
     
@@ -182,6 +186,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     % torque_max_velocity = array_velocity (index); % must add velocity to trials array and repeat as for torque_max_angle, if this is to be used
     
     array_output = trials{torque_best_i};
+    
     
     
     % work
@@ -208,6 +213,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     %%% checkpoint plot
     
     if plot_check
+        % plotting reshaped torque instead of trials{} which is output to the main method, as a check that data which are basis for WORK calculations are correct
         plottitle = horzcat(horzcat(trial_name, ', ', subject_id));
         figure('Name',plottitle)
         plot(torque_angle_reshaped{1}(:,1),torque_angle_reshaped{1}(:,2))

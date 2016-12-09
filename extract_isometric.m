@@ -2,7 +2,7 @@
 % extract_isometric
 % Marie Moltubakk 2.11.2016
 % Read complete, prepared noraxon array
-% Produce array with torque and angle
+% Produce array with peak torque and angle
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

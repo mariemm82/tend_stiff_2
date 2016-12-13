@@ -51,11 +51,19 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
 
     % remove "peaks" at mid value (e.g. starting phase) in inverted data
     delete_peaks = [];
-    DF_peak = max(-array_angle) - 3; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
+    delete_review = [];
+    % define cutoff for peak value (DF/PF) vs "mid value"
+    DF_peak = max(-array_angle) - 4; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
     PF_peak = min(-array_angle) + 3; % approx -30 deg + 4 deg = -26 deg (PF, inverted)
     for i = 1:length(val_peaks)
-        if val_peaks(i) < DF_peak && val_peaks(i) > PF_peak % not near end angle range
+        % if not a peak value
+        if val_peaks(i) < DF_peak && val_peaks(i) > PF_peak
+            % add to list for deletion
             delete_peaks = [delete_peaks, i];
+            % if less than 7 degrees from max peak, save angle for potential text report about questionable deletions
+            if (abs(val_peaks(i) - max(-array_angle)) < 7) %VAR
+                delete_review = [delete_review val_peaks(i)];
+            end
         end
     end
     % delete array entries selected above
@@ -89,6 +97,12 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         end
     end
     
+    % write report if less than 6 peaks (3 full sets) remain + there are deletions of peaks near end range
+    if length(loc_peaks) < 6 && ~isempty(delete_review) %VAR
+        cprintf('red', horzcat('WARNING: Less than 3 DF peaks remain, deletions @ ', num2str(round(delete_review,2)), '°, max DF = ', num2str(round(max(-array_angle),2)), '°. Check manually.\n'))
+    end
+
+    
     % refine peak points to movement phase start/stop
     threshold = 0.035; % VAR
     loc_peak_start(1:length(loc_peaks)) = zeros;
@@ -100,7 +114,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         % START of phase
         found = 0;
         j = 0;
-        while found == 0 && loc_peaks(i)+j < length(array_angle) % compare two adjacent values, two times (10 frames apart, both must change above threshold
+        while found == 0 && loc_peaks(i)+j+11 < length(array_angle) % compare two adjacent values, two times (10 frames apart, both must change above threshold
             if abs(array_angle(loc_peaks(i)+j) - array_angle(loc_peaks(i)+j+1)) > threshold && abs(array_angle(loc_peaks(i)+j+10) - array_angle(loc_peaks(i)+j+11)) > 2*threshold
                 loc_peak_start(i) = loc_peaks(i)+j-1; % -1 is mathematically correct. Changed to -3 to include the initial force production (phase has started)
                 found = 1;
@@ -160,13 +174,18 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     [B, A] = butter(8, 0.05, 'low'); %VAR
     
     % collect and filter three trials
-    trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
-    trial2 = [filtfilt(B, A, array_torque(loc_peak_start(3):loc_peak_end(4))) array_angle(loc_peak_start(3):loc_peak_end(4))];
-    if length(loc_peak_start) >= 5
+    if length(loc_peak_start) >= 5 && length(loc_peak_end) >= 6
+        trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
+        trial2 = [filtfilt(B, A, array_torque(loc_peak_start(3):loc_peak_end(4))) array_angle(loc_peak_start(3):loc_peak_end(4))];
         trial3 = [filtfilt(B, A, array_torque(loc_peak_start(5):loc_peak_end(6))) array_angle(loc_peak_start(5):loc_peak_end(6))];
         trials = {trial1 trial2 trial3};
-    else
+    elseif length(loc_peak_start) >= 3 && length(loc_peak_end) >= 4
+        trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
+        trial2 = [filtfilt(B, A, array_torque(loc_peak_start(3):loc_peak_end(4))) array_angle(loc_peak_start(3):loc_peak_end(4))];
         trials = {trial1 trial2};
+    else
+        trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
+        trials = {trial1};
     end
 
     
@@ -212,14 +231,16 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     %%% checkpoint plot
     
-    if plot_check
+    if plot_individual
         % plotting reshaped torque instead of trials{} which is output to the main method, as a check that data which are basis for WORK calculations are correct
         plottitle = horzcat(horzcat(trial_name, ', ', subject_id));
         figure('Name',plottitle)
         plot(torque_angle_reshaped{1}(:,1),torque_angle_reshaped{1}(:,2))
         hold on
-        plot(torque_angle_reshaped{2}(:,1),torque_angle_reshaped{2}(:,2))
-        if length(loc_peak_start) >= 5
+        if length(loc_peak_start) >= 3 && length(loc_peak_end) >= 4
+            plot(torque_angle_reshaped{2}(:,1),torque_angle_reshaped{2}(:,2))
+        end
+        if length(loc_peak_start) >= 5 && length(loc_peak_end) >= 6
             plot(torque_angle_reshaped{3}(:,1),torque_angle_reshaped{3}(:,2))
         end
         ax = gca;
@@ -237,5 +258,5 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     %%% print report
     
-    cprintf('blue', horzcat(trial_name, ': Peak torque = ', num2str(round(torque_max,2)) ,' Nm, angle = ', num2str(round(torque_max_angle,2)) ,' deg, work = ', num2str(round(work_max,2)) ,' J.\n'))
+    cprintf('blue', horzcat(trial_name, ': Peak torque = ', num2str(round(torque_max,2)) ,' Nm, angle = ', num2str(round(torque_max_angle,2)) ,'°, work = ', num2str(round(work_max,2)) ,' J.\n'))
 end

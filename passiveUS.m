@@ -177,7 +177,7 @@ function [] = passiveUS(input_plot)
     
     
     %%%%%%%%%%%%%%%% LOOP through all lines in datamaster file (except header line)
-    for line = 1:linestotal;
+    for line = 1:linestotal
         clear emg_all;
         emg_all{3,6} = zeros; % 6 EMG channels for 1 subject, to be reused across subjects
 

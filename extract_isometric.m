@@ -11,8 +11,6 @@ function [torque_max,angle_at_torque_max] = extract_isometric(noraxondata, side,
     global column_norm_angle column_norm_torque % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global filepath
     
-    
-    
     % Read Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
     % Produce a new noraxon data array
     freq_resample = 200;

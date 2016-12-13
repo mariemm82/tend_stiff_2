@@ -8,7 +8,7 @@
 function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, trial_name)
     global us_zerodispframes noraxonfreq emg_bandpass emg_rms_ms mvc_window_ms convert_achilles convert_norm_ind_passive
     global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
-    global plot_check plot_individual subject_id
+    global plot_check plot_individual subject_id plot_norm
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
     
@@ -170,7 +170,7 @@ function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, t
 
        
     % plot final data
-    if plot_individual
+    if plot_individual && plot_norm
         plottitle = horzcat('Norm torque check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(noraxon_resampled(:,1),noraxon_resampled(:,column_norm_torque),'k','LineWidth',2)

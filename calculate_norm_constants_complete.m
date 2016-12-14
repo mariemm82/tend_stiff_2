@@ -9,9 +9,9 @@
 
 
 
-function [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(subjectno, side, timepoint, line, act_or_pas)
+function [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(subjectno, side, ~, line, act_or_pas) % ~ = timepoint, which is not used
 global dm_isokinP30 dm_isokinP45 dm_CPM_calc_NX dm_CPM_sol_NX
-global dm_isomet_P10_1 dm_isomet_P10_2 dm_isomet_D00_1 dm_isomet_D00_2 dm_isomet_D05_1 dm_isomet_D05_2 dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
+global dm_isomet_P10_2 dm_isomet_D00_2 % dm_isomet_P10_1 dm_isomet_D00_1 dm_isomet_D05_1 dm_isomet_D05_2 dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
 global filepath
 
 % input:
@@ -148,8 +148,13 @@ elseif strcmpi(act_or_pas,'stiffness') == 1
     
 else % ACTIVE
     % file/velocity options: dm_isokinD30 dm_isokinP30 dm_isokinP45 dm_isokinP60 dm_isokinP90
-    file = horzcat(filepath, dm_isokinP45{line});
-    velocity = 45;
+    if subjectno < 100 %CON
+        file = horzcat(filepath, dm_isokinP45{line});
+    else % BD
+        file = horzcat(filepath, dm_isokinP30{line});
+        % this file = 2nd isokinetic trial = for BD, 45°/s plantar flexion
+    end
+    velocity = 45; %VAR
     % file options ISOMETRIC: global dm_isomet_P10_1 dm_isomet_P10_2 dm_isomet_D00_1 dm_isomet_D00_2 dm_isomet_D05_1 dm_isomet_D05_2 dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
     file1 = horzcat(filepath, dm_isomet_P10_2{line});
     file2 = horzcat(filepath, dm_isomet_D00_2{line});

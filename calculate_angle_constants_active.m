@@ -207,7 +207,7 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     convert_ind_angle_b_volt = convert_ind_angle_b/convert_ind_angle_a;
     
     % output angle conversion numbers to screen, as text
-    cprintf('magenta', horzcat('NORM Angle conversion factors: a = ', num2str(convert_ind_angle_a), ', b = ', num2str(convert_ind_angle_b), '. Offset in millivolt = ', num2str(convert_ind_angle_b_volt), ' mV.\n' ));
+    cprintf('cyan', horzcat('NORM Angle conversion factors: a = ', num2str(convert_ind_angle_a), ', b = ', num2str(convert_ind_angle_b), '. (((Offset in millivolt = ', num2str(convert_ind_angle_b_volt), ' mV.)))\n' ));
     
     
     

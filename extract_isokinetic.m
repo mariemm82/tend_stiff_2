@@ -26,12 +26,13 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     % array_output_raw = [array_torque array_angle];
 
     
-    % identify movement phases
+    
+    %%% identify movement phases
     % separate trials
     % add additional filter per trial (electrical noise removal)
     
     % set minimum distance between peaks, according to velocity
-    if min(array_velocity) < -85      % trial 90 deg/s
+    if min(array_velocity) < -85      % trial 90 deg/s + BD 120 deg/s
         peakdistance = 70;
     elseif min(array_velocity) < -55  % trial 60 deg/s
         peakdistance = 100;
@@ -39,15 +40,21 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         peakdistance = 140;
     elseif min(array_velocity) < -25  % trial 30 deg/s
         peakdistance = 200;
-    else % different speeds dancers?
+    else
         peakdistance = 200;
     end
     
+    
+    
     % find peaks
+    
     % using inverted array_angle because this appears to work better for the sometimes short/inexistent stop in max dorsiflexion
     [val_peaks,loc_peaks] = findpeaks(-array_angle,'MinPeakDistance',peakdistance);
-
-    % remove incorrect peaks:
+    % findpeaks(-array_angle,'MinPeakDistance',peakdistance) % --- will plot figure with peaks IDed
+    
+    
+    
+    % remove incorrect peaks
 
     % remove "peaks" at mid value (e.g. starting phase) in inverted data
     delete_peaks = [];
@@ -201,7 +208,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     end
     [torque_max,torque_best_i] = max(torque_peaks(:,1));
     torque_max_angle = trials{torque_best_i}(torque_peaks(torque_best_i,2),2);
-    torque_max_velocity = str2double(trial_name(11:12)); % or switch to below
+    torque_max_velocity = str2double(trial_name(11:end)); % or switch to below
     % torque_max_velocity = array_velocity (index); % must add velocity to trials array and repeat as for torque_max_angle, if this is to be used
     
     array_output = trials{torque_best_i};

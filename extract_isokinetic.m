@@ -11,7 +11,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
 
     global column_norm_angle column_norm_torque column_norm_velocity % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global filepath
-    global plot_check plot_individual
+    global plot_individual plot_conversion
     
     
     % Read Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
@@ -157,7 +157,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         array_torque = -array_torque;
     end
     
-    if plot_individual
+    if plot_individual && plot_conversion
         plottitle = horzcat('Isokinetic phase check, ', horzcat(subject_id, ': ', trial_name));
         figure('Name',plottitle)
         hold on
@@ -202,7 +202,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     % peak torque
     
-    torque_peaks(length(trials),2) = zeros;
+    torque_peaks(1:length(trials),1:2) = zeros;
     for i = 1:length(trials)
         [torque_peaks(i,1),torque_peaks(i,2)] = max(trials{i}(:,1));
     end
@@ -217,7 +217,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     % work
     
-    work(length(trials)) = zeros;
+    work(1:length(trials)) = zeros;
     torque_angle_reshaped{length(trials)} = [];
     for i=1:length(trials)
         %reshape
@@ -238,7 +238,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     %%% checkpoint plot
     
-    if plot_individual
+    if plot_individual  && plot_conversion
         % plotting reshaped torque instead of trials{} which is output to the main method, as a check that data which are basis for WORK calculations are correct
         plottitle = horzcat(horzcat(trial_name, ', ', subject_id));
         figure('Name',plottitle)

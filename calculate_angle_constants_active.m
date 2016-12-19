@@ -21,7 +21,7 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     
     
     
-    %%%%%%%%%%%%% FILE 1
+    %%%%%%%%%%%%% FILE 1   --- 10 degrees (plantar flexed)
     
     
     % import noraxon data
@@ -97,7 +97,7 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     
     
     
-    %%%%%%%%%%%%% FILE 2
+    %%%%%%%%%%%%% FILE 2   --- 0 degrees
     
     
     % import noraxon data

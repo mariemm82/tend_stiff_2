@@ -147,7 +147,7 @@ elseif strcmpi(act_or_pas,'stiffness') == 1
     
     
 else % ACTIVE
-    % file/velocity options: dm_isokinD30 dm_isokinP30 dm_isokinP45 dm_isokinP60 dm_isokinP90
+    % file/velocity options ISOKINETIC: dm_isokinD30 dm_isokinP30 dm_isokinP45 dm_isokinP60 dm_isokinP90
     if subjectno < 100 %CON
         file = horzcat(filepath, dm_isokinP45{line});
     else % BD

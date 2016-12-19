@@ -127,9 +127,11 @@ function [] = strength_analysis(input_plot)
     
     BD_angle_vars{ceil(linestotal)} = [];
     CON_angle_vars{ceil(linestotal)} = [];
+    BD_data = zeros(ceil(linestotal),30);
+    CON_data = zeros(ceil(linestotal),30);
     
     % below variables are also deleted + preallocated within the loop
-    isokinetic_torque_angle_work(5,4) = zeros;
+    isokinetic_torque_angle_work(1:5,1:4) = zeros;
     isokinetic_arrays{5} = [];
 
     
@@ -229,14 +231,14 @@ function [] = strength_analysis(input_plot)
         
         % preallocate
         clear isokinetic_torque_angle_work isokinetic_arrays
-        isokinetic_torque_angle_work(length(isokinetic_data),4) = zeros();
+        isokinetic_torque_angle_work(1:length(isokinetic_data),1:4) = zeros;
         isokinetic_arrays{length(isokinetic_data)} = [];
         
         % extract data from Noraxon files
         for i = 1:length(isokinetic_data)
             if(strcmpi(isokinetic_data{i}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
-                isokinetic_torque_angle_work(i,1) = 0;
+                isokinetic_torque_angle_work(i,1) = NaN;
             else 
                 [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i}, subject_id);
                 % torque, angle, velocity, work, data arrays
@@ -308,17 +310,48 @@ function [] = strength_analysis(input_plot)
         isometric_labels = {'P10 trial 1' 'P10 trial 2' 'D00 trial 1' 'D00 trial 2' 'D05 trial 1' 'D05 trial 2' 'D10 trial 1' 'D10 trial 2' 'D15 trial 1' 'D15 trial 2'};
 
         % preallocate
-        isometric_torque_angle(10,2) = zeros();
+        isometric_torque_angle(1:10,1:2) = zeros;
+        isometric_arrays{length(isometric_data)} = [];
 
         % extract data from Noraxon files
         for i = 1:length(isometric_data)
             if(strcmpi(isometric_data{i}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
-                isometric_torque_angle(i,1) = 0;
+                isometric_torque_angle(i,1) = NaN;
+                isometric_torque_angle(i,2) = NaN;
             else 
-                [isometric_torque_angle(i,1), isometric_torque_angle(i,2)] = extract_isometric(isometric_data{i}, dm_side{line}, isometric_labels{i});
+                [isometric_torque_angle(i,1), isometric_torque_angle(i,2), isometric_arrays{i}] = extract_isometric(isometric_data{i}, dm_side{line}, isometric_labels{i});
             end
         end
+        
+        % plot torque-time curves
+        if plot_individual
+            plottitle = horzcat('ISOMETRIC angle checkup, ', subject_id);
+            figure('Name',plottitle)
+            hold on
+            for i = 1:length(isometric_data)
+                if ~isempty(isometric_arrays{i})
+                    plot(isometric_arrays{i}(:,2))
+                else
+                    % no data for particular trial
+                end
+            end
+            ax = gca;
+            ax.ColorOrderIndex = 1;
+            for i = 1:length(isometric_data)
+                if ~isempty(isometric_arrays{i})
+                    plot(length(isometric_arrays{i}(:,2)), isometric_arrays{i}(end,2), '*') %endpoint
+                end
+            end
+            % axis([-2 35 -1 2.5]) %VAR
+            % set(ax, 'xdir','reverse')
+            xlabel('Frame')
+            ylabel('Isometric torque (Nm)')
+            title(plottitle)
+            legend(isometric_labels)
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+        end
+        
         
         % plot summary of trials
         if plot_individual
@@ -364,13 +397,56 @@ function [] = strength_analysis(input_plot)
         % arrays for averaging isokinetic curves across subjects
         if subjectno > 100
             BD_angle_vars{BD_count} = isokinetic_arrays;
+            BD_data(BD_count,1) = isometric_10;
+            BD_data(BD_count,2) = isometric_0;
+            BD_data(BD_count,3) = isometric_n5;
+            BD_data(BD_count,4) = isometric_n10;
+            BD_data(BD_count,5) = isometric_n15;
+            BD_data(BD_count,6) = isokinetic_torque_angle_work(1,1);
+            BD_data(BD_count,7) = isokinetic_torque_angle_work(2,1);
+            BD_data(BD_count,8) = isokinetic_torque_angle_work(3,1);
+            BD_data(BD_count,9) = isokinetic_torque_angle_work(4,1);
+            BD_data(BD_count,10) = isokinetic_torque_angle_work(5,1);
+            BD_data(BD_count,11) = isokinetic_torque_angle_work(1,2);
+            BD_data(BD_count,12) = isokinetic_torque_angle_work(2,2);
+            BD_data(BD_count,13) = isokinetic_torque_angle_work(3,2);
+            BD_data(BD_count,14) = isokinetic_torque_angle_work(4,2);
+            BD_data(BD_count,15) = isokinetic_torque_angle_work(5,2);
+            BD_data(BD_count,16) = isokinetic_torque_angle_work(1,4);
+            BD_data(BD_count,17) = isokinetic_torque_angle_work(2,4);
+            BD_data(BD_count,18) = isokinetic_torque_angle_work(3,4);
+            BD_data(BD_count,19) = isokinetic_torque_angle_work(4,4);
+            BD_data(BD_count,20) = isokinetic_torque_angle_work(5,4);
         else
             CON_angle_vars{CON_count} = isokinetic_arrays;
+            CON_data(CON_count,1) = isometric_10;
+            CON_data(CON_count,2) = isometric_0;
+            CON_data(CON_count,3) = isometric_n5;
+            CON_data(CON_count,4) = isometric_n10;
+            CON_data(CON_count,5) = isometric_n15;
+            CON_data(CON_count,6) = isokinetic_torque_angle_work(1,1);
+            CON_data(CON_count,7) = isokinetic_torque_angle_work(2,1);
+            CON_data(CON_count,8) = isokinetic_torque_angle_work(3,1);
+            CON_data(CON_count,9) = isokinetic_torque_angle_work(4,1);
+            CON_data(CON_count,10) = isokinetic_torque_angle_work(5,1);
+            CON_data(CON_count,11) = isokinetic_torque_angle_work(1,2);
+            CON_data(CON_count,12) = isokinetic_torque_angle_work(2,2);
+            CON_data(CON_count,13) = isokinetic_torque_angle_work(3,2);
+            CON_data(CON_count,14) = isokinetic_torque_angle_work(4,2);
+            CON_data(CON_count,15) = isokinetic_torque_angle_work(5,2);
+            CON_data(CON_count,16) = isokinetic_torque_angle_work(1,4);
+            CON_data(CON_count,17) = isokinetic_torque_angle_work(2,4);
+            CON_data(CON_count,18) = isokinetic_torque_angle_work(3,4);
+            CON_data(CON_count,19) = isokinetic_torque_angle_work(4,4);
+            CON_data(CON_count,20) = isokinetic_torque_angle_work(5,4);
         end
 
 
-
-
+        
+        
+        
+        
+        
 
 
 
@@ -461,79 +537,40 @@ function [] = strength_analysis(input_plot)
     
     
     
-     %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - NUMBERS
-     
-     %%%  mean and stdav of each subject's isometric torque, isokinetic torque/angle/work
-
-     % MMM TMP GOON
-     all_strength_BD_mean = mean(all_strength_output(1:BD_count,:));
-     all_strength_CON_mean = mean(all_strength_output(BD_count+1:end,:));
-     all_strength_BD_SD = std(all_strength_output(1:BD_count,:));
-     all_strength_CON_SD = std(all_strength_output(BD_count+1:end,:));
-     
-         
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - NUMBERS
+    
+    %%%  mean and stdav of each subject's isometric torque, isokinetic torque/angle/work
+    
+    % average
+    BD_data_mean = mean(BD_data,'omitnan');
+    CON_data_mean = mean(CON_data,'omitnan');
+    BD_data_SD = std(BD_data,'omitnan');
+    CON_data_SD = std(CON_data,'omitnan');
+    
+    
     if plot_check
-             plottitle = horzcat('GRP ISOMETRIC torque-angle, plantar flexion');
-             figure('Name',plottitle)
-             hold on
-
-             plot(10, all_strength_BD_mean(16), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(10, all_strength_CON_mean(16), 'LineStyle','none','Marker','*','MarkerSize',6,'MarkerFaceColor','auto')
-
-             plot(0, all_strength_BD_mean(17), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-5, all_strength_BD_mean(18), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-10, all_strength_BD_mean(19), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-15, all_strength_BD_mean(20), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-             
-             plot(0, all_strength_CON_mean(17), 'LineStyle','none','Marker','*','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-5, all_strength_CON_mean(18), 'LineStyle','none','Marker','*','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-10, all_strength_CON_mean(19), 'LineStyle','none','Marker','*','MarkerSize',6,'MarkerFaceColor','auto')
-             plot(-15, all_strength_CON_mean(20), 'LineStyle','none','Marker','*','MarkerSize',6,'MarkerFaceColor','auto')
-             
-%             axis([-10 30 0 20]) %VAR
-             xlabel('Ankle angle (°)')
-             ylabel('Isometric torque (Nm)')
-             title(plottitle)
-             legend('BD', 'CON', 'Location','Northeast')
-             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+        plottitle = horzcat('GRP ISOMETRIC torque-angle, plantar flexion');
+        figure('Name',plottitle)
+        hold on
+        plot_angles = [10, 0, -5 -10, -15];
+        plot(plot_angles, BD_data_mean(1:5), 'Marker','o','MarkerSize',6,'MarkerFaceColor','auto','Color','b')
+        plot(plot_angles, CON_data_mean(1:5), 'Marker','o','MarkerSize',6,'MarkerFaceColor','auto','Color','r')
+        errorbar(plot_angles, BD_data_mean(1:5), BD_data_SD(1:5),'Color','b')
+        errorbar(plot_angles, CON_data_mean(1:5), CON_data_SD(1:5),'Color','r')
+        ax = gca;
+        set(ax, 'xdir','reverse')
+        axis([-20 15 min([min(BD_data_mean(1:5)) min(CON_data_mean(1:5))]) max([max(BD_data_mean(1:5)) max(CON_data_mean(1:5))])]) %VAR
+        xlabel('Ankle angle (°)')
+        ylabel('Isometric torque (Nm)')
+        title(plottitle)
+        legend('BD', 'CON', 'Location','Northeast')
+        saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
      
      
-%     n_o_array_elements = 13; %VAR - number of elements in BD_angle_xxx arrays
-%     
-%     if BD_count > 0
-%         % preallocate array
-%         BD_max(BD_count,n_o_array_elements) = zeros;
-%         BD_max_norm(BD_count,n_o_array_elements) = zeros;
-%         % collect variables per subject
-%         for i = 1:BD_count % per subject
-%             for j = 1:n_o_array_elements % per element in arrays
-%                 BD_max(i,j) = max(BD_angle_vars{1,i}(:,j));
-%                 BD_max_norm(i,j) = max(BD_angle_vars_norm{1,i}(:,j));
-%             end
-%         end
-%         % calculate mean and SD of max values across subjects
-%         BD_ROM_mean = mean(BD_max(:,1));
-%         BD_ROM_SD = std(BD_max(:,1));
-%     end
-%     
-%     if CON_count > 0
-%         % preallocate array
-%         CON_max(CON_count,n_o_array_elements) = zeros;
-%         CON_max_norm(CON_count,n_o_array_elements) = zeros;
-%         % collect variables per subject
-%         for i = 1:CON_count % per subject
-%             for j = 1:n_o_array_elements % per element in arrays
-%                 CON_max(i,j) = max(CON_angle_vars{1,i}(:,j));
-%                 CON_max_norm(i,j) = max(CON_angle_vars_norm{1,i}(:,j));
-%             end
-%         end
-%         % calculate mean and SD of max values across subjects
-%         CON_ROM_mean = mean(CON_max(:,1));
-%         CON_ROM_SD = std(CON_max(:,1));
-%     end
-%     
-%     
+    
+    
+    
     
     
     
@@ -570,8 +607,8 @@ function [] = strength_analysis(input_plot)
     
     % find common angles across all subjects
     if BD_count > 0
-        BD_angle_max(5,BD_count) = zeros;
-        BD_angle_min(5,BD_count) = zeros;
+        BD_angle_max(1:5,1:BD_count) = zeros;
+        BD_angle_min(1:5,1:BD_count) = zeros;
         for i = 1:BD_count
             for n = 1:5 %5 trials
                 if ~isempty(BD_angle_vars{i}{n})
@@ -588,8 +625,8 @@ function [] = strength_analysis(input_plot)
         BD_angle_min = -100;
     end
     if CON_count > 0
-        CON_angle_max(5,CON_count) = zeros;
-        CON_angle_min(5,CON_count) = zeros;
+        CON_angle_max(1:5,1:CON_count) = zeros;
+        CON_angle_min(1:5,1:CON_count) = zeros;
         for i = 1:CON_count
             for n = 1:5 %5 trials
                 if ~isempty(CON_angle_vars{i}{n})
@@ -623,8 +660,8 @@ function [] = strength_analysis(input_plot)
             end
         end
         % average
-        BD_angle_vars_mean(length(angle_array),5) = zeros();
-        BD_angle_vars_SD(length(angle_array),5) = zeros();
+        BD_angle_vars_mean(1:length(angle_array),1:5) = zeros;
+        BD_angle_vars_SD(1:length(angle_array),1:5) = zeros;
         for n=1:5
             if ~isempty(BD_angle_vars_common{n})
                 BD_angle_vars_mean(:,n) = nanmean(BD_angle_vars_common{n}, 2);
@@ -645,8 +682,8 @@ function [] = strength_analysis(input_plot)
             end
         end
         % average
-        CON_angle_vars_mean(length(angle_array),5) = zeros();
-        CON_angle_vars_SD(length(angle_array),5) = zeros();
+        CON_angle_vars_mean(1:length(angle_array),1:5) = zeros;
+        CON_angle_vars_SD(1:length(angle_array),1:5) = zeros;
         for n=1:5
             if ~isempty(CON_angle_vars_common{n})
                 CON_angle_vars_mean(:,n) = nanmean(CON_angle_vars_common{n}, 2);
@@ -669,6 +706,8 @@ function [] = strength_analysis(input_plot)
     
     % isokinetic trials
 
+    % MMM TODO GOON: add mea+SD peak torque
+    
      % trial 1 = CON ONLY: DF 30°/s
      % trial 2 = CON: PF 30°/s, BD: PF 45°/s
      % trial 5 = CON: PF 90°/s, BD: PF 120°/s

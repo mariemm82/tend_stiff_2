@@ -2,11 +2,11 @@
 % extract_isometric
 % Marie Moltubakk 2.11.2016
 % Read complete, prepared noraxon array
-% Produce array with peak torque and angle
+% Produce array with peak torque and angle + array with raw data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [torque_max,angle_at_torque_max] = extract_isometric(noraxondata, side, trial_name)
+function [torque_max, angle_at_torque_max, array_out] = extract_isometric(noraxondata, side, trial_name)
     
     global column_norm_angle column_norm_torque % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global filepath
@@ -18,5 +18,5 @@ function [torque_max,angle_at_torque_max] = extract_isometric(noraxondata, side,
     
     [torque_max,index] = max(noraxon_prepped(:,column_norm_torque));
     angle_at_torque_max = noraxon_prepped(index,column_norm_angle);
-    
+    array_out = [noraxon_prepped(:,column_norm_torque) noraxon_prepped(:,column_norm_angle)];
 end

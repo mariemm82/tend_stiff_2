@@ -24,7 +24,14 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     array_angle = noraxon_prepped(:,column_norm_angle);
     array_velocity = noraxon_prepped(:,column_norm_velocity);
     % array_output_raw = [array_torque array_angle];
-
+    
+    % tweak for BD101 % dirty - MMM
+    % incorrect offset @ isokinetic trials, due to imprecision during data collection
+    if strcmp(subject_id(8:10), '101')
+        offset_manual = max(array_angle) - 30;
+        array_angle = array_angle - offset_manual;
+    end
+    
     
     
     %%% identify movement phases
@@ -61,7 +68,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     delete_review = [];
     % define cutoff for peak value (DF/PF) vs "mid value"
     DF_peak = max(-array_angle) - 4; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
-    PF_peak = min(-array_angle) + 3; % approx -30 deg + 4 deg = -26 deg (PF, inverted)
+    PF_peak = min(-array_angle) + 3; % approx -30 deg + 3 deg = -27 deg (PF, inverted)
     for i = 1:length(val_peaks)
         % if not a peak value
         if val_peaks(i) < DF_peak && val_peaks(i) > PF_peak
@@ -89,6 +96,9 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     % delete array entries selected above
     val_peaks(delete_peaks) = [];
     loc_peaks(delete_peaks) = [];
+    delete_peaks = [];
+    
+
     
     % after invalid peaks have been removed:
     % remove DF peak at beginning of DF trial, or opposite
@@ -108,7 +118,9 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     if length(loc_peaks) < 6 && ~isempty(delete_review) %VAR
         cprintf('red', horzcat('WARNING: Less than 3 DF peaks remain, deletions @ ', num2str(round(delete_review,2)), '°, max DF = ', num2str(round(max(-array_angle),2)), '°. Check manually.\n'))
     end
-
+    
+    
+    
     
     % refine peak points to movement phase start/stop
     threshold = 0.035; % VAR
@@ -152,7 +164,39 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         end
     end
     
-    % invert data for dorsiflexion trial
+    
+    
+    
+    % remove plantar flexion peaks/trials where torque drops low during the first phase (isokinetic movement has started, but subject is not working)
+    delete_peaks_start = [];
+    delete_peaks_end = [];
+    onset = ceil(peakdistance/3); % # of frames after trial starting point to consider
+    threshold = 8; % how low should the avg torque be during onset phase, in order to discard trial
+    if strcmp(trial_name,'isokin DF 30') == 0
+        for i = 1:2:length(loc_peak_start) % check every second entry = PF phases
+            % if torque drops lower than zero
+            % cprintf('blue', horzcat(trial_name, ': ', num2str(mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset))), ' Nm.\n'))
+            if mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset)) < threshold
+                % "start" peak 1 belongs with "end" peak 2!
+                if i == length(loc_peak_start)
+                    % add to list for deletion, current phase
+                    delete_peaks_start = [delete_peaks_start, i];
+                else
+                    % add to list for deletion, current phase (e.g. PF) + next phase (e.g. DF)
+                    delete_peaks_start = [delete_peaks_start, i, i+1];
+                    delete_peaks_end = [delete_peaks_end, i+1];
+                end
+            end
+        end
+        % delete array entries selected above
+        loc_peak_start(delete_peaks_start) = [];
+        loc_peak_end(delete_peaks_end) = [];
+    end    
+    
+    
+    
+    
+    % invert torque for dorsiflexion trial
     if strcmp(trial_name,'isokin DF 30')
         array_torque = -array_torque;
     end
@@ -176,6 +220,10 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         title(plottitle)
         legend('Angle','Peaks','Torque','location','NorthEast')
     end
+    
+    
+    
+    
     
     % prepare filter
     [B, A] = butter(8, 0.05, 'low'); %VAR

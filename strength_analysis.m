@@ -35,7 +35,7 @@ function [] = strength_analysis(input_plot)
     else
         plot_individual = 0;
     end
-    plot_conversion = 0;
+    plot_conversion = 1;
     plot_norm = 0;
 
 

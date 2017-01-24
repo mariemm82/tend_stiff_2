@@ -17,6 +17,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     
     % Read US data file, determine time stamps, set trigger frame as time = zero
     % Produce US sample frequency + new US array containing time and displacement
+    % aa = strcat(filepath, usdata, '.txt') % 
     [usdata_prepped,usfreq] = read_us_file(strcat(filepath, usdata, '.txt'), str2double(usdata_frame), trial_name);
     
     

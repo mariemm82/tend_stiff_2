@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_output] = extract_isokinetic(noraxondata, side, trial_name, subject_id)
+function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw_output, array_intervals_output] = extract_isokinetic(noraxondata, side, trial_name, subject_id)
 % current output = array containing one best trial. change to array_output_raw = full data series containing 3 trials
 
     global column_norm_angle column_norm_torque column_norm_velocity % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
@@ -96,7 +96,6 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     % delete array entries selected above
     val_peaks(delete_peaks) = [];
     loc_peaks(delete_peaks) = [];
-    delete_peaks = [];
     
 
     
@@ -126,14 +125,14 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     threshold = 0.035; % VAR
     loc_peak_start(1:length(loc_peaks)) = zeros;
     loc_peak_end(1:length(loc_peaks)) = zeros;
-    if loc_peaks(1) < 12
-        loc_peaks(1) = 12; % tweak when first peak is detected VERY soon
+    if loc_peaks(1) < 22
+        loc_peaks(1) = 22; % tweak when first peak is detected VERY soon
     end
     for i = 1:length(loc_peaks)
         % START of phase
         found = 0;
         j = 0;
-        while found == 0 && loc_peaks(i)+j+11 < length(array_angle) % compare two adjacent values, two times (10 frames apart, both must change above threshold
+        while found == 0 && loc_peaks(i)+j+11 < length(array_angle) % compare two adjacent values, two times (10 frames apart), both must change above threshold. E.g. 464-465 & 474-475
             if abs(array_angle(loc_peaks(i)+j) - array_angle(loc_peaks(i)+j+1)) > threshold && abs(array_angle(loc_peaks(i)+j+10) - array_angle(loc_peaks(i)+j+11)) > 2*threshold
                 loc_peak_start(i) = loc_peaks(i)+j-1; % -1 is mathematically correct. Changed to -3 to include the initial force production (phase has started)
                 found = 1;
@@ -149,10 +148,22 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         % END of phase
         found = 0;
         j = 0;
-        while found == 0 && loc_peaks(i)-j-11 > 0 % compare two adjacent values, two times (10 frames apart, both must change above threshold
+        while found == 0 && loc_peaks(i)-j-21 > 0 % compare two adjacent values, two times (10 frames apart, both must change above threshold
             if abs(array_angle(loc_peaks(i)-j) - array_angle(loc_peaks(i)-j-1)) > threshold && abs(array_angle(loc_peaks(i)-j-10) - array_angle(loc_peaks(i)-j-11)) > 2*threshold
-                loc_peak_end(i) = loc_peaks(i)-j+0; % +0 is mathematically correct. Changed to +2 to include the initial force production (phase has started)
-                found = 1;
+                % found a potential endpoint (movement in previous frames)
+                % secondary check, to prevent miniscule peak (BD101 120deg/s)
+                range_latest = mean(array_angle(loc_peaks(i)-j-1:loc_peaks(i)-j));
+                range_mid = mean(array_angle(loc_peaks(i)-j-11:loc_peaks(i)-j-10));
+                range_before = mean(array_angle(loc_peaks(i)-j-21:loc_peaks(i)-j-20));
+                if range_latest > range_mid && range_mid > range_before
+                    loc_peak_end(i) = loc_peaks(i)-j+0; % +0 is mathematically correct. Changed to +2 to include the initial force production (phase has started)
+                    found = 1;
+                elseif range_latest < range_mid && range_mid < range_before
+                    loc_peak_end(i) = loc_peaks(i)-j+0; % +0 is mathematically correct. Changed to +2 to include the initial force production (phase has started)
+                    found = 1;
+                else
+                    j = j+1;
+                end
             else % not found, check next
                 j = j+1;
             end
@@ -184,7 +195,11 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
                 else
                     % add to list for deletion, current phase (e.g. PF) + next phase (e.g. DF)
                     delete_peaks_start = [delete_peaks_start, i, i+1];
-                    delete_peaks_end = [delete_peaks_end, i+1];
+                    if i+1 == length(loc_peak_end) % rough scripting... BD 101
+                        delete_peaks_end = [delete_peaks_end, i+1];
+                    else
+                        delete_peaks_end = [delete_peaks_end, i+1, i+2];
+                    end
                 end
             end
         end
@@ -213,6 +228,8 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         yyaxis left
         for i=1:length(loc_peak_start)
             line([loc_peak_start(i) loc_peak_start(i)], [min(-array_angle) max(-array_angle)],'Color','g');
+        end
+        for i=1:length(loc_peak_end)
             line([loc_peak_end(i) loc_peak_end(i)], [min(-array_angle) max(-array_angle)],'Color','y');
         end
         xlabel('Time (frames)')
@@ -259,7 +276,20 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     torque_max_velocity = str2double(trial_name(11:end)); % or switch to below
     % torque_max_velocity = array_velocity (index); % must add velocity to trials array and repeat as for torque_max_angle, if this is to be used
     
-    array_output = trials{torque_best_i};
+    
+    
+    % array of best trial (highest peak torque)
+    
+    array_raw_output = trials{torque_best_i};
+    
+    % spline for common angles @ 2.5 deg
+    angles_common2 = -7.5:2.5:27.5';
+    array_intervals_output = spline(array_raw_output(:,2), array_raw_output(:,1), angles_common2);
+    % tmp
+%     figure,plot(array_raw_output(:,2),array_raw_output(:,1))
+%     hold on
+%     plot(angles_common2,array_intervals_output,':ko', 'MarkerEdgeColor','k','MarkerFaceColor',[0 0 0])
+    
     
     
     
@@ -286,7 +316,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
     
     %%% checkpoint plot
     
-    if plot_individual  && plot_conversion
+     if plot_individual  % && plot_conversion
         % plotting reshaped torque instead of trials{} which is output to the main method, as a check that data which are basis for WORK calculations are correct
         plottitle = horzcat(horzcat(trial_name, ', ', subject_id));
         figure('Name',plottitle)
@@ -298,6 +328,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         if length(loc_peak_start) >= 5 && length(loc_peak_end) >= 6
             plot(torque_angle_reshaped{3}(:,1),torque_angle_reshaped{3}(:,2))
         end
+        plot(angles_common2,array_intervals_output,':ko', 'MarkerEdgeColor','k','MarkerFaceColor',[0 0 0],'MarkerSize',3)
         ax = gca;
         if strcmp(trial_name,'isokin DF 30')
             set(ax, 'xdir','reverse')
@@ -306,9 +337,10 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_out
         ylabel('Isokinetic torque (Nm)')
         title(plottitle)
         %legend('øeg','location','SouthWest')
-        %saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-    end
+        saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+     end
     
+ 
     
     
     %%% print report

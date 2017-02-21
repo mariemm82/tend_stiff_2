@@ -7,7 +7,7 @@
 
 
 
-function [MTU_length_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, angle_common)
+function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, angle_common)
 
 
 
@@ -60,10 +60,40 @@ function [MTU_length_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_
     %%%%% GMFAS displacement to same angle array
     GMFAS_displ_array = spline(angle_displ_GMFAS(:,1), angle_displ_GMFAS(:,2), angle_array);
    
-   
-    %%%%%% Final data
-    MTU_length_array = [angle_array at_SOL_length_array at_GM_length_array calf_length_array GMFAS_displ_array];
+
+    %%%% msc length array
+    msc_length_array = calf_length_array - at_GM_length_array;
+    GM_apo_array = at_GM_length_array - at_SOL_length_array;
     
+    
+    
+    %%%%%% Final data
+    MTU_length_array = [ ...
+        angle_array ...
+        at_SOL_length_array ...% = free AT
+        at_GM_length_array ... % = GM length from calc to GM insert
+        calf_length_array ...  % = from calc to knee
+        zeros(length(angle_array),1) ...                          % GMFAS track has no length
+        GM_apo_array ...       % = from SOL to GM ins
+        msc_length_array];     % = from GM ins to knee
+    
+    MTU_elong_array = [...
+        angle_array ...
+        at_SOL_length_array-at_SOL_length_array(1) ...
+        at_GM_length_array-at_GM_length_array(1) ...    % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))    ) ... % = GM apo, from end of free AT to GM insert
+        calf_length_array-calf_length_array(1) ...
+        GMFAS_displ_array ...                           % GMFAS track has displacement 
+        GM_apo_array-GM_apo_array(1) ...
+        msc_length_array-msc_length_array(1)];
+    
+    MTU_strain_array = [ ...
+        angle_array ...
+        (at_SOL_length_array-at_SOL_length_array(1)) / at_SOL_length_array(1)*100 ...
+        (at_GM_length_array-at_GM_length_array(1)) / at_GM_length_array(1)*100 ...       % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))) / (at_GM_length_array(1)-at_SOL_length_array(1))*100     ...
+        (calf_length_array-calf_length_array(1)) / calf_length_array(1)*100 ...
+        zeros(length(angle_array),1) ...                          % GMFAS track has no length
+        (GM_apo_array-GM_apo_array(1)) / GM_apo_array(1)*100 ...
+        (msc_length_array-msc_length_array(1)) / msc_length_array(1)*100 ];
     
     
 end

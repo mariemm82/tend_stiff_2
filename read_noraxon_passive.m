@@ -399,7 +399,8 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     
     % smooth gonio
     [B, A] = butter(4, angle_cutoff/2, 'low');
-    gonio_filtered = filtfilt(B, A, gonio_raw);
+    gonio_filt1 = filtfilt(B, A, gonio_raw);
+    gonio_filtered = smooth(gonio_filt1,0.01,'lowess');
     
     % print warning if recording is started after dorsiflexion is initiated
     % (Norm dorsiflexion = negative)
@@ -410,7 +411,8 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     end % trial was started in time
 
     %%% gonio and norm angles are aligned at x degrees joint angle
-    %%% (= secondary offset)
+    %%% (primary offset was made during testing, at zero degrees, before start of the first trial in a series of 6)
+    %%% (secondary offset is performed here)
     angle_at_correction = 0; %VAR - use "+3" for 3 degrees plantar flexion
     
     % find location of correction angle in Norm
@@ -425,7 +427,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
         
     % offset gonio at correction angle
     gonio_correction = angle_normstart - gonio_filtered(loc_normstart);
-    gonio_corrected = gonio_filtered(:) + gonio_correction;
+    gonio_corrected = gonio_filtered + gonio_correction;
     
 	% replace gonio in array
     noraxon_converted(1:loc_trialend,column_gonio) = gonio_corrected(1:loc_trialend);

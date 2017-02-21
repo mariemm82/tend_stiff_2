@@ -51,6 +51,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     
     
     %%% time and angles
+    
     time = noraxon_prepped(1:loc_ascending_end,1);
     time_us = usdata_prepped(1:loc_ascending_end,1);
     
@@ -66,6 +67,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     
     
     %%% displacement
+    % when gonio angle is zero, set displacement to zero
     
     % offset displacement: displacement = zero when gonio angle = zero
     displ_raw = -usdata_prepped(1:loc_ascending_end,2);
@@ -85,8 +87,9 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     else % gonio does not start from zero - extrapolation is needed
         % extrapolation to find displacement offset if gonio angle were zero
 
-        % select first 5 degrees of gonio data
-        ang_interpol_end = gonio(1) + 5; %VAR
+        % select first X degrees of the existing gonio data
+        range = 4; %VAR
+        ang_interpol_end = gonio(1) + range;
         loc_ang_interpol_end = find(gonio >= ang_interpol_end,1,'first');
         
         % calculate linear coeffisients for extrapolation

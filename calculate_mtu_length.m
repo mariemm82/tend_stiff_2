@@ -11,10 +11,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
 
 
 
-    %%%%%%%% calculate angle range common to all 6 trials
-    % OLD:
-    % angle_common = min([max(angle_displ_SOL(:,1)) max(angle_displ_GMMTJ(:,1)) max(angle_displ_GMFAS(:,1))]);
-    % NEW:
+    %%%%%%%% create array of angles common to all 6 trials
     % angle_common is read from file from create_angles_passive, to avoid potential tiny discrepancies between various calculations of max
     angle_array = (0:0.05:(angle_common+0.01))'; %VAR  - adding 0.01 to ensure that the actual common angle is included - data stored as 10.9999999 
 
@@ -22,7 +19,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
 
     %%%%%%%% Length of whole MTU
 
-    %%% extract calf length in mm
+    %%% extract initial calf length in mm
     % my initial calf length = centimeters from lateral epicondyle to calc insertion
     calf_length = str2double(initial_calf_length) * 10;
     
@@ -34,10 +31,10 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     a0 = -22.18468;
     a1 = 0.30141;
     a2 = -0.00061;
-    % percent change from neutral:
+    % calf/MTU length in % change from initial length:
     MTU_length_Grieve_rel = (a0 + (a1*(90+angle_array)) + (a2*(90+angle_array).^2))/100;
 
-    % calf/MTU length (mm), across angle array
+    % absolute calf/MTU length (mm), across angle array
     MTU_length_Grieve_abs = calf_length * (1 + MTU_length_Grieve_rel);
 
     %%% Hawkins & Hull (1990)
@@ -65,9 +62,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     MTU_length_HH_SOL_rel = C0 + (C1*aH) + (C2*aK) + (C3*(aK^2)) + (C4*aA);
     
     % correction: 
-    % we know calf length = calc insert to lat epi = 100% length (not ~108% of lat mall to lat epi)
-    % first data point = neutral ankle = 100% length
-    % extracting length change from this point (% of leg length)
+    % we KNOW the exact initial MTU length = calc insert to lat epi = 100% length (instead of H&H which says MTU length = ~108% of lat mall to lat epi)
+    % first data point = 0 degrees ankle = 100% length
+    % extracting length change from this point (% of calf/MTU length)
     MTU_length_HH_GM_abs = calf_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
     MTU_length_HH_SOL_abs = calf_length * MTU_length_HH_SOL_rel;
     
@@ -80,18 +77,22 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     %%%%%%% Length of free Achilles tendon
 
     % Initial length = measured seated in Achilles machine, ankle 0 degrees, US still images of "railway" across lower leg. Length in mm.
-    at_SOL_length = str2double(initial_at_SOL_length);
+    AT_SOL_length = str2double(initial_at_SOL_length);
+    % reshape displacement:
+    AT_SOL_displ = spline(angle_displ_SOL(:,1), angle_displ_SOL(:,2), angle_array);
     % convert to length + reshape
-    at_SOL_length_array = spline(angle_displ_SOL(:,1), (at_SOL_length + angle_displ_SOL(:,2)), angle_array);
-    
+    % OLD, error:    AT_SOL_length_array = spline(angle_displ_SOL(:,1), (AT_SOL_length + angle_displ_SOL(:,2)), angle_array);
+    AT_SOL_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_SOL_length - AT_SOL_displ;
     
     
     
     %%%%%%% Length of Achilles tendon up to GM insertion ("GM tendon")
-    at_GM_length = str2double(initial_at_GM_length);
+    AT_GM_length = str2double(initial_at_GM_length);
+    % reshape displacement:
+    AT_GM_displ = spline(angle_displ_GMMTJ(:,1), angle_displ_GMMTJ(:,2), angle_array);
     % convert to length + reshape
-    at_GM_length_array = spline(angle_displ_GMMTJ(:,1), (at_GM_length + angle_displ_GMMTJ(:,2)), angle_array);
-    
+    % OLD, error:     AT_GM_length_array = spline(angle_displ_GMMTJ(:,1), (AT_GM_length + angle_displ_GMMTJ(:,2)), angle_array);
+    AT_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_GM_length - AT_GM_displ;
     
     
     
@@ -102,13 +103,13 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     
     %%%% GM msc length array
-    msc_GM_length_array = MTU_GM_length - at_GM_length_array;
-    apo_GM_array = at_GM_length_array - at_SOL_length_array;
+    msc_GM_length_array = MTU_GM_length - AT_GM_length_array;
+    apo_GM_array = AT_GM_length_array - AT_SOL_length_array;
     
     
 
     %%%% SOL msc length array
-    msc_SOL_length_array = MTU_length_HH_SOL_abs - at_SOL_length_array;
+    msc_SOL_length_array = MTU_length_HH_SOL_abs - AT_SOL_length_array;
     
     
     
@@ -116,8 +117,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     %%%%%% Final data
     MTU_length_array = [ ...
         angle_array ...
-        at_SOL_length_array ...% = free AT
-        at_GM_length_array ... % = GM length from calc to GM insert
+        AT_SOL_length_array ...% = free AT
+        AT_GM_length_array ... % = GM length from calc to GM insert
         MTU_GM_length ...      % = from calc to knee
         zeros(length(angle_array),1) ...                          % GMFAS track has no length
         apo_GM_array ...       % = from SOL to GM ins
@@ -126,9 +127,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     MTU_elong_array = [...
         angle_array ...
-        at_SOL_length_array-at_SOL_length_array(1) ...
-        at_GM_length_array-at_GM_length_array(1) ...    % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))    ) ... % = GM apo, from end of free AT to GM insert
-        MTU_length_Grieve_abs-MTU_length_Grieve_abs(1) ...
+        AT_SOL_length_array-AT_SOL_length_array(1) ...
+        AT_GM_length_array-AT_GM_length_array(1) ...    % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))    ) ... % = GM apo, from end of free AT to GM insert
+        MTU_GM_length-MTU_GM_length(1) ...
         GMFAS_displ_array ...                           % GMFAS track has displacement 
         apo_GM_array-apo_GM_array(1) ...
         msc_GM_length_array-msc_GM_length_array(1)...
@@ -136,9 +137,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     MTU_strain_array = [ ...
         angle_array ...
-        (at_SOL_length_array-at_SOL_length_array(1)) / at_SOL_length_array(1)*100 ...
-        (at_GM_length_array-at_GM_length_array(1)) / at_GM_length_array(1)*100 ...       % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))) / (at_GM_length_array(1)-at_SOL_length_array(1))*100     ...
-        (MTU_length_Grieve_abs-MTU_length_Grieve_abs(1)) / MTU_length_Grieve_abs(1)*100 ...
+        (AT_SOL_length_array-AT_SOL_length_array(1)) / AT_SOL_length_array(1)*100 ...
+        (AT_GM_length_array-AT_GM_length_array(1)) / AT_GM_length_array(1)*100 ...       % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))) / (at_GM_length_array(1)-at_SOL_length_array(1))*100     ...
+        (MTU_GM_length-MTU_GM_length(1)) / MTU_GM_length(1)*100 ...
         zeros(length(angle_array),1) ...                          % GMFAS track has no length
         (apo_GM_array-apo_GM_array(1)) / apo_GM_array(1)*100 ...
         (msc_GM_length_array-msc_GM_length_array(1)) / msc_GM_length_array(1)*100 ...

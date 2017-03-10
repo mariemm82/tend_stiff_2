@@ -127,7 +127,7 @@ function []=create_angles_passive(input_plot)
     
 
     %%% Loop through all lines in datamaster file (except header line)
-    for line = 1:linestotal;
+    for line = 1:linestotal
 
 
 
@@ -239,7 +239,7 @@ function []=create_angles_passive(input_plot)
                 plot(gonio_gmmtj_1,displacement_gmmtj_1)
                 hold on
                 plot(gonio_gmmtj_2,displacement_gmmtj_2)
-                set(get(AXc,'Ylabel'),'String','Elongation (mm)')
+                set(get(AXc,'Ylabel'),'String','Displacement (mm)')
        %         set(AXc,'XLim',[min_angle max_angle+1])
                 set(AXc,'YLim',[min_displ max_displ],'YTick',(0:5:1.1*max_displ))
                 xlabel('Gonio angle (deg)');
@@ -305,7 +305,7 @@ function []=create_angles_passive(input_plot)
                 plot(gonio_gmfas_1,displacement_gmfas_1)
                 hold on
                 plot(gonio_gmfas_2,displacement_gmfas_2)
-                set(get(AXc,'Ylabel'),'String','Elongation (mm)')
+                set(get(AXc,'Ylabel'),'String','Displacement (mm)')
                 set(AXc,'YLim',[min_displ max_displ],'YTick',(0:5:1.1*max_displ))
                 xlabel('Gonio angle (deg)');
                 legend('Trial 1','Trial 2','Location','Southeast');
@@ -367,7 +367,7 @@ function []=create_angles_passive(input_plot)
                 plot(gonio_sol_1,displacement_sol_1)
                 hold on
                 plot(gonio_sol_2,displacement_sol_2)
-                set(get(AXc,'Ylabel'),'String','Elongation (mm)')
+                set(get(AXc,'Ylabel'),'String','Displacement (mm)')
                 set(AXc,'YLim',[min_displ max_displ],'YTick',(0:5:1.1*max_displ))
                 xlabel('Gonio angle (deg)');
                 legend('Trial 1','Trial 2','Location','Southeast');
@@ -396,7 +396,7 @@ function []=create_angles_passive(input_plot)
         
         % all three displacements separately 
         if plot_check
-            plottitle = horzcat('Passive ROM, ', subject_id);
+            plottitle = horzcat('IND X - force elongation, ', subject_id);
             figure('Name',plottitle);
             max_force = max([max(data_sol(:,1)) max(data_gmmtj(:,1)) max(data_gmfas(:,1))]);
             max_displ = max([max(data_sol(:,3)) max(data_gmmtj(:,3)) max(data_gmfas(:,3))]);
@@ -419,11 +419,12 @@ function []=create_angles_passive(input_plot)
             hold on
             plot(data_gmmtj(:,2),data_gmmtj(:,3))
             plot(data_gmfas(:,2),data_gmfas(:,3))
-            set(get(AXc,'Ylabel'),'String','Elongation (mm)')
+            set(get(AXc,'Ylabel'),'String','Displacement (mm)')
    %         set(AXc,'XLim',[min_angle max_angle+1])
             set(AXc,'YLim',[min_displ max_displ],'YTick',(0:5:1.1*max_displ))
             xlabel('Gonio angle (deg)');
             legend('SOL','GMMTJ','GMFAS','Location','Southeast');
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         
         % average data from the three scan sites

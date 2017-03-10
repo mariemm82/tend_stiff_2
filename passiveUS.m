@@ -101,6 +101,54 @@ function [] = passiveUS(input_plot)
     column_norm_direction = 14;
     column_achilles = 15;
     
+    
+    
+    
+    
+    
+    %%% SET axes for plots
+    axis_force = [-1 35 0 1500];
+    axis_torque = [-1 35 0 80];
+    axis_PP = [-5 100 0 105];
+    
+    axis_displ_SOL = [-1 35 -3 11];
+    
+    axis_ind_elong = [-1 35 -6 30];
+    axis_ind_strain = [-1 35 -6 30];
+    
+    axis_EMG = [-1 35 0 30];
+
+    axis_len_MTU = [-1 35 -0 550];
+    axis_el_MTU = [-1 35 -1 35];
+    axis_str_MTU = [-1 35 0 8];
+    axis_str_MTUP = [-5 100 0 8];
+
+    axis_GMFAS = [-1 35 -2.5 2.5];
+
+    axis_el_SOL = [-1 35 -2.5 8];
+    axis_str_SOL = [-1 35 -1 4];
+    axis_str_SOLP = [-5 100 -1 4];
+    axis_len_SOL = [-1 35 0 350];
+
+    axis_el_GM = [-1 35 -1 14];
+    axis_str_GM = [-1 35 -1 7];
+    axis_str_GMP = [-5 100 -1 7];
+    axis_len_GM = [-1 35 0 350];
+
+    axis_el_GMapo = [-1 35 -7 3];
+    axis_str_GMapo = [-1 35 -5 2];
+    axis_str_GMapoP = [-5 100 -4 2];
+    axis_len_GMapo = [-1 35 0 180];
+
+    axis_el_GMtend = [-1 35 -1 28];
+    axis_str_GMtend = [-1 35 -1 14];
+    axis_str_GMtendP = [-5 100 -1 14];
+    axis_len_GMtend = [-1 35 0 300];
+
+    axis_el_AT = [-1 35 -1 32];
+    axis_str_AT = [-1 35 -1 70];
+    axis_str_ATP = [-5 100 -1 70];
+    axis_len_AT = [-1 35 0 140];
 
     
     
@@ -299,7 +347,7 @@ function [] = passiveUS(input_plot)
             plot(SOL_gonio_1,SOL_displacement_1,'LineWidth',2)
             hold on
             plot(SOL_gonio_2,SOL_displacement_2,'LineWidth',2)
-            axis([-2 35 -3 11]) %VAR
+            axis(axis_displ_SOL)
             ylabel('Displacement (mm)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -353,7 +401,7 @@ function [] = passiveUS(input_plot)
             plot(GMMTJ_gonio_1,GMMTJ_displacement_1,'LineWidth',2)
             hold on
             plot(GMMTJ_gonio_2,GMMTJ_displacement_2,'LineWidth',2)
-            axis([-2 35 -3 15]) %VAR
+            axis(axis_el_GM)
             ylabel('Displacement (mm)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -407,7 +455,7 @@ function [] = passiveUS(input_plot)
             plot(GMFAS_gonio_1,GMFAS_displacement_1,'LineWidth',2)
             hold on
             plot(GMFAS_gonio_2,GMFAS_displacement_2,'LineWidth',2)
-            axis([-2 35 -1 2.5]) %VAR
+            axis(axis_GMFAS)
             ylabel('Displacement (mm)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -544,6 +592,10 @@ function [] = passiveUS(input_plot)
         % no data about initial length, so only elongation possible, not total muscle length or strain
         % current "muscle" length change can be split into GM and proximal tendon
         
+        % Abellaneda using Fukunaga:
+        %         -	L MTU (grieve etc) = distal tendon (GM tendon) + L fas cos penn_ang + proximal tendon. Same method as Japanese study?
+        % o	Fascicle length /penn_ang change –> relative muscle length change – contribution to total MTU length change in %.
+
         
         
         
@@ -567,7 +619,7 @@ function [] = passiveUS(input_plot)
             plot(GMMTJ_gonio_2,GMMTJ_force_2,'LineWidth',2, 'Color',[0 1 0])
             plot(GMFAS_gonio_1,GMFAS_force_1,'LineWidth',2, 'Color',[0 0 1])
             plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
-            axis([-2 35 0 1400]) %VAR
+            axis(axis_force)
             ylabel('Force (N)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -605,7 +657,7 @@ function [] = passiveUS(input_plot)
             end
             plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2);
             
-            axis([-2 35 -3 30]) %VAR
+            axis(axis_EMG)
             ylabel('Muscle activation (% of MVC)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -659,7 +711,7 @@ function [] = passiveUS(input_plot)
         %7       GM to knee = GM msc
         %7       SOL length (from Hawkins & Hull) minus free AT = SOL msc
         
-        % send max gonio angle
+        % retrieve max gonio angle
         if strcmpi(dm_timepoint{line}, 'PRE') == 1
             if strcmpi(dm_side{line}, 'R') == 1
                 out_ROM_trial_max = str2double(input_gon_pre_r{subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
@@ -687,10 +739,11 @@ function [] = passiveUS(input_plot)
             plot(MTU_length_array(:,1),MTU_length_array(:,3),'LineWidth',1.5,'Color','red') % AT + GM apo
             plot(MTU_length_array(:,1),MTU_length_array(:,2),'LineWidth',1.5,'Color','green') % AT
             % plot vertical lines to show color coding of subsequent figs
-            plot([1,1], [MTU_length_array(1,4), MTU_length_array(1,3)],'Color','cyan')
-            plot([1,1], [MTU_length_array(1,3), MTU_length_array(1,2)],'Color',[1 0.75 0])
-            plot([1,1], [MTU_length_array(1,2), 0],'Color','green')
-            axis([-2 35 0 550]) %VAR
+            plot([0,0], [MTU_length_array(1,4), MTU_length_array(1,3)],'Color','cyan')
+            plot([1,1], [MTU_length_array(1,8)+MTU_length_array(1,2), MTU_length_array(1,3)],'Color','black')
+            plot([0,0], [MTU_length_array(1,3), MTU_length_array(1,2)],'Color',[1 0.75 0])
+            plot([0,0], [MTU_length_array(1,2), 0],'Color','green')
+            axis(axis_len_MTU)
             ylabel('Length (mm)')
             xlabel('Gonio angle (°)')
             title(plottitle)
@@ -702,17 +755,17 @@ function [] = passiveUS(input_plot)
             figure('Name',plottitle);
             hold on
             plot(MTU_elong_array(:,1),MTU_elong_array(:,4),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_elong_array(:,1),MTU_elong_array(:,7),'LineWidth',1.5,'Color','cyan') % GM msc
-            plot(MTU_elong_array(:,1),MTU_elong_array(:,8),'LineWidth',1.5,'Color','black') % SOL msc
-            plot(MTU_elong_array(:,1),MTU_elong_array(:,6),'LineWidth',1.5,'Color',[1 0.75 0]) % GM apo
             plot(MTU_elong_array(:,1),MTU_elong_array(:,2),'LineWidth',1.5,'Color','green') % AT
             plot(MTU_elong_array(:,1),MTU_elong_array(:,3),'LineWidth',1.5,'Color','red') % GM tendon = AT + GM apo
+            plot(MTU_elong_array(:,1),MTU_elong_array(:,7),'LineWidth',1.5,'Color','cyan') % GM msc
+            plot(MTU_elong_array(:,1),MTU_elong_array(:,8),'LineWidth',1.5,'Color','black') % SOL msc
             plot(MTU_elong_array(:,1),MTU_elong_array(:,5),'LineWidth',1.5,'Color','yellow') % GM FAS displacement
-            axis([-2 35 -3 30]) %VAR
+            plot(MTU_elong_array(:,1),MTU_elong_array(:,6),'LineWidth',1.5,'Color',[1 0.75 0]) % GM apo
+            axis(axis_ind_elong)
             ylabel('Elongation (mm)')
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'GM msc', 'SOL msc', 'GM aponeur.', 'Free AT', 'GM tendon', 'GM fascicle DISPL.', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon', 'GM msc.', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             
             % strain (percent of initial length)
@@ -720,16 +773,16 @@ function [] = passiveUS(input_plot)
             figure('Name',plottitle);
             hold on
             plot(MTU_strain_array(:,1),MTU_strain_array(:,4),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+            plot(MTU_strain_array(:,1),MTU_strain_array(:,2),'LineWidth',1.5,'Color','green') % AT
+            plot(MTU_strain_array(:,1),MTU_strain_array(:,3),'LineWidth',1.5,'Color','red') % GM tendon = AT + GM apo
             plot(MTU_strain_array(:,1),MTU_strain_array(:,7),'LineWidth',1.5,'Color','cyan') % GM msc
             plot(MTU_strain_array(:,1),MTU_strain_array(:,8),'LineWidth',1.5,'Color','black') % SOL msc
             plot(MTU_strain_array(:,1),MTU_strain_array(:,6),'LineWidth',1.5,'Color',[1 0.75 0]) % GM apo
-            plot(MTU_strain_array(:,1),MTU_strain_array(:,2),'LineWidth',1.5,'Color','green') % AT
-            plot(MTU_strain_array(:,1),MTU_strain_array(:,3),'LineWidth',1.5,'Color','red') % GM tendon = AT + GM apo
-            axis([-2 35 -1 24]) %VAR
+            axis(axis_ind_strain)
             ylabel('Strain (% of initial length)')
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'GM msc', 'SOL msc', 'GM aponeur.', 'Free AT', 'GM tendon', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon', 'GM msc.', 'SOL msc.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
         end
         
@@ -749,8 +802,9 @@ function [] = passiveUS(input_plot)
         %       out_ROM_trial_max = trial max (different PRE, POST, L, R)
         %       out_ROM_ind_max = subject ind max (lowest PRE, POST, L, R)
         %       out_ROM_common_max = common max (lowest of all subjects)
-        %       out_ROM_submax_1 = additional predetermined angle, e.g. 1/3 and 2/3 of trial max ROM
+        %       out_ROM_submax_1 OLD = additional predetermined angle, e.g. 1/3 and 2/3 of trial max ROM
         %       out_ROM_submax_2 = additional predetermined angle, e.g. 1/3 and 2/3 of trial max ROM
+        %       out_ROM_submax_1 = 10 degrees for those subjects which have this ROM available 
                 
         % column choices
         col_force = 1;
@@ -780,8 +834,9 @@ function [] = passiveUS(input_plot)
         end
         out_ROM_ind_max = str2double(input_gon_ind_max{subjectno}) - 0.00000001;
         out_ROM_common_max = str2double(input_gon_common_max{subjectno}) - 0.00000001;
-        out_ROM_submax_1 = out_ROM_trial_max * 1/3; %VAR
+       % out_ROM_submax_1 = out_ROM_trial_max * 1/3; %VAR --- old, replaced by 10 degrees (reused submax_1 for simplicity)
         out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
+        out_ROM_submax_1 = 10; %VAR
         
         % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
@@ -794,7 +849,11 @@ function [] = passiveUS(input_plot)
         loc_frame = find(data_force_gonio(:,col_angle)>=0,1,'first'); % zero angle
         out_F_zero = data_force_gonio(loc_frame,col_force);
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-        out_F_submax_1 = data_force_gonio(loc_frame,col_force);
+        if isempty(loc_frame) == 0
+            out_F_submax_1 = data_force_gonio(loc_frame,col_force);
+        else
+            out_F_submax_1 = 0;
+        end
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_F_submax_2 = data_force_gonio(loc_frame,col_force);
         
@@ -815,7 +874,11 @@ function [] = passiveUS(input_plot)
         loc_frame = find(data_SOL(:,col_angle)>=out_ROM_common_max,1,'first'); 
         out_displ_SOL_common_max = data_SOL(loc_frame,col_displ); 
         loc_frame = find(data_SOL(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-        out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
+        if isempty(loc_frame) == 0
+            out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
+        else
+            out_displ_SOL_submax_1 = 0;
+        end
         loc_frame = find(data_SOL(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_SOL_submax_2 = data_SOL(loc_frame,col_displ); 
 
@@ -827,7 +890,11 @@ function [] = passiveUS(input_plot)
         loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_common_max,1,'first'); 
         out_displ_GMMTJ_common_max = data_GMMTJ(loc_frame,col_displ); 
         loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-        out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
+        if isempty(loc_frame) == 0
+            out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
+        else
+            out_displ_GMMTJ_submax_1 = 0;
+        end
         loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMMTJ_submax_2 = data_GMMTJ(loc_frame,col_displ); 
 
@@ -839,7 +906,11 @@ function [] = passiveUS(input_plot)
         loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_common_max,1,'first'); 
         out_displ_GMFAS_common_max = data_GMFAS(loc_frame,col_displ); 
         loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-        out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
+        if isempty(loc_frame) == 0
+            out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
+        else
+            out_displ_GMFAS_submax_1 = 0;
+        end
         loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
 
@@ -916,24 +987,45 @@ function [] = passiveUS(input_plot)
         out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_msc_GM); 
         out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_msc_SOL); 
         loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_submax_1,1,'first'); 
-        out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
-        out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GM_tend);
-        out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GM_apo); 
-        out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_msc_GM); 
-        out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_msc_SOL); 
-        out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
-        out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GM_tend);
-        out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GM_apo); 
-        out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_msc_GM); 
-        out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_msc_SOL); 
-        out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
-        out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GM_tend);
-        out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GM_apo); 
-        out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_msc_GM); 
-        out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_msc_SOL); 
+        if isempty(loc_frame)
+            out_elong_AT_submax_1 = 0;
+            out_elong_GMtend_submax_1 = 0;
+            out_elong_leg_submax_1 = 0;
+            out_elong_GMapo_submax_1 = 0;
+            out_elong_msc_GM_submax_1 = 0;
+            out_elong_msc_SOL_submax_1 = 0;
+            out_strain_AT_submax_1 = 0;
+            out_strain_GMtend_submax_1 = 0;
+            out_strain_leg_submax_1 = 0;
+            out_strain_GMapo_submax_1 = 0;
+            out_strain_msc_GM_submax_1 = 0;
+            out_strain_msc_SOL_submax_1 = 0;
+            out_length_AT_submax_1 = 0;
+            out_length_GMtend_submax_1 = 0;
+            out_length_leg_submax_1 = 0;
+            out_length_GMapo_submax_1 = 0;
+            out_length_msc_GM_submax_1 = 0;
+            out_length_msc_SOL_submax_1 = 0;
+        else
+            out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
+            out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GM_tend);
+            out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GM_apo); 
+            out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_msc_GM); 
+            out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_msc_SOL); 
+            out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
+            out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GM_tend);
+            out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
+            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GM_apo); 
+            out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_msc_GM); 
+            out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_msc_SOL); 
+            out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
+            out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GM_tend);
+            out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
+            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GM_apo); 
+            out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_msc_GM); 
+            out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_msc_SOL); 
+        end
         loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_submax_2,1,'first'); 
         out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GM_tend);
@@ -984,23 +1076,29 @@ function [] = passiveUS(input_plot)
         out_emg_gm_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,3)); % EMG gm = column 3
         out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,3));
         out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,3));
-        out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
         out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,3));
 
         % EMG gl
         out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gl = column 4
         out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4)); 
         out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
-        out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
         out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
 
         % EMG sol
         out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG sol = column 5
         out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5));
         out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
-        out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
         out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
 
+        if isempty(loc_frame_submax_1)
+            out_emg_gm_submax_1 = 0;
+            out_emg_gl_submax_1 = 0;
+            out_emg_sol_submax_1 = 0;
+        else
+            out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
+            out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
+            out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
+        end
 
         
         
@@ -1096,17 +1194,22 @@ function [] = passiveUS(input_plot)
 
             % at submax_1 angle:
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-            out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_lichtfas); 
-            out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_lichtpenn); 
-            if data_GMFAS_licht_SOL == 0 % SOL data don't exist
-                out_licht_faslen_SOL_submax_1 = 100;
-                out_licht_pennation_SOL_submax_1 = 100;
+            if isempty(loc_frame)
+                out_licht_faslen_SOL_submax_1 = 0;
+                out_licht_pennation_SOL_submax_1 = 0;
             else
-                % SOL exists
-                out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_lichtfas); 
-                out_licht_pennation_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_lichtpenn); 
+                out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_lichtfas); 
+                out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_lichtpenn); 
+                if data_GMFAS_licht_SOL == 0 % SOL data don't exist
+                    out_licht_faslen_SOL_submax_1 = 100;
+                    out_licht_pennation_SOL_submax_1 = 100;
+                else
+                    % SOL exists
+                    out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_lichtfas); 
+                    out_licht_pennation_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_lichtpenn); 
+                end
             end
-
+            
             % at submax_2 angle:
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
             out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_lichtfas); 
@@ -1320,24 +1423,33 @@ function [] = passiveUS(input_plot)
             %   4 EMG_gl 
             %   5 EMG_sol 
             
-            %   6 elong AT / displ SOL     
-            %   7 elong GMtend / displ GMMTJ
-            % * 8 elong leg        
-            % * 9 ---- / displ GMFAS
-            % *10 elong GMapo       
-            % *11 elong msc         
+            %   6 elong AT
+            %   7 elong GMtend
+            %   8 elong MTU/calf        
+            %   9 displ*** GMFAS
+            %  10 elong GMapo       
+            %  11 elong msc GM         
             
-            % *12 L_AT              
-            % *13 L_GMtend          
-            % *14 L_leg             
-            % *15 ----- (GMFAS)
-            % *16 L_GMapo           
-            % *17 L_msc             
+            %  12 L_AT              
+            %  13 L_GMtend          
+            %  14 L_MTU/calf
+            %  15 ----- (GMFAS)
+            %  16 L_GMapo           
+            %  17 L_msc_GM             
             
-            % *18 Torque            
+            %  18 Torque            
             
-            % *19 elong msc SOL
-            % *20 L msc SOL
+            %  19 elong msc SOL
+            %  20 L msc SOL
+            
+            % 21 strain AT
+            % 22 strain GMtend
+            % 23 strain MTJ
+            % 24 ------ (GMFAS)
+            % 25 strain GMapo
+            % 26 strain msc GM
+            % 27 strain msc SOL
+            
             
             % all data in ONE cell, up to each subject's max angle, RAW data:
             BD_angle_vars{BD_count} = [ ...
@@ -1361,6 +1473,13 @@ function [] = passiveUS(input_plot)
                 data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
                 MTU_elong_array(:,8) ...                                        19
                 MTU_length_array(:,8) ...                                       20
+                MTU_strain_array(:,2) ...                                       21
+                MTU_strain_array(:,3) ...                                       22
+                MTU_strain_array(:,4) ...                                       23
+                MTU_strain_array(:,5) ...                                       24
+                MTU_strain_array(:,6) ...                                       25
+                MTU_strain_array(:,7) ...                                       26
+                MTU_strain_array(:,8) ...                                       27
                 ];
             
             % all data in ONE cell, NORMALIZED data:
@@ -1388,6 +1507,13 @@ function [] = passiveUS(input_plot)
                 BD_angle_vars{1,BD_count}(:,18)*100/max(BD_angle_vars{1,BD_count}(:,18)) ...        18 torque - to max torque in trial
                 BD_angle_vars{1,BD_count}(:,19) ...                                                 19 displ - NOT normalized
                 (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20) ... 20 SOL msc length - normalized to initial msc length
+                BD_angle_vars{1,BD_count}(:,21) ...                                                 21 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,22) ...                                                 22 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,23) ...                                                 23 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,24) ...                                                 24 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,25) ...                                                 25 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,26) ...                                                 26 strain - NOT normalized
+                BD_angle_vars{1,BD_count}(:,27) ...                                                 27 strain - NOT normalized
                 ];
 
             % reshape
@@ -1410,7 +1536,15 @@ function [] = passiveUS(input_plot)
                 spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,17), 0:0.05:100)', ...
                 spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,18), 0:0.05:100)', ...
                 spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,19), 0:0.05:100)', ...
-                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,20), 0:0.05:100)'];
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,20), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,21), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,22), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,23), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,24), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,25), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,26), 0:0.05:100)', ...
+                spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,27), 0:0.05:100)', ...
+                ];
             
             
             
@@ -1442,6 +1576,13 @@ function [] = passiveUS(input_plot)
                 data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
                 MTU_elong_array(:,8) ...                                        19
                 MTU_length_array(:,8) ...                                       20
+                MTU_strain_array(:,2) ...                                       21
+                MTU_strain_array(:,3) ...                                       22
+                MTU_strain_array(:,4) ...                                       23
+                MTU_strain_array(:,5) ...                                       24
+                MTU_strain_array(:,6) ...                                       25
+                MTU_strain_array(:,7) ...                                       26
+                MTU_strain_array(:,8) ...                                       27
                 ];
             
             % all data in ONE cell, NORMALIZED data:
@@ -1469,6 +1610,13 @@ function [] = passiveUS(input_plot)
                 CON_angle_vars{1,CON_count}(:,18)*100/max(CON_angle_vars{1,CON_count}(:,18)) ...       18 torque - to max torque in trial
                 CON_angle_vars{1,CON_count}(:,19) ...                                                 19 displ - NOT normalized
                 (CON_angle_vars{1,CON_count}(:,20)-CON_angle_vars{1,CON_count}(1,20)) *100/CON_angle_vars{1,CON_count}(1,20) ... 20 SOL msc length - normalized to initial msc length
+                CON_angle_vars{1,CON_count}(:,21) ...                                                 21 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,22) ...                                                 22 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,23) ...                                                 23 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,24) ...                                                 24 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,25) ...                                                 25 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,26) ...                                                 26 strain - NOT normalized
+                CON_angle_vars{1,CON_count}(:,27) ...                                                 27 strain - NOT normalized
                 ];
 
             % reshape
@@ -1491,7 +1639,15 @@ function [] = passiveUS(input_plot)
                 spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,17), 0:0.05:100)', ...
                 spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,18), 0:0.05:100)', ...
                 spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,19), 0:0.05:100)', ...
-                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,20), 0:0.05:100)'];
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,20), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,21), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,22), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,23), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,24), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,25), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,26), 0:0.05:100)', ...
+                spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,27), 0:0.05:100)', ...
+                ];
             
         end
         
@@ -1620,16 +1776,17 @@ function [] = passiveUS(input_plot)
         % elongation AT, GM tend, leg, GM apo, msc part
         all_passive_output(line,i) = out_elong_AT_trial_max;
         i = i+1;
-        all_passive_output(line,i) = out_elong_GMapo_trial_max;
-        i = i+1;
         all_passive_output(line,i) = out_elong_GMtend_trial_max;
         i = i+1;
         all_passive_output(line,i) = out_elong_leg_trial_max;
+        i = i+1;
+        all_passive_output(line,i) = out_elong_GMapo_trial_max;
         i = i+1;
         all_passive_output(line,i) = out_elong_msc_GM_trial_max;
         i = i+1;
         all_passive_output(line,i) = out_elong_msc_SOL_trial_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_elong_AT_ind_max;
         i = i+1;
         all_passive_output(line,i) = out_elong_GMtend_ind_max;
@@ -1642,6 +1799,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_elong_msc_SOL_ind_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_elong_AT_common_max;
         i = i+1;
         all_passive_output(line,i) = out_elong_GMtend_common_max;
@@ -1654,6 +1812,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_elong_msc_SOL_common_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_elong_AT_submax_1;
         i = i+1;
         all_passive_output(line,i) = out_elong_GMtend_submax_1;
@@ -1666,6 +1825,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_elong_msc_SOL_submax_1;
         i = i+1;
+        
         all_passive_output(line,i) = out_elong_AT_submax_2;
         i = i+1;
         all_passive_output(line,i) = out_elong_GMtend_submax_2;
@@ -1692,6 +1852,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_strain_msc_SOL_trial_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_strain_AT_ind_max;
         i = i+1;
         all_passive_output(line,i) = out_strain_GMtend_ind_max;
@@ -1704,6 +1865,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_strain_msc_SOL_ind_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_strain_AT_common_max;
         i = i+1;
         all_passive_output(line,i) = out_strain_GMtend_common_max;
@@ -1716,6 +1878,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_strain_msc_SOL_common_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_strain_AT_submax_1;
         i = i+1;
         all_passive_output(line,i) = out_strain_GMtend_submax_1;
@@ -1728,6 +1891,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_strain_msc_SOL_submax_1;
         i = i+1;
+        
         all_passive_output(line,i) = out_strain_AT_submax_2;
         i = i+1;
         all_passive_output(line,i) = out_strain_GMtend_submax_2;
@@ -1756,6 +1920,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_length_msc_SOL_trial_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_length_AT_ind_max;
         i = i+1;
         all_passive_output(line,i) = out_length_GMtend_ind_max;
@@ -1768,6 +1933,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_length_msc_SOL_ind_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_length_AT_common_max;
         i = i+1;
         all_passive_output(line,i) = out_length_GMtend_common_max;
@@ -1780,6 +1946,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_length_msc_SOL_common_max;
         i = i+1;
+        
         all_passive_output(line,i) = out_length_AT_submax_1;
         i = i+1;
         all_passive_output(line,i) = out_length_GMtend_submax_1;
@@ -1792,6 +1959,7 @@ function [] = passiveUS(input_plot)
         i = i+1;
         all_passive_output(line,i) = out_length_msc_SOL_submax_1;
         i = i+1;
+        
         all_passive_output(line,i) = out_length_AT_submax_2;
         i = i+1;
         all_passive_output(line,i) = out_length_GMtend_submax_2;
@@ -1907,7 +2075,7 @@ function [] = passiveUS(input_plot)
     %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - NUMBERS
 
     %%%  mean and stdav of each subject's INDIVIDUAL MAX ROM, force, elong, EMG
-    n_o_array_elements = 20; %VAR - number of elements in BD_angle_xxx arrays. OLD version = 13
+    n_o_array_elements = length(BD_angle_vars{1,1}(1,:));
     
     if BD_count > 0
         % preallocate array
@@ -1916,8 +2084,12 @@ function [] = passiveUS(input_plot)
         % collect variables per subject
         for i = 1:BD_count % per subject
             for j = 1:n_o_array_elements % per element in arrays
-                BD_max(i,j) = max(BD_angle_vars{1,i}(:,j));
-                BD_max_norm(i,j) = max(BD_angle_vars_norm{1,i}(:,j));
+                 % OLD: max value
+%                BD_max(i,j) = max(BD_angle_vars{1,i}(:,j));
+%                BD_max_norm(i,j) = max(BD_angle_vars_norm{1,i}(:,j));
+                 % NEW: END of array value
+                BD_max(i,j) = max(BD_angle_vars{1,i}(end,j));
+                BD_max_norm(i,j) = max(BD_angle_vars_norm{1,i}(end,j));
             end
         end
         % calculate mean and SD of max values across subjects
@@ -1931,34 +2103,52 @@ function [] = passiveUS(input_plot)
         BD_EMG_gl_SD = std(BD_max(:,4));
         BD_EMG_sol_mean = mean(BD_max(:,5));
         BD_EMG_sol_SD = std(BD_max(:,5));
-        BD_displ_SOL_mean = mean(BD_max(:,6)); % / elong AT
-        BD_displ_SOL_SD = std(BD_max(:,6));
-        BD_displ_GMMTJ_mean = mean(BD_max(:,7)); % / elong GM tend
-        BD_displ_GMMTJ_SD = std(BD_max(:,7));
-        BD_displ_MTU_mean = mean(BD_max(:,8)); % / elong leg
-        BD_displ_MTU_SD = std(BD_max(:,8));
+        
+        BD_elong_AT_mean = mean(BD_max(:,6));
+        BD_elong_AT_SD = std(BD_max(:,6));
+        BD_elong_GMtend_mean = mean(BD_max(:,7));
+        BD_elong_GMtend_SD = std(BD_max(:,7));
+        BD_elong_MTU_mean = mean(BD_max(:,8)); % / elong calf
+        BD_elong_MTU_SD = std(BD_max(:,8));
         BD_displ_GMFAS_mean = mean(BD_max(:,9)); 
         BD_displ_GMFAS_SD = std(BD_max(:,9));
         BD_elong_GMapo_mean = mean(BD_max(:,10)); 
         BD_elong_GMapo_SD = std(BD_max(:,10));
-        BD_elong_msc_mean = mean(BD_max(:,11)); % GM msc
-        BD_elong_msc_SD = std(BD_max(:,11));
+        BD_elong_msc_GM_mean = mean(BD_max(:,11)); % GM msc
+        BD_elong_msc_GM_SD = std(BD_max(:,11));
+        BD_elong_msc_SOL_mean = mean(BD_max(:,19)); 
+        BD_elong_msc_SOL_SD = std(BD_max(:,19));
+        
         BD_L_at_SOL_mean = mean(BD_max(:,12)); % L AT
         BD_L_at_SOL_SD = std(BD_max(:,12));
         BD_L_at_GM_mean = mean(BD_max(:,13)); % L GM tend
         BD_L_at_GM_SD = std(BD_max(:,13));
-        BD_L_MTU_mean = mean(BD_max(:,14)); % L leg
+        BD_L_MTU_mean = mean(BD_max(:,14)); % L calf
         BD_L_MTU_SD = std(BD_max(:,14));
+        % no len GMfas
         BD_L_GMapo_mean = mean(BD_max(:,16)); 
         BD_L_GMapo_SD = std(BD_max(:,16));
-        BD_L_msc_mean = mean(BD_max(:,17)); 
-        BD_L_msc_SD = std(BD_max(:,17));
-        BD_torque_mean = mean(BD_max(:,18));
-        BD_torque_SD = std(BD_max(:,18));
-        BD_elong_msc_SOL_mean = mean(BD_max(:,19)); 
-        BD_elong_msc_SOL_SD = std(BD_max(:,19));
+        BD_L_msc_GM_mean = mean(BD_max(:,17)); 
+        BD_L_msc_GM_SD = std(BD_max(:,17));
         BD_L_msc_SOL_mean = mean(BD_max(:,20)); 
         BD_L_msc_SOL_SD = std(BD_max(:,20));
+
+        BD_strain_at_SOL_mean = mean(BD_max(:,21)); % L AT
+        BD_strain_at_SOL_SD = std(BD_max(:,21));
+        BD_strain_at_GM_mean = mean(BD_max(:,22)); % L GM tend
+        BD_strain_at_GM_SD = std(BD_max(:,22));
+        BD_strain_MTU_mean = mean(BD_max(:,23)); % L calf
+        BD_strain_MTU_SD = std(BD_max(:,23));
+        % no strain GMfas
+        BD_strain_GMapo_mean = mean(BD_max(:,25)); 
+        BD_strain_GMapo_SD = std(BD_max(:,25));
+        BD_strain_msc_GM_mean = mean(BD_max(:,26)); 
+        BD_strain_msc_GM_SD = std(BD_max(:,26));
+        BD_strain_msc_SOL_mean = mean(BD_max(:,27)); 
+        BD_strain_msc_SOL_SD = std(BD_max(:,27));
+        
+        BD_torque_mean = mean(BD_max(:,18));
+        BD_torque_SD = std(BD_max(:,18));
         % determine common angle range
         BD_common_ROM = min(BD_max(:,1));
     end
@@ -1970,8 +2160,12 @@ function [] = passiveUS(input_plot)
         % collect variables per subject
         for i = 1:CON_count % per subject
             for j = 1:n_o_array_elements % per element in arrays
-                CON_max(i,j) = max(CON_angle_vars{1,i}(:,j));
-                CON_max_norm(i,j) = max(CON_angle_vars_norm{1,i}(:,j));
+                % OLD: Max values
+%                CON_max(i,j) = max(CON_angle_vars{1,i}(:,j));
+%                CON_max_norm(i,j) = max(CON_angle_vars_norm{1,i}(:,j));
+                % NEW: end of array values
+                CON_max(i,j) = max(CON_angle_vars{1,i}(end,j));
+                CON_max_norm(i,j) = max(CON_angle_vars_norm{1,i}(end,j));
             end
         end
         % calculate mean and SD of max values across subjects
@@ -1985,18 +2179,22 @@ function [] = passiveUS(input_plot)
         CON_EMG_gl_SD = std(CON_max(:,4));
         CON_EMG_sol_mean = mean(CON_max(:,5));
         CON_EMG_sol_SD = std(CON_max(:,5));
-        CON_displ_SOL_mean = mean(CON_max(:,6)); % / elong AT
-        CON_displ_SOL_SD = std(CON_max(:,6));
-        CON_displ_GMMTJ_mean = mean(CON_max(:,7)); % / elong GM tend
-        CON_displ_GMMTJ_SD = std(CON_max(:,7));
-        CON_displ_MTU_mean = mean(CON_max(:,8)); % / elong leg
-        CON_displ_MTU_SD = std(CON_max(:,8));
+        
+        CON_elong_AT_mean = mean(CON_max(:,6)); % / elong AT
+        CON_elong_AT_SD = std(CON_max(:,6));
+        CON_elong_GMtend_mean = mean(CON_max(:,7)); % / elong GM tend
+        CON_elong_GMtend_SD = std(CON_max(:,7));
+        CON_elong_MTU_mean = mean(CON_max(:,8)); % / elong leg
+        CON_elong_MTU_SD = std(CON_max(:,8));
         CON_displ_GMFAS_mean = mean(CON_max(:,9)); 
         CON_displ_GMFAS_SD = std(CON_max(:,9));
         CON_elong_GMapo_mean = mean(CON_max(:,10)); 
         CON_elong_GMapo_SD = std(CON_max(:,10));
-        CON_elong_msc_mean = mean(CON_max(:,11)); % GM msc
-        CON_elong_msc_SD = std(CON_max(:,11));
+        CON_elong_msc_GM_mean = mean(CON_max(:,11)); % GM msc
+        CON_elong_msc_GM_SD = std(CON_max(:,11));
+        CON_elong_msc_SOL_mean = mean(CON_max(:,19)); 
+        CON_elong_msc_SOL_SD = std(CON_max(:,19));
+
         CON_L_at_SOL_mean = mean(CON_max(:,12)); % L AT
         CON_L_at_SOL_SD = std(CON_max(:,12));
         CON_L_at_GM_mean = mean(CON_max(:,13)); % L GM tend
@@ -2005,14 +2203,27 @@ function [] = passiveUS(input_plot)
         CON_L_MTU_SD = std(CON_max(:,14));
         CON_L_GMapo_mean = mean(CON_max(:,16)); 
         CON_L_GMapo_SD = std(CON_max(:,16));
-        CON_L_msc_mean = mean(CON_max(:,17)); 
-        CON_L_msc_SD = std(CON_max(:,17));
-        CON_torque_mean = mean(CON_max(:,18));
-        CON_torque_SD = std(CON_max(:,18));
-        CON_elong_msc_SOL_mean = mean(CON_max(:,19)); 
-        CON_elong_msc_SOL_SD = std(CON_max(:,19));
+        CON_L_msc_GM_mean = mean(CON_max(:,17)); 
+        CON_L_msc_GM_SD = std(CON_max(:,17));
         CON_L_msc_SOL_mean = mean(CON_max(:,20)); 
         CON_L_msc_SOL_SD = std(CON_max(:,20));
+        
+        CON_strain_at_SOL_mean = mean(CON_max(:,21)); % L AT
+        CON_strain_at_SOL_SD = std(CON_max(:,21));
+        CON_strain_at_GM_mean = mean(CON_max(:,22)); % L GM tend
+        CON_strain_at_GM_SD = std(CON_max(:,22));
+        CON_strain_MTU_mean = mean(CON_max(:,23)); % L calf
+        CON_strain_MTU_SD = std(CON_max(:,23));
+        % no strain GMfas
+        CON_strain_GMapo_mean = mean(CON_max(:,25)); 
+        CON_strain_GMapo_SD = std(CON_max(:,25));
+        CON_strain_msc_GM_mean = mean(CON_max(:,26)); 
+        CON_strain_msc_GM_SD = std(CON_max(:,26));
+        CON_strain_msc_SOL_mean = mean(CON_max(:,27)); 
+        CON_strain_msc_SOL_SD = std(CON_max(:,27));
+        
+        CON_torque_mean = mean(CON_max(:,18));
+        CON_torque_SD = std(CON_max(:,18));
         % determine common angle range
         CON_common_ROM = min(CON_max(:,1));
     end
@@ -2047,21 +2258,21 @@ function [] = passiveUS(input_plot)
             'displ SOL @ trial ROM (mm)', 'displ SOL @ subject max ROM', 'displ SOL @ common max ROM', 'displ SOL @ 33% ROM', 'displ SOL @ 67% ROM', ...
             'displ GMMTJ @ trial ROM', 'displ GMMTJ @ subject max ROM', 'displ GMMTJ @ common max ROM', 'displ GMMTJ @ 33% ROM', 'displ GMMTJ @ 67% ROM', ...
             'displ GMfas @ trial ROM', 'displ GMfas @ subject max ROM', 'displ GMfas @ common max ROM', 'displ GMFAS @ 33% ROM', 'displ GMFAS @ 67% ROM', ...
-            'elong_AT_trial_max', 'elong_GMtend_trial_max', 'elong_msc_trial_max', 'elong_GMapo_trial_max', 'elong_msc_GM_trial_max', 'elong_msc_SOL_trial_max',...
-            'elong_AT_ind_max', 'elong_GMtend_ind_max', 'elong_leg_ind_max', 'elong_GMapo_ind_max', 'elong_msc_GM_ind_max', 'elong_msc_SOL_ind_max', ...
-            'elong_AT_common_max', 'elong_GMtend_common_max', 'elong_leg_common_max', 'elong_GMapo_common_max', 'elong_msc_GM_common_max', 'elong_msc_SOL_common_max', ...
-            'elong_AT_submax_1', 'elong_GMtend_submax_1', 'elong_leg_submax_1', 'elong_GMapo_submax_1', 'elong_msc_GM_submax_1', 'elong_msc_SOL_submax_1', ...
-            'elong_AT_submax_2', 'elong_GMtend_submax_2', 'elong_leg_submax_2', 'elong_GMapo_submax_2', 'elong_msc_GM_submax_2', 'elong_msc_SOL_submax_2', ...
-            'strain_AT_trial_max', 'strain_GMtend_trial_max', 'strain_leg_trial_max', 'strain_GMapo_trial_max', 'strain_msc_GM_trial_max', 'strain_msc_SOL_trial_max', ...
-            'strain_AT_ind_max', 'strain_GMtend_ind_max', 'strain_leg_ind_max', 'strain_GMapo_ind_max', 'strain_msc_GM_ind_max', 'strain_msc_SOL_ind_max', ...
-            'strain_AT_common_max', 'strain_GMtend_common_max', 'strain_leg_common_max', 'strain_GMapo_common_max', 'strain_msc_GM_common_max', 'strain_msc_SOL_common_max', ...
-            'strain_AT_submax_1', 'strain_GMtend_submax_1', 'strain_leg_submax_1', 'strain_GMapo_submax_1', 'strain_msc_GM_submax_1', 'strain_msc_SOL_submax_1', ...
-            'strain_AT_submax_2', 'strain_GMtend_submax_2', 'strain_leg_submax_2', 'strain_GMapo_submax_2', 'strain_msc_GM_submax_2', 'strain_msc_SOL_submax_2', ...
-            'length_AT_trial_max', 'length_GMtend_trial_max', 'length_leg_trial_max', 'length_GMapo_trial_max', 'length_msc_GM_trial_max', 'length_msc_SOL_trial_max', ...
-            'length_AT_ind_max', 'length_GMtend_ind_max', 'length_leg_ind_max', 'length_GMapo_ind_max', 'length_msc_GM_ind_max', 'length_msc_SOL_ind_max', ...
-            'length_AT_common_max', 'length_GMtend_common_max', 'length_leg_common_max', 'length_GMapo_common_max', 'length_msc_GM_common_max', 'length_msc_SOL_common_max', ...
-            'length_AT_submax_1', 'length_GMtend_submax_1', 'length_leg_submax_1', 'length_GMapo_submax_1', 'length_msc_GM_submax_1', 'length_msc_SOL_submax_1', ...
-            'length_AT_submax_2', 'length_GMtend_submax_2', 'length_leg_submax_2', 'length_GMapo_submax_2', 'length_msc_GM_submax_2', 'length_msc_SOL_submax_2', ...
+            'elong AT trial max', 'elong GMtend trial max', 'elong leg trial max', 'elong GMapo trial max', 'elong msc GM trial max', 'elong msc SOL trial max',...
+            'elong AT ind max', 'elong GMtend ind max', 'elong leg ind max', 'elong GMapo ind max', 'elong msc GM ind max', 'elong msc SOL ind max', ...
+            'elong AT common max', 'elong GMtend common max', 'elong leg common max', 'elong GMapo common max', 'elong msc GM common max', 'elong msc SOL common max', ...
+            'elong AT submax 1', 'elong GMtend submax 1', 'elong leg submax 1', 'elong GMapo submax 1', 'elong msc GM submax 1', 'elong msc SOL submax 1', ...
+            'elong AT submax 2', 'elong GMtend submax 2', 'elong leg submax 2', 'elong GMapo submax 2', 'elong msc GM submax 2', 'elong msc SOL submax 2', ...
+            'strain AT trial max', 'strain GMtend trial max', 'strain leg trial max', 'strain GMapo trial max', 'strain msc GM trial max', 'strain msc SOL trial max', ...
+            'strain AT ind max', 'strain GMtend ind max', 'strain leg ind max', 'strain GMapo ind max', 'strain msc GM ind max', 'strain msc SOL ind max', ...
+            'strain AT common max', 'strain GMtend common max', 'strain leg common max', 'strain GMapo common max', 'strain msc GM common max', 'strain msc SOL common max', ...
+            'strain AT submax 1', 'strain GMtend submax 1', 'strain leg submax 1', 'strain GMapo submax 1', 'strain msc GM submax 1', 'strain msc SOL submax 1', ...
+            'strain AT submax 2', 'strain GMtend submax 2', 'strain leg submax 2', 'strain GMapo submax 2', 'strain msc GM submax 2', 'strain msc SOL submax 2', ...
+            'length AT trial max', 'length GMtend trial max', 'length leg trial max', 'length GMapo trial max', 'length msc GM trial max', 'length msc SOL trial max', ...
+            'length AT ind max', 'length GMtend ind max', 'length leg ind max', 'length GMapo ind max', 'length msc GM ind max', 'length msc SOL ind max', ...
+            'length AT common max', 'length GMtend common max', 'length leg common max', 'length GMapo common max', 'length msc GM common max', 'length msc SOL common max', ...
+            'length AT submax 1', 'length GMtend submax 1', 'length leg submax 1', 'length GMapo submax 1', 'length msc GM submax 1', 'length msc SOL submax 1', ...
+            'length AT submax 2', 'length GMtend submax 2', 'length leg submax 2', 'length GMapo submax 2', 'length msc GM submax 2', 'length msc SOL submax 2', ...
             'faslen GM @ trial ROM (mm)', 'faslen GM @ subject max ROM', 'faslen GM @ common max ROM', 'faslen GM @ 0 deg', 'faslen GM @ 33% ROM', 'faslen GM @ 67% ROM', ...
             'pennation GM @ trial ROM (°)', 'pennation GM @ subject max ROM', 'pennation GM @ common max ROM', 'pennation GM @ 0 deg', 'pennation GM @ 33% ROM', 'pennation GM @ 67% ROM', ...
             'faslen SOL @ trial ROM', 'faslen SOL @ subject max ROM', 'faslen SOL @ common max ROM', 'faslen SOL @ 0 deg', 'faslen SOL @ 33% ROM', 'faslen SOL @ 67% ROM', ...
@@ -2204,7 +2415,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_F_mean, CON_F_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_F_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_F_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 1400]) %VAR
+            axis(axis_force)
             xlabel('Gonio angle (°)')
             ylabel('Force (N)')
             title(plottitle)
@@ -2218,7 +2429,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,2))
             end
-            axis([-2 35 0 1400]) %VAR
+            axis(axis_force)
             xlabel('Gonio angle (°)')
             ylabel('Force (N)')
             title(plottitle)
@@ -2232,7 +2443,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,2))
             end
-            axis([-2 35 0 1400]) %VAR
+            axis(axis_force)
             xlabel('Gonio angle (°)')
             ylabel('Force (N)')
             title(plottitle)
@@ -2245,7 +2456,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,2),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,2),'b','LineWidth',2)
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -2259,7 +2470,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,2))
             end
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -2273,7 +2484,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,2))
             end
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Force (% of ind max)')
             title(plottitle)
@@ -2296,7 +2507,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_torque_mean, CON_torque_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_torque_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_torque_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 80]) %VAR
+            axis(axis_torque)
             xlabel('Gonio angle (°)')
             ylabel('Torque (Nm)')
             title(plottitle)
@@ -2310,7 +2521,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,18))
             end
-            axis([-2 35 0 80]) %VAR
+            axis(axis_torque)
             xlabel('Gonio angle (°)')
             ylabel('Torque (Nm)')
             title(plottitle)
@@ -2324,7 +2535,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,18))
             end
-            axis([-2 35 0 80]) %VAR
+            axis(axis_torque)
             xlabel('Gonio angle (°)')
             ylabel('Torque (Nm)')
             title(plottitle)
@@ -2337,7 +2548,7 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,18),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,18),'b','LineWidth',2)
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -2351,7 +2562,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,18))
             end
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -2365,7 +2576,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,18))
             end
-            axis([-1 100 0 110]) %VAR
+            axis(axis_PP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Torque (% of ind max)')
             title(plottitle)
@@ -2375,6 +2586,10 @@ function [] = passiveUS(input_plot)
     
     
     
+    
+    
+
+
     
     
     
@@ -2391,7 +2606,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_L_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 120]) %VAR
+            axis(axis_len_AT)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2405,7 +2620,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,12))
             end
-            axis([-2 35 0 120]) %VAR
+            axis(axis_len_AT)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2419,7 +2634,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,12))
             end
-              axis([-2 35 0 120]) %VAR
+            axis(axis_len_AT)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2432,8 +2647,25 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,12),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,12),'b','LineWidth',2)
-            axis([-10 100 -1 24]) %VAR
+            axis(axis_str_ATP)
             xlabel('Gonio angle (% of ind max)')
+            ylabel('Strain (% of initial length)')
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP free AT strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,21),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,21),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_strain_at_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_strain_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_ROM_SD, '*b')
+            axis(axis_str_AT)
+            xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -2446,7 +2678,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,12))
             end
-            axis([-10 100 -1 24]) %VAR
+            axis(axis_str_ATP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2460,7 +2692,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count 
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,12))
             end
-            axis([-2 35 -1 24]) %VAR
+            axis(axis_str_AT)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2474,7 +2706,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,12))
             end
-            axis([-10 100 -1 24]) %VAR
+            axis(axis_str_ATP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2488,7 +2720,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,12))
             end
-            axis([-2 35 -1 24]) %VAR
+            axis(axis_str_AT)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2511,11 +2743,11 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,6),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,6),'b','LineWidth',2)
-            errorbar(BD_ROM_mean, BD_displ_SOL_mean, BD_displ_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-            errorbar(CON_ROM_mean, CON_displ_SOL_mean, CON_displ_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-            herrorbar(BD_ROM_mean, BD_displ_SOL_mean, BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, CON_displ_SOL_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -1 10]) %VAR
+            errorbar(BD_ROM_mean, BD_elong_AT_mean, BD_elong_AT_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_elong_AT_mean, CON_elong_AT_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_elong_AT_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_elong_AT_mean, CON_ROM_SD, '*b')
+            axis(axis_el_AT)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2529,7 +2761,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,6))
             end
-            axis([-2 35 -1 10]) %VAR
+            axis(axis_el_AT)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2543,7 +2775,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,6))
             end
-            axis([-2 35 -1 10]) %VAR
+            axis(axis_el_AT)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2572,7 +2804,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_L_at_GM_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 300]) %VAR
+            axis(axis_len_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2586,7 +2818,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,13))
             end
-            axis([-2 35 0 300]) %VAR
+            axis(axis_len_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2600,7 +2832,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,13))
             end
-            axis([-2 35 0 300]) %VAR
+            axis(axis_len_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2613,8 +2845,25 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,13),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,13),'b','LineWidth',2)
-            axis([-10 100 -1 7]) %VAR
+            axis(axis_str_GMtendP)
             xlabel('Gonio angle (% of ind max)')
+            ylabel('Strain (% of initial length)')
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP GM tendon (from calc) strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,22),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,22),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_strain_at_GM_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_strain_at_GM_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_ROM_SD, '*b')
+            axis(axis_str_GMtend)
+            xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -2627,7 +2876,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,13))
             end
-            axis([-10 100 -1 7]) %VAR
+            axis(axis_str_GMtendP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2641,7 +2890,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,13))
             end
-            axis([-2 35 -1 7]) %VAR
+            axis(axis_str_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2655,7 +2904,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,13))
             end
-            axis([-10 100 -1 7]) %VAR
+            axis(axis_str_GMtendP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2669,7 +2918,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,13))
             end
-            axis([-2 35 -1 7]) %VAR
+            axis(axis_str_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2690,11 +2939,11 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,7),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,7),'b','LineWidth',2)
-            errorbar(BD_ROM_mean, BD_displ_GMMTJ_mean, BD_displ_GMMTJ_SD, '*r', 'MarkerFaceColor', 'r')
-            errorbar(CON_ROM_mean, CON_displ_GMMTJ_mean, CON_displ_GMMTJ_SD, '*b', 'MarkerFaceColor', 'b')
-            herrorbar(BD_ROM_mean, BD_displ_GMMTJ_mean, BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, CON_displ_GMMTJ_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -1 13]) %VAR
+            errorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_elong_GMtend_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_elong_GMtend_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_ROM_SD, '*b')
+            axis(axis_el_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2708,7 +2957,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,7))
             end
-            axis([-2 35 -1 13]) %VAR
+            axis(axis_el_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2722,7 +2971,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,7))
             end
-            axis([-2 35 -1 13]) %VAR
+            axis(axis_el_GMtend)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2749,7 +2998,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_L_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 190]) %VAR
+            axis(axis_len_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2763,7 +3012,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,16))
             end
-            axis([-2 35 0 190]) %VAR
+            axis(axis_len_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2777,7 +3026,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,16))
             end
-            axis([-2 35 0 190]) %VAR
+            axis(axis_len_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2790,13 +3039,31 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,16),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,16),'b','LineWidth',2)
-            axis([-10 100 -2 7]) %VAR
+            axis(axis_str_GMapoP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP GM apo (SOL ins-GM ins) strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,25),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,25),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_strain_GMapo_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_strain_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_ROM_SD, '*b')
+            axis(axis_str_GMapo)
+            xlabel('Gonio angle (°)')
+            ylabel('Strain (% of initial length)') 
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP GM apo (SOL ins-GM ins) strain vs angle - 2 IND, dancers');
             figure('Name',plottitle)
@@ -2804,7 +3071,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,16))
             end
-            axis([-10 100 -2 7]) %VAR
+            axis(axis_str_GMapoP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -2818,7 +3085,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,16))
             end
-            axis([-2 35 -2 7]) %VAR
+            axis(axis_str_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -2832,7 +3099,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,16))
             end
-            axis([-10 100 -2 7]) %VAR
+            axis(axis_str_GMapoP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2846,7 +3113,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,16))
             end
-            axis([-2 35 -2 7]) %VAR
+            axis(axis_str_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -2872,7 +3139,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_elong_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -3 9]) %VAR
+            axis(axis_el_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2886,7 +3153,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,10))
             end
-            axis([-2 35 -3 9]) %VAR
+            axis(axis_el_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2900,7 +3167,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,10))
             end
-            axis([-2 35 -3 9]) %VAR
+            axis(axis_el_GMapo)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -2925,11 +3192,11 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,17),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,17),'b','LineWidth',2)
-            errorbar(BD_ROM_mean, BD_L_msc_mean, BD_L_msc_SD, '*r', 'MarkerFaceColor', 'r')
-            errorbar(CON_ROM_mean, CON_L_msc_mean, CON_L_msc_SD, '*b', 'MarkerFaceColor', 'b')
-            herrorbar(BD_ROM_mean, BD_L_msc_mean, BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, CON_L_msc_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 350]) %VAR
+            errorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_L_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_L_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_ROM_SD, '*b')
+            axis(axis_len_GM)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2943,7 +3210,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,17))
             end
-            axis([-2 35 0 350]) %VAR
+            axis(axis_len_GM)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2957,7 +3224,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,17))
             end
-            axis([-2 35 0 350]) %VAR
+            axis(axis_len_GM)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -2970,13 +3237,31 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,17),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,17),'b','LineWidth',2)
-            axis([-10 100 -1 10]) %VAR
+            axis(axis_str_GMP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP muscle GM (ins-knee) strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,26),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,26),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_strain_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_strain_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_ROM_SD, '*b')
+            axis(axis_str_GM)
+            xlabel('Gonio angle (°)') 
+            ylabel('Strain (% of initial length)') 
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+
     if BD_count > 1 && plot_check
             plottitle = horzcat('GRP muscle GM (ins-knee) strain vs angle - 2 IND, dancers');
             figure('Name',plottitle)
@@ -2984,7 +3269,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,17))
             end
-            axis([-10 100 -1 10]) %VAR
+            axis(axis_str_GMP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -2998,7 +3283,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,17))
             end
-            axis([-2 35 -1 10]) %VAR
+            axis(axis_str_GM)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3012,7 +3297,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,17))
             end
-            axis([-10 100 -1 10]) %VAR
+            axis(axis_str_GMP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3026,7 +3311,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,17))
             end
-            axis([-2 35 -1 10]) %VAR
+            axis(axis_str_GM)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3048,11 +3333,11 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,11),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,11),'b','LineWidth',2)
-            errorbar(BD_ROM_mean, BD_elong_msc_mean, BD_elong_msc_SD, '*r', 'MarkerFaceColor', 'r')
-            errorbar(CON_ROM_mean, CON_elong_msc_mean, CON_elong_msc_SD, '*b', 'MarkerFaceColor', 'b')
-            herrorbar(BD_ROM_mean, BD_elong_msc_mean, BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, CON_elong_msc_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -2 24]) %VAR
+            errorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_elong_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_elong_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_ROM_SD, '*b')
+            axis(axis_el_GM)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3066,7 +3351,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,11))
             end
-            axis([-2 35 -2 24]) %VAR
+            axis(axis_el_GM)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3080,7 +3365,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,11))
             end
-            axis([-2 35 -2 24]) %VAR
+            axis(axis_el_GM)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3110,7 +3395,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_L_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 350]) %VAR
+            axis(axis_len_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3124,7 +3409,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,20))
             end
-            axis([-2 35 0 350]) %VAR
+            axis(axis_len_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3138,7 +3423,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,20))
             end
-            axis([-2 35 0 350]) %VAR
+            axis(axis_len_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3151,8 +3436,25 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,20),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,20),'b','LineWidth',2)
-            axis([-10 100 -1 11]) %VAR
+            axis(axis_str_SOLP)
             xlabel('Gonio angle (% of ind max)')
+            ylabel('Strain (% of initial length)') 
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP muscle SOL strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,27),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,27),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_strain_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_strain_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, '*b')
+            axis(axis_str_SOL)
+            xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -3165,7 +3467,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,20))
             end
-            axis([-10 100 -1 11]) %VAR
+            axis(axis_str_SOLP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3179,7 +3481,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,20))
             end
-            axis([-2 35 -1 11]) %VAR
+            axis(axis_str_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3193,7 +3495,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,20))
             end
-            axis([-10 100 -1 11]) %VAR
+            axis(axis_str_SOLP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3207,7 +3509,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,20))
             end
-            axis([-2 35 -1 11]) %VAR
+            axis(axis_str_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)') 
             title(plottitle)
@@ -3233,7 +3535,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_elong_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -2 28]) %VAR
+            axis(axis_el_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3247,7 +3549,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,19))
             end
-            axis([-2 35 -2 28]) %VAR
+            axis(axis_el_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3261,7 +3563,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,19))
             end
-            axis([-2 35 -2 28]) %VAR
+            axis(axis_el_SOL)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3293,7 +3595,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_displ_GMFAS_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -1 2.5]) %VAR
+            axis(axis_GMFAS)
             xlabel('Gonio angle (°)')
             ylabel('Displacement (mm)')
             title(plottitle)
@@ -3307,7 +3609,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,9))
             end
-            axis([-2 35 -1 2.5]) %VAR
+            axis(axis_GMFAS)
             xlabel('Gonio angle (°)')
             ylabel('Displacement (mm)')
             title(plottitle)
@@ -3321,7 +3623,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,9))
             end
-            axis([-2 35 -1 2.5]) %VAR
+            axis(axis_GMFAS)
             xlabel('Gonio angle (°)')
             ylabel('Displacement (mm)')
             title(plottitle)
@@ -3349,7 +3651,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_L_MTU_mean, CON_L_MTU_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 550]) %VAR
+            axis(axis_len_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3363,7 +3665,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,14))
             end
-            axis([-2 35 0 550]) %VAR
+            axis(axis_len_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3377,7 +3679,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,14))
             end
-            axis([-2 35 0 550]) %VAR
+            axis(axis_len_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3390,8 +3692,25 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,14),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,14),'b','LineWidth',2)
-            axis([-10 100 0 7]) %VAR
+            axis(axis_str_MTUP)
             xlabel('Gonio angle (% of ind max)')
+            ylabel('Strain (% of initial length)')
+            title(plottitle)
+            legend('Dancer avg', 'Control avg','Location','Northwest')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+    end
+    if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP MTU strain vs angle - 1B');
+            figure('Name',plottitle)
+            plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,23),'r','LineWidth',2)
+            hold on
+            plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,23),'b','LineWidth',2)
+            errorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_strain_MTU_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_strain_MTU_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_ROM_SD, '*b')
+            axis(axis_str_MTU)
+            xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
             legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -3404,7 +3723,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,14))
             end
-            axis([-10 100 0 7]) %VAR
+            axis(axis_str_MTUP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -3418,7 +3737,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,14))
             end
-            axis([-2 35 0 7]) %VAR
+            axis(axis_str_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -3432,7 +3751,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,14))
             end
-            axis([-10 100 0 7]) %VAR
+            axis(axis_str_MTUP)
             xlabel('Gonio angle (% of ind max)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -3446,7 +3765,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,14))
             end
-            axis([-2 35 0 7]) %VAR
+            axis(axis_str_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Strain (% of initial length)')
             title(plottitle)
@@ -3469,11 +3788,11 @@ function [] = passiveUS(input_plot)
             plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,8),'r','LineWidth',2)
             hold on
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,8),'b','LineWidth',2)
-            errorbar(BD_ROM_mean, BD_displ_MTU_mean, BD_displ_MTU_SD, '*r', 'MarkerFaceColor', 'r')
-            errorbar(CON_ROM_mean, CON_displ_MTU_mean, CON_displ_MTU_SD, '*b', 'MarkerFaceColor', 'b')
-            herrorbar(BD_ROM_mean, BD_displ_MTU_mean, BD_ROM_SD, '*r')
-            herrorbar(CON_ROM_mean, CON_displ_MTU_mean, CON_ROM_SD, '*b')
-            axis([-2 35 -1 30]) %VAR
+            errorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_elong_MTU_SD, '*r', 'MarkerFaceColor', 'r')
+            errorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_elong_MTU_SD, '*b', 'MarkerFaceColor', 'b')
+            herrorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_ROM_SD, '*r')
+            herrorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_ROM_SD, '*b')
+            axis(axis_el_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3487,7 +3806,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,8))
             end
-            axis([-2 35 -1 30]) %VAR
+            axis(axis_el_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3501,7 +3820,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,8))
             end
-            axis([-2 35 -1 30]) %VAR
+            axis(axis_el_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Elongation (mm)')
             title(plottitle)
@@ -3547,7 +3866,7 @@ function [] = passiveUS(input_plot)
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12)+CON_angle_vars_SD(:,12),'b','LineWidth',0.25)
             plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12)-CON_angle_vars_SD(:,12),'b','LineWidth',0.25)
             
-            axis([-2 22 -0 500]) %VAR
+            axis(axis_len_MTU)
             xlabel('Gonio angle (°)')
             ylabel('Length (mm)')
             title(plottitle)
@@ -3576,7 +3895,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_EMG_gm_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 20]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3590,7 +3909,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,3))
             end
-            axis([-2 35 0 20]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3604,7 +3923,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,3))
             end
-            axis([-2 35 0 20]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3628,7 +3947,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_EMG_gl_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 10]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3642,7 +3961,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,4))
             end
-            axis([-2 35 0 10]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3656,7 +3975,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,4))
             end
-            axis([-2 35 0 10]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3680,7 +3999,7 @@ function [] = passiveUS(input_plot)
             errorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_EMG_sol_SD, '*b', 'MarkerFaceColor', 'b')
             herrorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_ROM_SD, '*r')
             herrorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_ROM_SD, '*b')
-            axis([-2 35 0 30]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3694,7 +4013,7 @@ function [] = passiveUS(input_plot)
             for i = 1:BD_count
                 plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,5))
             end
-            axis([-2 35 0 30]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)
@@ -3708,7 +4027,7 @@ function [] = passiveUS(input_plot)
             for i = 1:CON_count
                 plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,5))
             end
-            axis([-2 35 0 30]) %VAR
+            axis(axis_EMG)
             xlabel('Gonio angle (°)')
             ylabel('EMG (% of MVC)')
             title(plottitle)

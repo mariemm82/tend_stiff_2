@@ -8,8 +8,9 @@
 
 function [output_array] = average_passive_trials_EMG(varargin) % (torque1, gonio1, angle1, displ1, emg_gm1, emg_gl1, emg_sol1, time_1, torque2, gonio2, angle2, displ2, emg_gm2, emg_gl2, emg_sol2, time_2)
 
-global plot_norm subject_id
-
+global plot_check plot_norm plot_conversion subject_id
+angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
+smoother = 10; %VAR 
 
 
 if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,7 +64,7 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
         angle_end = min(gonio_new1) + 5; %VAR
         loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
         % calculate linear coeffisients
-        gonio_modified = [ones(length(gonio_new1(1:loc_angle_end)),1) gonio_new1(1:loc_angle_end)];  %--- MMM TODO - gonio from fitted equation above?
+        gonio_modified = [ones(length(gonio_new1(1:loc_angle_end)),1) gonio_new1(1:loc_angle_end)];
         coeffs_torque = gonio_modified\torque1(1:loc_angle_end); % NB backslash --> slope
         coeffs_displ = gonio_modified\displ1(1:loc_angle_end);
         % enlarge arrays by adding values at zero angle to the front
@@ -115,7 +116,7 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     common_angle_start = max([min(gonio_new1) min(gonio_new2)]);
     common_angle_stop = min([max(gonio_new1) max(gonio_new2)]);
     % create array of angles
-    average_angle_array = (ceil(common_angle_start/0.05)*0.05:0.05:floor(common_angle_stop/0.05)*0.05); % MMM TODO - add ' here and elsewhere --> avoid rotating output array
+    average_angle_array = (ceil(common_angle_start/angle_step)*angle_step:angle_step:floor(common_angle_stop/angle_step)*angle_step)';
     
     
     
@@ -124,29 +125,29 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     % reshape and average TORQUE across common angle array
     common_torque1_gonio = spline(gonio_new1, torque1, average_angle_array);
     common_torque2_gonio = spline(gonio_new2, torque2, average_angle_array);
-    average_torque_gonio = (common_torque1_gonio + common_torque2_gonio) / 2;
+    average_torque_gonio = (smooth(common_torque1_gonio,smoother) + smooth(common_torque2_gonio,smoother)) / 2;
 
     % reshape and average DISPLACEMENT across common angle array
     common_displ1_gonio = spline(gonio_new1, displ1, average_angle_array);
     common_displ2_gonio = spline(gonio_new2, displ2, average_angle_array);
-    average_displ_gonio = (common_displ1_gonio + common_displ2_gonio) / 2;
+    average_displ_gonio = (smooth(common_displ1_gonio,smoother) + smooth(common_displ2_gonio,smoother)) / 2;
 
     % reshape and average EMG across common angle array
     if length(emg_gm1) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
         common_emg_gm1_gonio = spline(gonio_new1, emg_gm1, average_angle_array);
         common_emg_gm2_gonio = spline(gonio_new2, emg_gm2, average_angle_array);
-        average_emg_gm_gonio = (common_emg_gm1_gonio + common_emg_gm2_gonio) / 2;
+        average_emg_gm_gonio = (smooth(common_emg_gm1_gonio,smoother) + smooth(common_emg_gm2_gonio,smoother)) / 2;
         common_emg_gl1_gonio = spline(gonio_new1, emg_gl1, average_angle_array);
         common_emg_gl2_gonio = spline(gonio_new2, emg_gl2, average_angle_array);
-        average_emg_gl_gonio = (common_emg_gl1_gonio + common_emg_gl2_gonio) / 2;
+        average_emg_gl_gonio = (smooth(common_emg_gl1_gonio,smoother) + smooth(common_emg_gl2_gonio,smoother)) / 2;
         common_emg_sol1_gonio = spline(gonio_new1, emg_sol1, average_angle_array);
         common_emg_sol2_gonio = spline(gonio_new2, emg_sol2, average_angle_array);
-        average_emg_sol_gonio = (common_emg_sol1_gonio + common_emg_sol2_gonio) / 2;
+        average_emg_sol_gonio = (smooth(common_emg_sol1_gonio,smoother) + smooth(common_emg_sol2_gonio,smoother)) / 2;
     end
     
     % plot ANGLE curve fitting, splining and averaging
-    if plot_norm
-        plottitle = horzcat('Gonio-torque fit/avg, ', subject_id, ' (SOL/GMMTJ/GMFAS)');
+    if plot_check && plot_norm
+        plottitle = horzcat('Torque vs gonio fit/avg, ', subject_id, ' (SOL/GMMTJ/GMFAS)');
         figure('Name',plottitle);
         plot(gonio1, torque1)
         hold on
@@ -229,27 +230,27 @@ else % nargin == 7, one trial submitted %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     common_angle_start = min(gonio_new1);
     common_angle_stop = max(gonio_new1);
     % create array of angles
-    average_angle_array = ceil(common_angle_start/0.05)*0.05:0.05:floor(common_angle_stop/0.05)*0.05;
+    average_angle_array = (ceil(common_angle_start/angle_step)*angle_step:angle_step:floor(common_angle_stop/angle_step)*angle_step)';
     
 
 
     %%% reshape, resample, average
 
     % reshape and average TORQUE across common angle array
-    average_torque_gonio = spline(gonio_new1, torque1, average_angle_array);
+    average_torque_gonio = smooth(spline(gonio_new1, torque1, average_angle_array),smoother);
 
     % reshape and average DISPLACEMENT across common angle array
-    average_displ_gonio = spline(gonio_new1, displ1, average_angle_array);
+    average_displ_gonio = smooth(spline(gonio_new1, displ1, average_angle_array),smoother);
 
     % reshape and average EMG across common angle array
     if length(emg_gm1) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
-        average_emg_gm_gonio = spline(gonio_new1, emg_gm1, average_angle_array);
-        average_emg_gl_gonio = spline(gonio_new1, emg_gl1, average_angle_array);
-        average_emg_sol_gonio = spline(gonio_new1, emg_sol1, average_angle_array);
+        average_emg_gm_gonio = smooth(spline(gonio_new1, emg_gm1, average_angle_array),smoother);
+        average_emg_gl_gonio = smooth(spline(gonio_new1, emg_gl1, average_angle_array),smoother);
+        average_emg_sol_gonio = smooth(spline(gonio_new1, emg_sol1, average_angle_array),smoother);
     end
     
     % plot curve fitting, splining and averaging
-    if plot_norm
+    if plot_check && plot_conversion
         plottitle = horzcat('Gonio-torque fit/avg, ', subject_id, ' (SOL/GMMTJ/GMFAS)');
         figure('Name',plottitle);
         plot(gonio1, torque1)
@@ -265,9 +266,9 @@ end
 
 
 if length(emg_gm1) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
-    output_array = [average_torque_gonio; average_angle_array; average_displ_gonio; average_emg_gm_gonio; average_emg_gl_gonio; average_emg_sol_gonio]';
+    output_array = [average_torque_gonio average_angle_array average_displ_gonio average_emg_gm_gonio average_emg_gl_gonio average_emg_sol_gonio];
 else
-    output_array = [average_torque_gonio; average_angle_array; average_displ_gonio]';
+    output_array = [average_torque_gonio average_angle_array average_displ_gonio];
 end
 
 

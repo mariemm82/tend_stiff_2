@@ -8,7 +8,7 @@
 
 function [force,gonio,angle,displacement,time_us] = extract_force_displ_singletrial_passive(noraxondata, usdata, usdata_frame, max_EMG_TA, max_EMG_GM, max_EMG_GL, max_EMG_SOL, leg_length, side, line, trial_name)
     
-    global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
+    global column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque % column_EMG_start column_EMG_end column_l_tibant column_r_tibant column_norm_velocity column_norm_direction column_achilles
     global plot_norm plot_check subject_id
     global at_momentarm
     global filepath
@@ -75,10 +75,10 @@ function [force,gonio,angle,displacement,time_us] = extract_force_displ_singletr
         set(H2,'color','red')
         set(H1,'color','blue')
         set(AX(2),'YLim',[min(displacement) max(displacement)])
-        set(AX(2),'YTick',[0:1:1.2*max(displacement)])
+        set(AX(2),'YTick',0:1:1.2*max(displacement))
         set(AX(2),'box','off')
         set(AX(1),'YLim',[0 max(force)/20])
-        set(AX(1),'YTick',[0:round(max(force)/20/10,-1):1.2*max(force)/20])
+        set(AX(1),'YTick',0:round(max(force)/20/10,-1):1.2*max(force)/20)
         set(AX(1),'box','off')
         xlabel('Time (s)'),title(plottitle);
         legend('Force (N) /20','Gonio (deg)','Norm angle (deg)', '%EMG GM', '%EMG GL', '%EMG SOL','Displ (mm)','Location','Northwest');

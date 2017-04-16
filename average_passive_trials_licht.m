@@ -9,6 +9,8 @@
 function [output_array] = average_passive_trials_licht(varargin) % (gonio1, angle1, faslen1, pennation1, time1, gonio2, angle2, faslen2, pennation2, time2, description)
 
 global plot_check subject_id plot_licht
+angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
+smoother = 10; %VAR 
 
 if nargin == 11 % two trials submitted, to be averaged
     gonio1 = varargin{1};
@@ -57,11 +59,11 @@ if nargin == 11 % two trials submitted, to be averaged
         angle_end = min(gonio_new1) + 5; %VAR
         loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
         % calculate linear coeffisients
-        gonio_modified = [ones(length(gonio1(1:loc_angle_end)),1) gonio1(1:loc_angle_end)];
+        gonio_modified = [ones(length(gonio_new1(1:loc_angle_end)),1) gonio_new1(1:loc_angle_end)];
         coeffs_faslen = gonio_modified\faslen1(1:loc_angle_end); % NB backslash --> slope
         coeffs_pennation = gonio_modified\pennation1(1:loc_angle_end); % NB backslash --> slope
         % enlarge arrays by adding values at zero angle to the front
-        angle_half = min(gonio1)/2;
+        angle_half = min(gonio_new1)/2;
         gonio_new1 = [0; angle_half; gonio_new1];
         faslen1 = [coeffs_faslen(1); (angle_half*coeffs_faslen(2)) + coeffs_faslen(1); faslen1];
         pennation1 = [coeffs_pennation(1); (angle_half*coeffs_pennation(2)) + coeffs_pennation(1); pennation1];
@@ -91,7 +93,7 @@ if nargin == 11 % two trials submitted, to be averaged
     common_angle_start = max([min(gonio_new1) min(gonio_new2)]);
     common_angle_stop = min([max(gonio_new1) max(gonio_new2)]);
     % create array of angles
-    average_angle_array = (ceil(common_angle_start/0.05)*0.05:0.05:floor(common_angle_stop/0.05)*0.05); % MMM TODO - add ' here and elsewhere --> avoid rotating output array
+    average_angle_array = (ceil(common_angle_start/angle_step)*angle_step:angle_step:floor(common_angle_stop/angle_step)*angle_step)';
 
     
     
@@ -103,7 +105,7 @@ if nargin == 11 % two trials submitted, to be averaged
     common_faslen2_gonio = spline(gonio_new2, faslen2, average_angle_array);
     
     % average FASLEN across common angle array
-    average_faslen_gonio = (common_faslen1_gonio + common_faslen2_gonio) / 2;
+    average_faslen_gonio = (smooth(common_faslen1_gonio,smoother) + smooth(common_faslen2_gonio,smoother)) / 2;
 
     % reshape PENNATION across common angle array
     % if necessary, will extrapolate to include zero degrees gonio angle
@@ -111,13 +113,13 @@ if nargin == 11 % two trials submitted, to be averaged
     common_pennation2_gonio = spline(gonio_new2, pennation2, average_angle_array);
     
     % average PENNATION across common angle array
-    average_pennation_gonio = (common_pennation1_gonio + common_pennation2_gonio) / 2;
+    average_pennation_gonio = (smooth(common_pennation1_gonio,smoother) + smooth(common_pennation2_gonio,smoother)) / 2;
     
     
     
     %%% plot original and averaged data
     if plot_check && plot_licht
-        plottitle = horzcat('Lichtwark averaging, ', subject_id, ' - ', description);
+        plottitle = horzcat('IND Lichtwark averaging, ', subject_id, ' - ', description);
         figure('Name',plottitle);
         max_faslen = max([max(faslen1) max(faslen2)]);
         min_faslen = min([min(faslen1) min(faslen2)]);
@@ -141,7 +143,8 @@ if nargin == 11 % two trials submitted, to be averaged
         set(get(AXc,'Ylabel'),'String','Pennation angle (deg)')
         set(AXc,'YLim',[min_pennation*.9 max_pennation*1.1])
         xlabel('Gonio angle (deg)');
-        legend('Trial 1','Trial 2','Spline','Location','Southeast');
+        legend('Trial 1','Trial 2','Spline','Location','Northeast');
+        saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
     end
     
     
@@ -203,17 +206,17 @@ else % nargin == 6, e.g. only one trial submitted
     common_angle_start = min(gonio_new1);
     common_angle_stop = max(gonio_new1);
     % create array of angles
-    average_angle_array = ceil(common_angle_start/0.05)*0.05:0.05:floor(common_angle_stop/0.05)*0.05;
+    average_angle_array = (ceil(common_angle_start/angle_step)*angle_step:angle_step:floor(common_angle_stop/angle_step)*angle_step)';
     
     
     
     %%% reshape, resample, average
     
     % reshape FASLEN across common angle array
-    average_faslen_gonio = spline(gonio_new1, faslen1, average_angle_array);
+    average_faslen_gonio = smooth(spline(gonio_new1, faslen1, average_angle_array),smoother);
 
     % reshape PENNATION across common angle array
-    average_pennation_gonio = spline(gonio_new1, pennation1, average_angle_array);
+    average_pennation_gonio = smooth(spline(gonio_new1, pennation1, average_angle_array),smoother);
     
     % plot original and averaged data
     if plot_check && plot_licht
@@ -238,7 +241,7 @@ else % nargin == 6, e.g. only one trial submitted
         set(get(AXc,'Ylabel'),'String','Pennation angle (deg)')
         set(AXc,'YLim',[min_pennation*.9 max_pennation*1.1])
         xlabel('Gonio angle (deg)');
-        legend('Trial','Spline','Location','Southeast');
+        legend('Trial','Spline','Location','Northeast');
     end
     
 end
@@ -247,7 +250,7 @@ end
 
 
 
-output_array = [average_angle_array; average_faslen_gonio; average_pennation_gonio]';
+output_array = [average_angle_array average_faslen_gonio average_pennation_gonio];
 
 end
 

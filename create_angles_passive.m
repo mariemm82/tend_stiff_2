@@ -396,7 +396,7 @@ function []=create_angles_passive(input_plot)
         
         % all three displacements separately 
         if plot_check
-            plottitle = horzcat('IND X - force elongation, ', subject_id);
+            plottitle = horzcat('IND 3x force displacement, ', subject_id);
             figure('Name',plottitle);
             max_force = max([max(data_sol(:,1)) max(data_gmmtj(:,1)) max(data_gmfas(:,1))]);
             max_displ = max([max(data_sol(:,3)) max(data_gmmtj(:,3)) max(data_gmfas(:,3))]);
@@ -423,7 +423,7 @@ function []=create_angles_passive(input_plot)
    %         set(AXc,'XLim',[min_angle max_angle+1])
             set(AXc,'YLim',[min_displ max_displ],'YTick',(0:5:1.1*max_displ))
             xlabel('Gonio angle (deg)');
-            legend('SOL','GMMTJ','GMFAS','Location','Southeast');
+            legend('SOL','GMMTJ','GMFAS','Location','Northwest');
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
         end
         

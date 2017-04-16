@@ -8,11 +8,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, trial_name)
-    global us_zerodispframes noraxonfreq emg_bandpass emg_rms_ms mvc_window_ms convert_achilles convert_norm_ind_passive
-    global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
-    global plot_norm plot_emg plot_check subject_id
-    global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
-    global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
+    global noraxonfreq emg_bandpass emg_rms_ms % us_zerodispframes mvc_window_ms convert_achilles convert_norm_ind_passive
+    global angle_cutoff velocity_cutoff torque_cutoff_active % torque_cutoff_bandstop angle_cutoff_active velocity_cutoff_active
+    global plot_norm plot_emg plot_check plot_conversion subject_id
+    global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction % column_l_tibant column_r_tibant column_achilles
+    global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b % convert_norm_direction_b
     
     % import noraxon data
     noraxondata = importdata(noraxonfile, '\t', 1);
@@ -182,7 +182,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     % changedirection3 = changedirection2+500 + find(norm_velocity_filtered(changedirection2+500:end)<vel2+(vel1/2),1,'first');
 
     % plot to confirm phases of direction changes
-    if plot_check && plot_norm
+    if plot_check && plot_conversion
         plottitle = horzcat('Passive phases check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(time,-norm_direction/100)
@@ -431,7 +431,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     
 	% replace gonio in array
     noraxon_converted(1:loc_trialend,column_gonio) = gonio_corrected(1:loc_trialend);
-    if plot_check && plot_norm
+    if plot_check && plot_conversion
         plottitle = horzcat('Gonio correction check, ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(time,noraxondata.data(:,column_norm_angle))
@@ -512,7 +512,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     end
        
     % plot final data
-    if plot_check && plot_norm
+    if plot_check && plot_conversion
         plottitle = horzcat('Norm torque-angle check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(noraxon_resampled(:,column_norm_angle),noraxon_resampled(:,column_norm_torque),'k')

@@ -7,9 +7,8 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, angle_common)
-
-
+function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_elong_GM_Fukunaga, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, angle_common)
+    global at_momentarm % subject_id
 
     %%%%%%%% create array of angles common to all 6 trials
     % angle_common is read from file from create_angles_passive, to avoid potential tiny discrepancies between various calculations of max
@@ -61,15 +60,31 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     C4 = 0.00193;
     MTU_length_HH_SOL_rel = C0 + (C1*aH) + (C2*aK) + (C3*(aK^2)) + (C4*aA);
     
-    % correction: 
+    % correction for H&H: 
     % we KNOW the exact initial MTU length = calc insert to lat epi = 100% length (instead of H&H which says MTU length = ~108% of lat mall to lat epi)
     % first data point = 0 degrees ankle = 100% length
     % extracting length change from this point (% of calf/MTU length)
     MTU_length_HH_GM_abs = calf_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
     MTU_length_HH_SOL_abs = calf_length * MTU_length_HH_SOL_rel;
     
+    %%% elongation from ankle rotation and moment arm (geometry)
+    % convert momentarm from m to mm (* 1000)
+    MTU_length_geometry = calf_length + (at_momentarm * 1000 * sind(angle_array));
+
+%     %%% plot method comparison
+%     plottitle = horzcat('Comparison of MTU length models, ', subject_id);
+%     figure('Name',plottitle)
+%     hold on
+%     plot(angle_array,MTU_length_Grieve_abs)
+%     plot(angle_array,MTU_length_HH_GM_abs)
+%     plot(angle_array,MTU_length_geometry)
+%     legend('Grieve','Hawkin&Hull','Geometry', 'Location', 'NorthWest')
+%     xlabel('Gonio angle (°)')
+%     ylabel('Length (mm)')
+%     title(plottitle)
+    
     %%% choice of method for GM MTU length:
-    MTU_GM_length = MTU_length_HH_GM_abs; %alternative MTU_length_Grieve_abs
+    MTU_GM_length = MTU_length_Grieve_abs; % alternative MTU_length_geometry; %alternative MTU_length_HH_GM_abs
     
     
     
@@ -81,8 +96,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     % reshape displacement:
     AT_SOL_displ = spline(angle_displ_SOL(:,1), angle_displ_SOL(:,2), angle_array);
     % convert to length + reshape
-    % OLD, error:    AT_SOL_length_array = spline(angle_displ_SOL(:,1), (AT_SOL_length + angle_displ_SOL(:,2)), angle_array);
-    AT_SOL_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_SOL_length - AT_SOL_displ;
+    % OLD, error:    tend_AT_length_array = spline(angle_displ_SOL(:,1), (AT_SOL_length + angle_displ_SOL(:,2)), angle_array);
+    tend_AT_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_SOL_length - AT_SOL_displ;
     
     
     
@@ -91,8 +106,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     % reshape displacement:
     AT_GM_displ = spline(angle_displ_GMMTJ(:,1), angle_displ_GMMTJ(:,2), angle_array);
     % convert to length + reshape
-    % OLD, error:     AT_GM_length_array = spline(angle_displ_GMMTJ(:,1), (AT_GM_length + angle_displ_GMMTJ(:,2)), angle_array);
-    AT_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_GM_length - AT_GM_displ;
+    % OLD, error:     tend_GM_length_array = spline(angle_displ_GMMTJ(:,1), (AT_GM_length + angle_displ_GMMTJ(:,2)), angle_array);
+    tend_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_GM_length - AT_GM_displ;
     
     
     
@@ -103,47 +118,70 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     
     %%%% GM msc length array
-    msc_GM_length_array = MTU_GM_length - AT_GM_length_array;
-    apo_GM_array = AT_GM_length_array - AT_SOL_length_array;
+    msc_GM_length_array = MTU_GM_length - tend_GM_length_array;
+    apo_GM_array = tend_GM_length_array - tend_AT_length_array;
     
     
 
     %%%% SOL msc length array
-    msc_SOL_length_array = MTU_length_HH_SOL_abs - AT_SOL_length_array;
+    msc_SOL_length_array = MTU_length_HH_SOL_abs - tend_AT_length_array;
     
     
     
     
-    %%%%%% Final data
+    %%%% GM msc elongation from anthropometry (Lichtwark/Fukunaga)
+    if angle_elong_GM_Fukunaga == 0
+        msc_GM_elong_Fukunaga(1:length(angle_array),1) = zeros;
+    else
+        loc_frame = find(angle_elong_GM_Fukunaga(:,1)>=0,1,'first');
+        loc_frame2 = find(angle_elong_GM_Fukunaga(:,1)>=angle_common,1,'first');
+        % change to correct angle array
+        msc_GM_elong_Fukunaga = angle_elong_GM_Fukunaga(loc_frame:loc_frame2,2);
+        % calculate other elongations, lengths, strains
+        msc_GM_length_Fukunaga = (calf_length - AT_GM_length) + msc_GM_elong_Fukunaga;
+        tend_GM_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
+        tend_GM_elong_Fukunaga = tend_GM_length_Fukunaga - tend_GM_length_Fukunaga(1);
+    end
+    
+    
+    
+    %%%%%%%%%%% Final data
+    
     MTU_length_array = [ ...
         angle_array ...
-        AT_SOL_length_array ...% = free AT
-        AT_GM_length_array ... % = GM length from calc to GM insert
-        MTU_GM_length ...      % = from calc to knee
-        zeros(length(angle_array),1) ...                          % GMFAS track has no length
-        apo_GM_array ...       % = from SOL to GM ins
-        msc_GM_length_array ... % = from GM ins to knee
-        msc_SOL_length_array];  % = H&H SOL length minus free AT
+        tend_AT_length_array ...    % = free AT
+        tend_GM_length_array ...    % = GM tend, from calc to GM insert
+        MTU_GM_length ...           % = from calc to knee
+        zeros(length(angle_array),1) ...  % GMFAS has no length 
+        apo_GM_array ...            % = from end of free AT to GM ins
+        msc_GM_length_array ...     % = from GM ins to knee
+        msc_SOL_length_array ...    % = H&H SOL length minus free AT
+        tend_GM_length_Fukunaga ... % = GM tendon length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+        msc_GM_length_Fukunaga];    % = GM muscle length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
     
     MTU_elong_array = [...
         angle_array ...
-        AT_SOL_length_array-AT_SOL_length_array(1) ...
-        AT_GM_length_array-AT_GM_length_array(1) ...    % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))    ) ... % = GM apo, from end of free AT to GM insert
+        tend_AT_length_array-tend_AT_length_array(1) ...
+        tend_GM_length_array-tend_GM_length_array(1) ...
         MTU_GM_length-MTU_GM_length(1) ...
-        GMFAS_displ_array ...                           % GMFAS track has displacement 
+        GMFAS_displ_array ...    % = DISPLACEMENT from GMFAS tracking
         apo_GM_array-apo_GM_array(1) ...
         msc_GM_length_array-msc_GM_length_array(1)...
-        msc_SOL_length_array-msc_SOL_length_array(1)];
+        msc_SOL_length_array-msc_SOL_length_array(1)...
+        tend_GM_elong_Fukunaga ...
+        msc_GM_elong_Fukunaga ];
     
     MTU_strain_array = [ ...
         angle_array ...
-        (AT_SOL_length_array-AT_SOL_length_array(1)) / AT_SOL_length_array(1)*100 ...
-        (AT_GM_length_array-AT_GM_length_array(1)) / AT_GM_length_array(1)*100 ...       % ((at_GM_length_array-at_SOL_length_array) - (at_GM_length_array(1)-at_SOL_length_array(1))) / (at_GM_length_array(1)-at_SOL_length_array(1))*100     ...
+        (tend_AT_length_array-tend_AT_length_array(1)) / tend_AT_length_array(1)*100 ...
+        (tend_GM_length_array-tend_GM_length_array(1)) / tend_GM_length_array(1)*100 ...     
         (MTU_GM_length-MTU_GM_length(1)) / MTU_GM_length(1)*100 ...
-        zeros(length(angle_array),1) ...                          % GMFAS track has no length
+        zeros(length(angle_array),1) ...                             % GMFAS has no length --> no strain
         (apo_GM_array-apo_GM_array(1)) / apo_GM_array(1)*100 ...
         (msc_GM_length_array-msc_GM_length_array(1)) / msc_GM_length_array(1)*100 ...
-        (msc_SOL_length_array-msc_SOL_length_array(1)) / msc_SOL_length_array(1)*100 ];
-    
+        (msc_SOL_length_array-msc_SOL_length_array(1)) / msc_SOL_length_array(1)*100 ...
+    	(tend_GM_length_Fukunaga-tend_GM_length_Fukunaga(1)) / tend_GM_length_Fukunaga(1)*100 ...
+        (msc_GM_length_Fukunaga-msc_GM_length_Fukunaga(1)) / msc_GM_length_Fukunaga(1)*100 ];
+
     
 end

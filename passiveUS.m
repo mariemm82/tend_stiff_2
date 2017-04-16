@@ -41,6 +41,8 @@ function [] = passiveUS(input_project, input_plot)
         plot_individual = 0;
     end
     
+    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
+
     % LEVEL 2: main checkpoint plots
     plot_norm = 0;
     
@@ -3084,7 +3086,104 @@ function [] = passiveUS(input_project, input_plot)
     
     
     
-    %% GROUP CALCULATIONS - ARRAYS FOR PLOTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %% GROUP CALCULATIONS - % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if input_project == 1 && toggle_normalization == 1
+
+        %%% in angle_vars arrays, replace absolute values with
+        %%% normalization to initial leg length:
+        
+        % --- angle_vars arrays:
+        % 14 L_MTU/calf
+        
+        % 13 L_GMtend
+        % 29 elong tend GM (from Lichtwark/Fukunaga)
+        % 31 strain tend GM (from Lichtwark/Fukunaga)
+        
+        % 17 L_msc_GM
+        % 28 elong msc GM (from Lichtwark/Fukunaga)
+        % 30 strain msc GM (from Lichtwark/Fukunaga)
+        
+        % 32 LENGTH faslen GM (from Lichtwark)
+        for i = 1:length(BD_count)
+            % GM tendon length, elong
+            BD_angle_vars{i}(:,13) = BD_angle_vars{i}(:,13)/BD_angle_vars{i}(1,14);
+            BD_angle_vars{i}(:,29) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14);
+            % GM muscle length, elong
+            BD_angle_vars{i}(:,17) = BD_angle_vars{i}(:,17)/BD_angle_vars{i}(1,14);
+            BD_angle_vars{i}(:,28) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14);
+            % GM fascicle length, elong
+            BD_angle_vars{i}(:,32) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14);
+            BD_angle_vars{i}(:,34) = BD_angle_vars{i}(:,34)/BD_angle_vars{i}(1,14);
+        end
+        for i = 1:length(CON_count)
+            % GM tendon length, elong
+            CON_angle_vars{i}(:,13) = CON_angle_vars{i}(:,13)/CON_angle_vars{i}(1,14);
+            CON_angle_vars{i}(:,29) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14);
+            % GM muscle length, elong
+            CON_angle_vars{i}(:,17) = CON_angle_vars{i}(:,17)/CON_angle_vars{i}(1,14);
+            CON_angle_vars{i}(:,28) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14);
+            % GM fascicle length, elong
+            CON_angle_vars{i}(:,32) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14);
+            CON_angle_vars{i}(:,34) = CON_angle_vars{i}(:,34)/CON_angle_vars{i}(1,14);
+        end
+
+        %%% adjust relevant axes: % MMM TODO values
+        axis_faslen = [-1 40 -inf inf];
+        axis_faslen_elong = [-1 40 -inf inf];
+        axis_faslen_str = [-1 40 -inf inf];
+        
+        axis_el_GM = [-1 40 -inf inf];
+        axis_str_GM = [-1 40 -inf inf];
+        axis_len_GM = [-1 40 -inf inf];
+
+        axis_el_GMtend = [-1 40 -inf inf];
+        axis_str_GMtend = [-1 40 -inf inf];
+        axis_len_GMtend = [-1 40 -inf inf];
+
+        
+    % MMM GOON TODO - what about mean values?
+
+    % old:
+%         % preallocate
+%         BD_norm_len_GM{BD_count} = zeros;
+%         CON_norm_len_GM{CON_count} = zeros;
+%         
+%         % GM lengths, normalized to leg length:
+%         %   1 = angle
+%         %   2 = tendon     - LENGTHS
+%         %   3 = muscle
+%         %   4 = fascicle
+%         %   5 = tendon     - ELONGATIONS
+%         %   6 = muscle
+%         %   7 = fascicle
+%         for i = 1:length(BD_count)
+%             BD_norm_len_GM{i}(:,1) = BD_angle_vars{i}(:,1);
+%             BD_norm_len_GM{i}(:,2) = (BD_angle_vars{i}(:,29)+BD_angle_vars{i}(1,13))/BD_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
+%             BD_norm_len_GM{i}(:,3) = (BD_angle_vars{i}(:,28)+BD_angle_vars{i}(1,17))/BD_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
+%             BD_norm_len_GM{i}(:,4) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14); % divide by initial leg length
+%             BD_norm_len_GM{i}(:,5) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14); % Divide by initial leg length
+%             BD_norm_len_GM{i}(:,6) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14); % divide by initial leg length
+%             BD_norm_len_GM{i}(:,7) = (BD_angle_vars{i}(:,32)-BD_angle_vars{i}(1,32))/BD_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
+%         end
+%         for i = 1:length(CON_count)
+%             CON_norm_len_GM{i}(:,1) = CON_angle_vars{i}(:,1);
+%             CON_norm_len_GM{i}(:,2) = (CON_angle_vars{i}(:,29)+CON_angle_vars{i}(1,13))/CON_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
+%             CON_norm_len_GM{i}(:,3) = (CON_angle_vars{i}(:,28)+CON_angle_vars{i}(1,17))/CON_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
+%             CON_norm_len_GM{i}(:,4) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14); % divide by initial leg length
+%             CON_norm_len_GM{i}(:,5) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14); % Divide by initial leg length
+%             CON_norm_len_GM{i}(:,6) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14); % divide by initial leg length
+%             CON_norm_len_GM{i}(:,7) = (CON_angle_vars{i}(:,32)-CON_angle_vars{i}(1,32))/CON_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
+%         end
+        
+    end
+    
+    
+    
+    
+    
+    
+    %% GROUP CALCULATIONS - MEAN ARRAYS FOR PLOTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if input_project == 1
         %% BD study
         %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
@@ -3306,87 +3405,6 @@ function [] = passiveUS(input_project, input_plot)
     
     
     
-    
-    
-    %% GROUP CALCULATIONS - % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MMM GOON TODO
-    if input_project == 1 % BD study
-        
-	toggle_normalization = 1; % 0 = absolute values, 1 = % of leg length
-	% MMM TODO: move up to intro 
-    
-        if toggle_normalization == 1
-                %  14 L_MTU/calf
-
-                % 13 L_GMtend          
-                % 29 elong tend GM (from Lichtwark/Fukunaga)
-                % 31 strain tend GM (from Lichtwark/Fukunaga)
-
-                % 17 L_msc_GM             
-                % 28 elong msc GM (from Lichtwark/Fukunaga)
-                % 30 strain msc GM (from Lichtwark/Fukunaga)
-
-                % 32 LENGTH faslen GM (from Lichtwark)
-            for i = 1:length(BD_count)
-                % GM tendon length, elong
-                BD_angle_vars{i}(:,13) = BD_angle_vars{i}(:,13)/BD_angle_vars{i}(1,14);
-                BD_angle_vars{i}(:,29) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14);
-                % GM muscle length, elong
-                BD_angle_vars{i}(:,17) = BD_angle_vars{i}(:,17)/BD_angle_vars{i}(1,14);
-                BD_angle_vars{i}(:,28) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14);
-                % GM fascicle length, elong
-                BD_angle_vars{i}(:,32) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14);
-                BD_angle_vars{i}(:,34) = BD_angle_vars{i}(:,34)/BD_angle_vars{i}(1,14);
-            end
-            for i = 1:length(CON_count)
-                % GM tendon length, elong
-                CON_angle_vars{i}(:,13) = CON_angle_vars{i}(:,13)/CON_angle_vars{i}(1,14);
-                CON_angle_vars{i}(:,29) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14);
-                % GM muscle length, elong
-                CON_angle_vars{i}(:,17) = CON_angle_vars{i}(:,17)/CON_angle_vars{i}(1,14);
-                CON_angle_vars{i}(:,28) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14);
-                % GM fascicle length, elong
-                CON_angle_vars{i}(:,32) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14);
-                CON_angle_vars{i}(:,34) = CON_angle_vars{i}(:,34)/CON_angle_vars{i}(1,14);
-            end
-        end
-
-        
-        
-        
-        % MMM TODO: comment out?
-%         % preallocate
-%         BD_norm_len_GM{BD_count} = zeros;
-%         CON_norm_len_GM{CON_count} = zeros;
-%         
-%         % GM lengths, normalized to leg length:
-%         %   1 = angle
-%         %   2 = tendon     - LENGTHS
-%         %   3 = muscle
-%         %   4 = fascicle
-%         %   5 = tendon     - ELONGATIONS
-%         %   6 = muscle
-%         %   7 = fascicle
-%         for i = 1:length(BD_count)
-%             BD_norm_len_GM{i}(:,1) = BD_angle_vars{i}(:,1);
-%             BD_norm_len_GM{i}(:,2) = (BD_angle_vars{i}(:,29)+BD_angle_vars{i}(1,13))/BD_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
-%             BD_norm_len_GM{i}(:,3) = (BD_angle_vars{i}(:,28)+BD_angle_vars{i}(1,17))/BD_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
-%             BD_norm_len_GM{i}(:,4) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14); % divide by initial leg length
-%             BD_norm_len_GM{i}(:,5) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14); % Divide by initial leg length
-%             BD_norm_len_GM{i}(:,6) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14); % divide by initial leg length
-%             BD_norm_len_GM{i}(:,7) = (BD_angle_vars{i}(:,32)-BD_angle_vars{i}(1,32))/BD_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
-%         end
-%         for i = 1:length(CON_count)
-%             CON_norm_len_GM{i}(:,1) = CON_angle_vars{i}(:,1);
-%             CON_norm_len_GM{i}(:,2) = (CON_angle_vars{i}(:,29)+CON_angle_vars{i}(1,13))/CON_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
-%             CON_norm_len_GM{i}(:,3) = (CON_angle_vars{i}(:,28)+CON_angle_vars{i}(1,17))/CON_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
-%             CON_norm_len_GM{i}(:,4) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14); % divide by initial leg length
-%             CON_norm_len_GM{i}(:,5) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14); % Divide by initial leg length
-%             CON_norm_len_GM{i}(:,6) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14); % divide by initial leg length
-%             CON_norm_len_GM{i}(:,7) = (CON_angle_vars{i}(:,32)-CON_angle_vars{i}(1,32))/CON_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
-%         end
-        
-    end
     
     
     

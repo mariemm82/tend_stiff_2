@@ -144,42 +144,49 @@ function []=create_angles_passive(input_plot)
 
 
 
-        %%% Calculate data for muscle activation (EMG)
-
-        % prepare column placement
-        if strcmpi(dm_side{line},'R') == 1
-            column_tibant = column_r_tibant;
-            column_gm = column_r_gm;
-            column_gl = column_r_gl;
-            column_sol = column_r_sol;
-        else % left
-            column_tibant = column_l_tibant;
-            column_gm = column_l_gm;
-            column_gl = column_l_gl;
-            column_sol = column_l_sol;
-        end
-
-        % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - DORSIFLEXION
-        % Produce a new noraxon data array
-        noraxon_mvc_dorsi = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
-
-        % Calculate co-activation constants
-        % Read complete, prepared noraxon array + number of frames to average (freq * time)
-        % Produce max torque, max EMG constants
-    %    [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
-        [~,EMG_max_TA] = calculate_EMG_max(noraxon_mvc_dorsi, freq_default*(mvc_window_ms/1000), column_tibant, 1); % 1 = invert torque for dorsiflexion
-
-        % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - PLANTAR FLEXION
-        % Produce a new noraxon data array
-        noraxon_mvc_plantar = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantarflex'); %TMP BD
-
-        % Calculate co-activation constants
-        % Read complete, prepared noraxon array + number of frames to average (freq * time)
-        % Produce max torque, max EMG constants
-    %    [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
-        [~,EMG_max_GM] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gm, 0);
-        [~,EMG_max_GL] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gl, 0);
-        [~,EMG_max_SOL] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_sol, 0);
+%         %%% Calculate data for muscle activation (EMG)
+% EMG not needed to create max angles and forces. Only used for output to
+% screen, and by setting EMG_max to 0, output will report "inf". Does not
+% affect data.
+        EMG_max_TA = 0;
+        EMG_max_GM = 0;
+        EMG_max_GL = 0;
+        EMG_max_SOL = 0;
+% 
+%         % prepare column placement
+%         if strcmpi(dm_side{line},'R') == 1
+%             column_tibant = column_r_tibant;
+%             column_gm = column_r_gm;
+%             column_gl = column_r_gl;
+%             column_sol = column_r_sol;
+%         else % left
+%             column_tibant = column_l_tibant;
+%             column_gm = column_l_gm;
+%             column_gl = column_l_gl;
+%             column_sol = column_l_sol;
+%         end
+% 
+%         % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - DORSIFLEXION
+%         % Produce a new noraxon data array
+%         noraxon_mvc_dorsi = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
+% 
+%         % Calculate co-activation constants
+%         % Read complete, prepared noraxon array + number of frames to average (freq * time)
+%         % Produce max torque, max EMG constants
+%     %    [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
+%         [~,EMG_max_TA] = calculate_EMG_max(noraxon_mvc_dorsi, freq_default*(mvc_window_ms/1000), column_tibant, 1); % 1 = invert torque for dorsiflexion
+% 
+%         % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - PLANTAR FLEXION
+%         % Produce a new noraxon data array
+%         noraxon_mvc_plantar = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantarflex'); %TMP BD
+% 
+%         % Calculate co-activation constants
+%         % Read complete, prepared noraxon array + number of frames to average (freq * time)
+%         % Produce max torque, max EMG constants
+%     %    [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
+%         [~,EMG_max_GM] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gm, 0);
+%         [~,EMG_max_GL] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gl, 0);
+%         [~,EMG_max_SOL] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_sol, 0);
 
 
 

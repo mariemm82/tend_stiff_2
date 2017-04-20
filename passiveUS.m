@@ -63,7 +63,8 @@ function [] = passiveUS(input_project, input_plot)
     us_zerodispframes = 1; % No of US frames to average as zero displacement
     noraxonfreq = 1500; % sampling frequency of noraxon data
     freq_default = 100; % output frequency for noraxon data without US video (MVC, etc)
-    angle_step = 0.05; % reshaped, averaged data extracted every x degrees
+    angle_step_plots = 0.05; % reshaped, averaged data extracted every x degrees for PLOTS
+    angle_step_stats = 0.5; %  reshaped, averaged data extracted every x degrees for STATS
 
     % variables for NORM conversion factors calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
@@ -125,20 +126,24 @@ function [] = passiveUS(input_project, input_plot)
     
     if input_project == 1 
         %% dancer study
-        axis_ind_elong = [-1 35 -6 20];
-        axis_ind_strain = [-1 35 -6 20];
-
         axis_EMG = [-1 35 0 30];
-        
-        axis_len_GMFAS = [-1 35 0 85];
-        axis_el_GMFAS = [-1 35 0 12];
-        axis_str_GMFAS = [-1 35 0 22];
-        axis_penn_GMFAS = [-1 35 7 18];
         
         axis_len_MTU = [-1 35 -0 550];
         axis_el_MTU = [-1 35 -1 30];
         axis_str_MTU = [-1 35 0 6];
         axis_str_MTUP = [-5 100 0 6];
+
+        axis_penn_GMFAS = [-1 35 7 18];
+        axis_len_GMFAS = [-1 35 0 85];
+        axis_el_GMFAS = [-1 35 0 12];
+        axis_str_GMFAS = [-1 35 0 22];
+        
+        axis_el_GMmsc_arch = [-1 35 -1 22];
+        axis_str_GMmsc_arch = [-1 35 -0.5 7];
+        axis_len_GMmsc_arch = [-1 35 0 350];
+        axis_el_GMtend_arch = [-1 35 -1 18];
+        axis_str_GMtend_arch = [-0 35 -1 10];
+        axis_len_GMtend_arch = [-1 35 0 300];
 
         axis_displ_GMFAS = [-1 35 -2.5 2.5];
         axis_displ_SOL = [-1 35 -3 11];
@@ -162,8 +167,6 @@ function [] = passiveUS(input_project, input_plot)
         axis_str_GMtend = [-0 35 -1 10];
         axis_str_GMtendP = [-5 100 -1 10];
         axis_len_GMtend = [-1 35 0 300];
-        axis_el_GMtend_arch = [-1 35 -1 18];
-        axis_len_GMtend_arch = [-1 35 0 300];
 
         axis_el_AT = [-1 35 -1 25];
         axis_str_AT = [-1 35 -1 30];
@@ -173,50 +176,56 @@ function [] = passiveUS(input_project, input_plot)
         axis_force = [-1 35 0 1400];
         axis_torque = [-1 35 0 70];
         axis_PP = [-5 100 0 105];
+        
+        axis_ind_elong = [-1 35 -6 20];
+        axis_ind_strain = [-1 35 -6 20];
+
     else
         %% intervention study
 
-        axis_ind_elong = [-1 37 -6 30];
-        axis_ind_strain = [-1 37 -6 30];
-
-        axis_EMG = [-1 37 0 30];
-
-        axis_len_GMFAS = [-1 37 -inf inf]; % MMM LATER
-        axis_penn_GMFAS = [-1 37 -inf inf]; % MMM LATER
-        axis_el_GMFAS = [-1 37 -1 12]; % MMM LATER
-        axis_str_GMFAS = [-1 37 0 22]; % MMM LATER
-
+        axis_EMG = [-1 37 0 35];
+        
         axis_len_MTU = [-1 37 -0 550];
         axis_el_MTU = [-1 37 -1 35];
-        axis_str_MTU = [-1 37 0 8];
+        axis_str_MTU = [-1 37 -0.5 8];
         axis_str_MTUP = [-5 100 0 8];
+
+        axis_penn_GMFAS = [-1 37 6 19];
+        axis_len_GMFAS = [-1 37 0 95];
+        axis_el_GMFAS = [-1 37 -0.5 13];
+        axis_str_GMFAS = [-1 37 -1 22];
+
+        axis_el_GMtend_arch = [-1 37 -1 22];
+        axis_str_GMtend_arch = [-1 37 -0.5 12];
+        axis_len_GMtend_arch = [-1 37 0 250];
+        axis_el_GMmsc_arch = [-1 37 -0.5 15];
+        axis_str_GMmsc_arch = [-1 37 -0.5 6];
+        axis_len_GMmsc_arch = [-1 37 0 350];
 
         axis_displ_GMFAS = [-1 37 -2 4.5];
         axis_displ_SOL = [-1 37 -3 11];
 
-        axis_el_SOL = [-1 37 -1 11];
-        axis_str_SOL = [-1 37 -1 6];
-        axis_str_SOLP = [-5 100 -1 4];
+        axis_el_SOL = [-1 37 -1 15];
+        axis_str_SOL = [-1 37 -0.5 6];
+        axis_str_SOLP = [-5 100 -0.5 4];
         axis_len_SOL = [-1 37 0 350];
 
-        axis_el_GMmsc = [-1 37 -1 15];
+        axis_el_GMmsc = [-1 37 -0.5 15];
         axis_str_GMmsc = [-1 37 -0.5 6];
         axis_str_GMmscP = [-5 100 -0.5 6];
         axis_len_GMmsc = [-1 37 0 350];
 
-        axis_el_GMapo = [-1 37 -5 2];
-        axis_str_GMapo = [-1 37 -5 2];
-        axis_str_GMapoP = [-5 100 -4 2];
+        axis_el_GMapo = [-1 37 -7 3];
+        axis_str_GMapo = [-1 37 -6 3];
+        axis_str_GMapoP = [-5 100 -6 2];
         axis_len_GMapo = [-1 37 0 150];
 
-        axis_el_GMtend = [-1 37 -1 28];
-        axis_str_GMtend = [-1 37 -1 14];
-        axis_str_GMtendP = [-5 100 -1 14];
+        axis_el_GMtend = [-1 37 -2 15];
+        axis_str_GMtend = [-1 37 -0.5 8];
+        axis_str_GMtendP = [-5 100 -0.5 8];
         axis_len_GMtend = [-1 37 0 300];
-        axis_el_GMtend_arch = [-1 37 -1 inf]; % MMM LATER
-        axis_len_GMtend_arch = [-1 37 0 inf]; % MMM LATER
         
-        axis_el_AT = [-1 37 -1 32];
+        axis_el_AT = [-1 37 -1 22];
         axis_str_AT = [-1 37 -1 45];
         axis_str_ATP = [-5 100 -1 70];
         axis_len_AT = [-1 37 0 140];
@@ -224,6 +233,9 @@ function [] = passiveUS(input_project, input_plot)
         axis_force = [-1 37 0 1900];
         axis_torque = [-1 37 0 100];
         axis_PP = [-5 100 0 105];
+        
+        axis_ind_elong = [-1 37 -6 30];
+        axis_ind_strain = [-1 37 -6 30];
     end
     %% set AXES etc for plots
     
@@ -276,7 +288,7 @@ function [] = passiveUS(input_project, input_plot)
     %% preallocate output arrays
     % common arrays for all subjects:
         all_passive_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
-            'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', '10°', '67% ROM', ...
+            'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', 'Submax - 10°', 'Submax - 67% ROM', ...
             'force @ trial ROM (N)', 'force @ subject max ROM', 'force @ subject max force', 'force @ common max ROM', 'force @ 0 deg', 'force @ 10°', 'force @ 67% ROM', ...
             'torque @ trial ROM (N)', 'torque @ subject max ROM', 'torque @ subject max torque', 'torque @ common max ROM', 'torque @ 0 deg', 'torque @ 10°', 'torque @ 67% ROM', ...
             'angle @ trial max force (°)', 'angle @ subject max force', 'angle @ common max force', 'angle @ ind R max force', 'angle @ ind L max force', ...            
@@ -364,11 +376,7 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
     end
-    % preallocate output arrays
-    
-    
-    
-    
+    %% preallocate output arrays
     
     
     
@@ -889,6 +897,12 @@ function [] = passiveUS(input_project, input_plot)
             else % L
                 out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
             end
+        end
+        
+        % error if ROM not existing (incorrect create angles passive?)
+        if round(out_ROM_trial_max,1) == 100
+            cprintf('*red', 'ERROR: ROM data not calculated for current subject. Run "create_angles_passive".\n')
+            return
         end
         
         % calculate MTU lengths
@@ -1655,7 +1669,7 @@ function [] = passiveUS(input_project, input_plot)
         
         
         
-        %%% contents of below angle_vars arrays / angle_vars contain:
+        % contents of below angle_vars arrays / angle_vars contain:
                 %   1 angle
                 %   2 F 
                 %   3 EMG_gm 
@@ -1749,8 +1763,6 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
-                %    - EMG only normalized to %MVC, not to max EMG @ trial
-                %    - elongations (6-11) not normalized to anything
                 %    NB: in #12-17, normalizing to initial length in array, instead of using constants: str2double(dm_at_SOL_length{line}), dm_at_GM_length, (cm to mm) 10*dm_leg_length. Tested and values are the same except rounding at 2nd or 3rd decimal.
                 % 
                 % 2017-03-23: After strain was added to BD_angle_vars,
@@ -1758,7 +1770,6 @@ function [] = passiveUS(input_project, input_plot)
                 % force, torque etc - strain could be taken from the end 
                 % of non-normalized array ... but the script stays 
                 % unchanged for simplicity
-
                 
                 BD_angle_vars_norm_indlength{BD_count} = [ ...
                     BD_angle_vars{1,BD_count}(:,1)*100/out_ROM_trial_max ...                            1 angle - normalized to trial max ROM 
@@ -1800,45 +1811,52 @@ function [] = passiveUS(input_project, input_plot)
                     BD_angle_vars{1,BD_count}(:,37) ...                                                 37 NOT normalized
                     ];
 
-                % reshape
-                BD_angle_vars_norm{BD_count} = [ (0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,2), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,3), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,4), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,5), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,6), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,7), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,8), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,9), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,10), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,11), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,12), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,13), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,14), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,15), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,16), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,17), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,18), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,19), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,20), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,21), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,22), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,23), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,24), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,25), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,26), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,27), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,28), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,29), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,30), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,31), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,32), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,33), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,34), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,35), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,36), 0:angle_step:100)', ...
-                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,37), 0:angle_step:100)', ...
+                % reshape for plots
+                BD_angle_vars_norm{BD_count} = [ (0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1), BD_angle_vars_norm_indlength{1,BD_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
+                
+                
+                % reshape for STATS
+                % MMM GOON
+                % possible to "spline" entire 474 x 37 matrix in one
+                % operation?
+                
                 %% END BD subjects
             else
                 %% CON subjects
@@ -1929,43 +1947,43 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % reshape
-                CON_angle_vars_norm{CON_count} = [ (0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,2), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,3), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,4), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,5), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,6), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,7), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,8), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,9), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,10), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,11), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,12), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,13), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,14), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,15), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,16), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,17), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,18), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,19), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,20), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,21), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,22), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,23), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,24), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,25), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,26), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,27), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,28), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,29), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,30), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,31), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,32), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,33), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,34), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,35), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,36), 0:angle_step:100)', ...
-                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,37), 0:angle_step:100)', ...
+                CON_angle_vars_norm{CON_count} = [ (0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1), CON_angle_vars_norm_indlength{1,CON_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
                 %% END CON subjects
             end
@@ -2060,43 +2078,43 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % reshape
-                CON_PRE_angle_vars_norm{CON_PRE_count} = [ (0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,2), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,3), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,4), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,5), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,6), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,7), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,8), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,9), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,10), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,11), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,12), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,13), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,14), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,15), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,16), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,17), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,18), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,19), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,20), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,21), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,22), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,23), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,24), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,25), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,26), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,27), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,28), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,29), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,30), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,31), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,32), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,33), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,34), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,35), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,36), 0:angle_step:100)', ...
-                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,37), 0:angle_step:100)', ...
+                CON_PRE_angle_vars_norm{CON_PRE_count} = [ (0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1), CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
                 %% END PRE CON
             elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
@@ -2187,43 +2205,43 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % reshape
-                STR_PRE_angle_vars_norm{STR_PRE_count} = [ (0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,2), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,3), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,4), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,5), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,6), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,7), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,8), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,9), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,10), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,11), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,12), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,13), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,14), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,15), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,16), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,17), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,18), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,19), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,20), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,21), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,22), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,23), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,24), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,25), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,26), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,27), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,28), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,29), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,30), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,31), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,32), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,33), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,34), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,35), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,36), 0:angle_step:100)', ...
-                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,37), 0:angle_step:100)', ...
+                STR_PRE_angle_vars_norm{STR_PRE_count} = [ (0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1), STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
                 %% END PRE STR
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
@@ -2314,43 +2332,43 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % reshape
-                CON_POST_angle_vars_norm{CON_POST_count} = [ (0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,2), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,3), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,4), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,5), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,6), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,7), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,8), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,9), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,10), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,11), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,12), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,13), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,14), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,15), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,16), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,17), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,18), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,19), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,20), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,21), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,22), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,23), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,24), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,25), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,26), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,27), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,28), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,29), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,30), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,31), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,32), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,33), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,34), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,35), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,36), 0:angle_step:100)', ...
-                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,37), 0:angle_step:100)', ...
+                CON_POST_angle_vars_norm{CON_POST_count} = [ (0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1), CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
                 %% END POST CON
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
@@ -2441,43 +2459,43 @@ function [] = passiveUS(input_project, input_plot)
                     ];
 
                 % reshape
-                STR_POST_angle_vars_norm{STR_POST_count} = [ (0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,2), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,3), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,4), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,5), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,6), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,7), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,8), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,9), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,10), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,11), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,12), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,13), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,14), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,15), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,16), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,17), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,18), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,19), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,20), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,21), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,22), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,23), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,24), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,25), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,26), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,27), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,28), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,29), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,30), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,31), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,32), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,33), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,34), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,35), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,36), 0:angle_step:100)', ...
-                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,37), 0:angle_step:100)', ...
+                STR_POST_angle_vars_norm{STR_POST_count} = [ (0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,2), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,3), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,4), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,5), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,6), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,7), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,8), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,9), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,10), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,11), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,12), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,13), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,14), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,15), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,16), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,17), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,18), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,19), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,20), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,21), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,22), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,23), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,24), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,25), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,26), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,27), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,28), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,29), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,30), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,31), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,32), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,33), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,34), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,35), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,36), 0:angle_step_plots:100)', ...
+                    spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1), STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,37), 0:angle_step_plots:100)', ...
                     ];
                 %% END POST STR
             end
@@ -2560,9 +2578,7 @@ function [] = passiveUS(input_project, input_plot)
     
     
     
-
-    
-    %% GROUP CALCULATIONS - % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if input_project == 1 && toggle_normalization == 1
 
 %     % old version 2 - replacing direcly in angle_vars arrays
@@ -2609,8 +2625,8 @@ function [] = passiveUS(input_project, input_plot)
         axis_el_GMFAS = [-1 35 0 3];
         axis_len_GMFAS = [-1 35 0 22];
         
-        axis_el_GMmsc = [-1 35 0 3];
-        axis_len_GMmsc = [-1 35 0 68];
+        axis_el_GMmsc_arch = [-1 35 0 3];
+        axis_len_GMmsc_arch = [-1 35 0 68];
 
         axis_el_GMtend_arch = [-1 35 0 4.5];
         axis_len_GMtend_arch = [-1 35 0 65];
@@ -2651,13 +2667,11 @@ function [] = passiveUS(input_project, input_plot)
 %         end
         
     end
-    %% GROUP CALCULATIONS - % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
     
     
-    
-
-    %% GROUP CALCULATIONS - MEAN + STDAV FOR PLOTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% GROUP CALCULATIONS - create variables of MEAN + STDAV for plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%  mean and stdav of each subject's INDIVIDUAL MAX ROM, force, elong, EMG, etc
     if input_project == 1
@@ -2742,14 +2756,14 @@ function [] = passiveUS(input_project, input_plot)
             BD_strain_tend_GM_licht_mean = mean(BD_max(:,31)); 
             BD_strain_tend_GM_licht_SD = std(BD_max(:,31));
             
-            BD_GM_length_faslen_licht_mean = mean(BD_max(:,32)); 
-            BD_GM_length_faslen_licht_SD = std(BD_max(:,32)); 
-            BD_GM_pennation_licht_mean = mean(BD_max(:,33)); 
-            BD_GM_pennation_licht_SD = std(BD_max(:,33)); 
-            BD_GM_elong_faslen_licht_mean = mean(BD_max(:,34)); 
-            BD_GM_elong_faslen_licht_SD = std(BD_max(:,34)); 
-            BD_GM_strain_faslen_licht_mean = mean(BD_max(:,35)); 
-            BD_GM_strain_faslen_licht_SD = std(BD_max(:,35)); 
+            BD_length_GMfas_licht_mean = mean(BD_max(:,32)); 
+            BD_length_GMfas_licht_SD = std(BD_max(:,32)); 
+            BD_pennation_GMfas_licht_mean = mean(BD_max(:,33)); 
+            BD_pennation_GMfas_licht_SD = std(BD_max(:,33)); 
+            BD_elong_GMfas_licht_mean = mean(BD_max(:,34)); 
+            BD_elong_GMfas_licht_SD = std(BD_max(:,34)); 
+            BD_strain_GMfas_licht_mean = mean(BD_max(:,35)); 
+            BD_strain_GMfas_licht_SD = std(BD_max(:,35)); 
 
             BD_length_msc_GM_licht_mean = mean(BD_max(:,36)); 
             BD_length_msc_GM_licht_SD = std(BD_max(:,36));
@@ -2841,14 +2855,14 @@ function [] = passiveUS(input_project, input_plot)
             CON_strain_tend_GM_licht_mean = mean(CON_max(:,31)); 
             CON_strain_tend_GM_licht_SD = std(CON_max(:,31));
             
-            CON_GM_length_faslen_licht_mean = mean(CON_max(:,32)); 
-            CON_GM_length_faslen_licht_SD = std(CON_max(:,32)); 
-            CON_GM_pennation_licht_mean = mean(CON_max(:,33)); 
-            CON_GM_pennation_licht_SD = std(CON_max(:,33)); 
-            CON_GM_elong_faslen_licht_mean = mean(CON_max(:,34)); 
-            CON_GM_elong_faslen_licht_SD = std(CON_max(:,34)); 
-            CON_GM_strain_faslen_licht_mean = mean(CON_max(:,35)); 
-            CON_GM_strain_faslen_licht_SD = std(CON_max(:,35)); 
+            CON_length_GMfas_licht_mean = mean(CON_max(:,32)); 
+            CON_length_GMfas_licht_SD = std(CON_max(:,32)); 
+            CON_pennation_GMfas_licht_mean = mean(CON_max(:,33)); 
+            CON_pennation_GMfas_licht_SD = std(CON_max(:,33)); 
+            CON_elong_GMfas_licht_mean = mean(CON_max(:,34)); 
+            CON_elong_GMfas_licht_SD = std(CON_max(:,34)); 
+            CON_strain_GMfas_licht_mean = mean(CON_max(:,35)); 
+            CON_strain_GMfas_licht_SD = std(CON_max(:,35)); 
             
             CON_length_msc_GM_licht_mean = mean(CON_max(:,36)); 
             CON_length_msc_GM_licht_SD = std(CON_max(:,36));
@@ -2945,14 +2959,14 @@ function [] = passiveUS(input_project, input_plot)
             CON_PRE_strain_tend_GM_licht_mean = mean(CON_PRE_max(:,31)); 
             CON_PRE_strain_tend_GM_licht_SD = std(CON_PRE_max(:,31));
 
-            CON_PRE_GM_length_faslen_licht_mean = mean(CON_PRE_max(:,32)); 
-            CON_PRE_GM_length_faslen_licht_SD = std(CON_PRE_max(:,32)); 
-            CON_PRE_GM_pennation_licht_mean = mean(CON_PRE_max(:,33)); 
-            CON_PRE_GM_pennation_licht_SD = std(CON_PRE_max(:,33)); 
-            CON_PRE_GM_elong_faslen_licht_mean = mean(CON_PRE_max(:,34)); 
-            CON_PRE_GM_elong_faslen_licht_SD = std(CON_PRE_max(:,34)); 
-            CON_PRE_GM_strain_faslen_licht_mean = mean(CON_PRE_max(:,35)); 
-            CON_PRE_GM_strain_faslen_licht_SD = std(CON_PRE_max(:,35)); 
+            CON_PRE_length_GMfas_licht_mean = mean(CON_PRE_max(:,32)); 
+            CON_PRE_length_GMfas_licht_SD = std(CON_PRE_max(:,32)); 
+            CON_PRE_pennation_GMfas_licht_mean = mean(CON_PRE_max(:,33)); 
+            CON_PRE_pennation_GMfas_licht_SD = std(CON_PRE_max(:,33)); 
+            CON_PRE_elong_GMfas_licht_mean = mean(CON_PRE_max(:,34)); 
+            CON_PRE_elong_GMfas_licht_SD = std(CON_PRE_max(:,34)); 
+            CON_PRE_strain_GMfas_licht_mean = mean(CON_PRE_max(:,35)); 
+            CON_PRE_strain_GMfas_licht_SD = std(CON_PRE_max(:,35)); 
             
             CON_PRE_length_msc_GM_licht_mean = mean(CON_PRE_max(:,36)); 
             CON_PRE_length_msc_GM_licht_SD = std(CON_PRE_max(:,36));
@@ -3044,14 +3058,14 @@ function [] = passiveUS(input_project, input_plot)
             STR_PRE_strain_tend_GM_licht_mean = mean(STR_PRE_max(:,31)); 
             STR_PRE_strain_tend_GM_licht_SD = std(STR_PRE_max(:,31));
             
-            STR_PRE_GM_length_faslen_licht_mean = mean(STR_PRE_max(:,32)); 
-            STR_PRE_GM_length_faslen_licht_SD = std(STR_PRE_max(:,32)); 
-            STR_PRE_GM_pennation_licht_mean = mean(STR_PRE_max(:,33)); 
-            STR_PRE_GM_pennation_licht_SD = std(STR_PRE_max(:,33)); 
-            STR_PRE_GM_elong_faslen_licht_mean = mean(STR_PRE_max(:,34)); 
-            STR_PRE_GM_elong_faslen_licht_SD = std(STR_PRE_max(:,34)); 
-            STR_PRE_GM_strain_faslen_licht_mean = mean(STR_PRE_max(:,35)); 
-            STR_PRE_GM_strain_faslen_licht_SD = std(STR_PRE_max(:,35)); 
+            STR_PRE_length_GMfas_licht_mean = mean(STR_PRE_max(:,32)); 
+            STR_PRE_length_GMfas_licht_SD = std(STR_PRE_max(:,32)); 
+            STR_PRE_pennation_GMfas_licht_mean = mean(STR_PRE_max(:,33)); 
+            STR_PRE_pennation_GMfas_licht_SD = std(STR_PRE_max(:,33)); 
+            STR_PRE_elong_GMfas_licht_mean = mean(STR_PRE_max(:,34)); 
+            STR_PRE_elong_GMfas_licht_SD = std(STR_PRE_max(:,34)); 
+            STR_PRE_strain_GMfas_licht_mean = mean(STR_PRE_max(:,35)); 
+            STR_PRE_strain_GMfas_licht_SD = std(STR_PRE_max(:,35)); 
 
             STR_PRE_length_msc_GM_licht_mean = mean(STR_PRE_max(:,36)); 
             STR_PRE_length_msc_GM_licht_SD = std(STR_PRE_max(:,36));
@@ -3143,14 +3157,14 @@ function [] = passiveUS(input_project, input_plot)
             CON_POST_strain_tend_GM_licht_mean = mean(CON_POST_max(:,31)); 
             CON_POST_strain_tend_GM_licht_SD = std(CON_POST_max(:,31));
             
-            CON_POST_GM_length_faslen_licht_mean = mean(CON_POST_max(:,32)); 
-            CON_POST_GM_length_faslen_licht_SD = std(CON_POST_max(:,32)); 
-            CON_POST_GM_pennation_licht_mean = mean(CON_POST_max(:,33)); 
-            CON_POST_GM_pennation_licht_SD = std(CON_POST_max(:,33)); 
-            CON_POST_GM_elong_faslen_licht_mean = mean(CON_POST_max(:,34)); 
-            CON_POST_GM_elong_faslen_licht_SD = std(CON_POST_max(:,34)); 
-            CON_POST_GM_strain_faslen_licht_mean = mean(CON_POST_max(:,35)); 
-            CON_POST_GM_strain_faslen_licht_SD = std(CON_POST_max(:,35)); 
+            CON_POST_length_GMfas_licht_mean = mean(CON_POST_max(:,32)); 
+            CON_POST_length_GMfas_licht_SD = std(CON_POST_max(:,32)); 
+            CON_POST_pennation_GMfas_licht_mean = mean(CON_POST_max(:,33)); 
+            CON_POST_pennation_GMfas_licht_SD = std(CON_POST_max(:,33)); 
+            CON_POST_elong_GMfas_licht_mean = mean(CON_POST_max(:,34)); 
+            CON_POST_elong_GMfas_licht_SD = std(CON_POST_max(:,34)); 
+            CON_POST_strain_GMfas_licht_mean = mean(CON_POST_max(:,35)); 
+            CON_POST_strain_GMfas_licht_SD = std(CON_POST_max(:,35)); 
 
             CON_POST_length_msc_GM_licht_mean = mean(CON_POST_max(:,36)); 
             CON_POST_length_msc_GM_licht_SD = std(CON_POST_max(:,36));
@@ -3242,14 +3256,14 @@ function [] = passiveUS(input_project, input_plot)
             STR_POST_strain_tend_GM_licht_mean = mean(STR_POST_max(:,31)); 
             STR_POST_strain_tend_GM_licht_SD = std(STR_POST_max(:,31));
 
-            STR_POST_GM_length_faslen_licht_mean = mean(STR_POST_max(:,32)); 
-            STR_POST_GM_length_faslen_licht_SD = std(STR_POST_max(:,32)); 
-            STR_POST_GM_pennation_licht_mean = mean(STR_POST_max(:,33)); 
-            STR_POST_GM_pennation_licht_SD = std(STR_POST_max(:,33)); 
-            STR_POST_GM_elong_faslen_licht_mean = mean(STR_POST_max(:,34)); 
-            STR_POST_GM_elong_faslen_licht_SD = std(STR_POST_max(:,34)); 
-            STR_POST_GM_strain_faslen_licht_mean = mean(STR_POST_max(:,35)); 
-            STR_POST_GM_strain_faslen_licht_SD = std(STR_POST_max(:,35)); 
+            STR_POST_length_GMfas_licht_mean = mean(STR_POST_max(:,32)); 
+            STR_POST_length_GMfas_licht_SD = std(STR_POST_max(:,32)); 
+            STR_POST_pennation_GMfas_licht_mean = mean(STR_POST_max(:,33)); 
+            STR_POST_pennation_GMfas_licht_SD = std(STR_POST_max(:,33)); 
+            STR_POST_elong_GMfas_licht_mean = mean(STR_POST_max(:,34)); 
+            STR_POST_elong_GMfas_licht_SD = std(STR_POST_max(:,34)); 
+            STR_POST_strain_GMfas_licht_mean = mean(STR_POST_max(:,35)); 
+            STR_POST_strain_GMfas_licht_SD = std(STR_POST_max(:,35)); 
 
             STR_POST_length_msc_GM_licht_mean = mean(STR_POST_max(:,36)); 
             STR_POST_length_msc_GM_licht_SD = std(STR_POST_max(:,36));
@@ -3268,12 +3282,7 @@ function [] = passiveUS(input_project, input_plot)
     
     
     
-    
-    
-    
-    
-    
-    %% GROUP CALCULATIONS - MEAN ARRAYS FOR PLOTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% GROUP CALCULATIONS - create AVERAGE ARRAYS for plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if input_project == 1
         %% BD study
         %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
@@ -3492,8 +3501,6 @@ function [] = passiveUS(input_project, input_plot)
         %%
     end
     %% GROUP CALCULATIONS - ARRAYS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
     
     
     
@@ -4231,6 +4238,189 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             
+
+            %% SOL MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            if BD_count > 1 && CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 1');
+                figure('Name',plottitle)
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,20),'r','LineWidth',2)
+                hold on
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,20),'b','LineWidth',2)
+                errorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_L_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_L_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, '*r')
+                herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, '*b')
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 2 ind curves dancers');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:BD_count
+                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,20))
+                end
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 3 ind curves controls');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_count
+                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,20))
+                end
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 4 NORMALIZED');
+                figure('Name',plottitle)
+                plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,20),'r','LineWidth',2)
+                hold on
+                plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,20),'b','LineWidth',2)
+                axis(axis_str_SOLP)
+                xlabel('Gonio angle (% of ind max)')
+                ylabel(txt_strain)
+                title(plottitle)
+                legend('Dancer avg', 'Control avg','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 1');
+                figure('Name',plottitle)
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,27),'r','LineWidth',2)
+                hold on
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,27),'b','LineWidth',2)
+                errorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_strain_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_strain_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, '*r')
+                herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, '*b')
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                legend('Dancer avg', 'Control avg','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 5 ind curves dancers');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:BD_count
+                    plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,20))
+                end
+                axis(axis_str_SOLP)
+                xlabel('Gonio angle (% of ind max)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 2 ind curves dancers');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:BD_count
+                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,20))
+                end
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 6 ind curves controls');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_count
+                    plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,20))
+                end
+                axis(axis_str_SOLP)
+                xlabel('Gonio angle (% of ind max)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 3 ind curves controls');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_count
+                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,20))
+                end
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+                        
+            %% SOL MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            if BD_count > 1 && CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 1');
+                figure('Name',plottitle)
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,19),'r','LineWidth',2)
+                hold on
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,19),'b','LineWidth',2)
+                errorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_elong_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_elong_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, '*r')
+                herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, '*b')
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 2 ind curves dancers');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:BD_count
+                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,19))
+                end
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if CON_count > 1 && plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 3 ind curves controls');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_count
+                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,19))
+                end
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            
                         
             %% GM MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
@@ -4427,7 +4617,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(BD_ROM_mean, BD_length_msc_GM_licht_mean, BD_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 herrorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_len_GMmsc)
+                axis(axis_len_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_length)
                 title(plottitle)
@@ -4442,7 +4632,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,36))
                 end
-                axis(axis_len_GMmsc)
+                axis(axis_len_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_length)
                 title(plottitle)
@@ -4456,7 +4646,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,36))
                 end
-                axis(axis_len_GMmsc)
+                axis(axis_len_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_length)
                 title(plottitle)
@@ -4475,7 +4665,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(BD_ROM_mean, BD_elong_msc_GM_licht_mean, BD_elong_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 herrorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -4490,7 +4680,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,28))
                 end
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -4504,7 +4694,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,28))
                 end
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -4523,7 +4713,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(BD_ROM_mean, BD_strain_msc_GM_licht_mean, BD_strain_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 herrorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4538,7 +4728,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,30))
                 end
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4552,7 +4742,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,30))
                 end
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4668,7 +4858,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(BD_ROM_mean, BD_strain_tend_GM_licht_mean, BD_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 herrorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4683,7 +4873,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,31))
                 end
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4697,7 +4887,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,31))
                 end
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -4713,10 +4903,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,32),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,32),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_GM_length_faslen_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_GM_length_faslen_licht_mean, BD_GM_length_faslen_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_GM_length_faslen_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_GM_length_faslen_licht_mean, CON_GM_length_faslen_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_ROM_SD, '*r')
+                errorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, '*b')
+                errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_len_GMFAS)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_length)
@@ -4761,10 +4951,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,34),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,34),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_GM_elong_faslen_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_GM_elong_faslen_licht_mean, BD_GM_elong_faslen_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_GM_elong_faslen_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_GM_elong_faslen_licht_mean, CON_GM_elong_faslen_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_ROM_SD, '*r')
+                errorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_ROM_SD, '*b')
+                errorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMFAS)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
@@ -4809,10 +4999,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,35),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,35),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_GM_strain_faslen_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_GM_strain_faslen_licht_mean, BD_GM_strain_faslen_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_GM_strain_faslen_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_GM_strain_faslen_licht_mean, CON_GM_strain_faslen_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_ROM_SD, '*r')
+                errorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_ROM_SD, '*b')
+                errorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMFAS)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
@@ -4857,10 +5047,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,33),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,33),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_GM_pennation_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_GM_pennation_licht_mean, BD_GM_pennation_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_GM_pennation_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_GM_pennation_licht_mean, CON_GM_pennation_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_ROM_SD, '*r')
+                errorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, '*b')
+                errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_penn_GMFAS)
                 xlabel('Gonio angle (°)')
                 ylabel('Pennation angle (°)')
@@ -4898,190 +5088,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             
-            
-            %% SOL MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 1');
-                figure('Name',plottitle)
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,20),'r','LineWidth',2)
-                hold on
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,20),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_L_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_L_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, '*b')
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 2 ind curves dancers');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:BD_count
-                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,20))
-                end
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 3 ind curves controls');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_count
-                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,20))
-                end
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 4 NORMALIZED');
-                figure('Name',plottitle)
-                plot(BD_angle_vars_norm_mean(:,1), BD_angle_vars_norm_mean(:,20),'r','LineWidth',2)
-                hold on
-                plot(CON_angle_vars_norm_mean(:,1), CON_angle_vars_norm_mean(:,20),'b','LineWidth',2)
-                axis(axis_str_SOLP)
-                xlabel('Gonio angle (% of ind max)')
-                ylabel(txt_strain)
-                title(plottitle)
-                legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 1');
-                figure('Name',plottitle)
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,27),'r','LineWidth',2)
-                hold on
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,27),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_strain_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_strain_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, '*b')
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 5 ind curves dancers');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:BD_count
-                    plot(BD_angle_vars_norm{1,i}(:,1),BD_angle_vars_norm{1,i}(:,20))
-                end
-                axis(axis_str_SOLP)
-                xlabel('Gonio angle (% of ind max)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 2 ind curves dancers');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:BD_count
-                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,20))
-                end
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 6 ind curves controls');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_count
-                    plot(CON_angle_vars_norm{1,i}(:,1),CON_angle_vars_norm{1,i}(:,20))
-                end
-                axis(axis_str_SOLP)
-                xlabel('Gonio angle (% of ind max)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 3 ind curves controls');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_count
-                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,20))
-                end
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-                        
-            %% SOL MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 1');
-                figure('Name',plottitle)
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,19),'r','LineWidth',2)
-                hold on
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,19),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_elong_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_elong_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, '*b')
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 2 ind curves dancers');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:BD_count
-                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,19))
-                end
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if CON_count > 1 && plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 3 ind curves controls');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_count
-                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,19))
-                end
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            
-            
+                       
             %% Full MTU: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             if BD_count > 1 && CON_count > 1 && plot_check
@@ -6464,7 +6471,265 @@ function [] = passiveUS(input_project, input_plot)
                     saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
                 end
             end
-                        
+                 
+            %% SOL MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,20),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,20),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,20),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,20),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_L_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_L_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_L_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_L_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,20),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,20))
+                end
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,20),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,20))
+                end
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle SOL length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,20),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,20),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,20),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,20),'b','LineStyle','-','LineWidth',1)
+                axis(axis_len_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+            
+            %% SOL MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,19),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,19),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,19),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,19),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_elong_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_elong_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_elong_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_elong_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,19),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,19))
+                end
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,19),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,19))
+                end
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle SOL elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,19),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,19),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,19),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,19),'b','LineStyle','-','LineWidth',1)
+                axis(axis_el_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+            
+            %% SOL MUSCLE portion: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,27),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,27),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,27),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,27),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_strain_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_strain_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_strain_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_strain_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,27),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,27))
+                end
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,27),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,27))
+                end
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle SOL strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,27),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,27),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,27),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,27),'b','LineStyle','-','LineWidth',1)
+                axis(axis_str_SOL)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+
             %% GM MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('muscle GM (ins-knee) vs angle - 1');
@@ -6723,6 +6988,93 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
+            
+            %% GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,36),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,36),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,36),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,36),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_msc_GM_licht_mean, STR_PRE_length_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_msc_GM_licht_mean, CON_PRE_length_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_len_GMmsc_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,36),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,36))
+                end
+                axis(axis_len_GMmsc_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,36),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,36))
+                end
+                axis(axis_len_GMmsc_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,36),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,36),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,36),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,36),'b','LineStyle','-','LineWidth',1)
+                axis(axis_len_GMmsc_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+
             %% GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) elongation vs angle - 1');
@@ -6743,7 +7095,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -6762,7 +7114,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,28))
                 end
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -6780,7 +7132,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,28))
                 end
-                axis(axis_el_GMmsc)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                 title(plottitle)
@@ -6800,93 +7152,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,28),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,28),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,28),'b','LineStyle','-','LineWidth',1)
-                axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                    title(plottitle)
-                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-                end
-            end
-
-            %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 1');
-                figure('Name',plottitle)
-                hold on
-                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,29),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,29),'r','LineStyle','-','LineWidth',1)
-                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,29),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,29),'b','LineStyle','-','LineWidth',1)
-                
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_elong_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_elong_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                
-                axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 2 STRETCH PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,29),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,29))
-                end
-                axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 3 CONTROL PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,29),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,29))
-                end
-                axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            % the following plots require that trials are analysed in
-            % systematic order, and all subjects have all 4 legs/timepoints
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
-                for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (architecture) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
-                    figure('Name',plottitle)
-                    hold on
-
-                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,29),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,29),'r','LineStyle','-','LineWidth',1)
-                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,29),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,29),'b','LineStyle','-','LineWidth',1)
-                axis(axis_el_GMtend)
+                axis(axis_el_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_elong)
                     title(plottitle)
@@ -6915,7 +7181,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -6934,7 +7200,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,30))
                 end
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -6952,7 +7218,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,30))
                 end
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -6972,9 +7238,181 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,30),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,30),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,30),'b','LineStyle','-','LineWidth',1)
-                axis(axis_str_GMmsc)
+                axis(axis_str_GMmsc_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+            
+            %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) length vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,37),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,37),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,37),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,37),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_length_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_tend_GM_licht_mean, CON_PRE_length_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_len_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) length vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,37),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,37))
+                end
+                axis(axis_len_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) length vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,37),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,37))
+                end
+                axis(axis_len_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM tendon (architecture) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,37),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,37),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,37),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,37),'b','LineStyle','-','LineWidth',1)
+                axis(axis_len_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+
+            %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,29),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,29),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,29),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,29),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_elong_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_elong_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_el_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,29),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,29))
+                end
+                axis(axis_el_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,29),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,29))
+                end
+                axis(axis_el_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM tendon (architecture) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,29),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,29),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,29),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,29),'b','LineStyle','-','LineWidth',1)
+                axis(axis_el_GMtend_arch)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -7001,7 +7439,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -7020,7 +7458,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,31))
                 end
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -7038,7 +7476,7 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,31))
                 end
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                 title(plottitle)
@@ -7058,7 +7496,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,31),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,31),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,31),'b','LineStyle','-','LineWidth',1)
-                axis(axis_str_GMtend)
+                axis(axis_str_GMtend_arch)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_strain)
                     title(plottitle)
@@ -7067,7 +7505,8 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
 
-            %% GM fascicle length (Lichtwark): length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %% GM fascicle (Lichtwark): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('GM fascicle length vs angle - 1');
                 figure('Name',plottitle)
@@ -7077,21 +7516,21 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,32),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,32),'b','LineStyle','-','LineWidth',1)
                 
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_GM_length_faslen_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_GM_length_faslen_licht_mean, STR_PRE_GM_length_faslen_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_GM_length_faslen_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_GM_length_faslen_licht_mean, STR_POST_GM_length_faslen_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_GMfas_licht_mean, STR_PRE_length_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_GM_length_faslen_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_GM_length_faslen_licht_mean, CON_PRE_GM_length_faslen_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_GM_length_faslen_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_GM_length_faslen_licht_mean, CON_POST_GM_length_faslen_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_GMfas_licht_mean, CON_PRE_length_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMFAS)
                 xlabel('Gonio angle (°)')
                 ylabel(txt_length)
                 title(plottitle)
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
             end
             
@@ -7153,7 +7592,179 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
-            %% GM pennation angle (Lichtwark) vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% GM fascicle (Lichtwark): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,34),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,34),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,34),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,34),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMfas_licht_mean, STR_PRE_elong_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMfas_licht_mean, CON_PRE_elong_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_el_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,34),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,34))
+                end
+                axis(axis_el_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,34),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,34))
+                end
+                axis(axis_el_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM fascicle elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,34),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,34),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,34),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,34),'b','LineStyle','-','LineWidth',1)
+                axis(axis_el_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+            
+            %% GM fascicle (Lichtwark): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM fascicle strain vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,35),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,35),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,35),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,35),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMfas_licht_mean, STR_PRE_strain_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMfas_licht_mean, CON_PRE_strain_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_str_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM fascicle strain vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,35),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,35))
+                end
+                axis(axis_str_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,35),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,35))
+                end
+                axis(axis_str_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM fascicle strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,35),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,35),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,35),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,35),'b','LineStyle','-','LineWidth',1)
+                axis(axis_str_GMFAS)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_length)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
+            
+            %% GM fascicle (Lichtwark): Pennation angle vs ankle angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('GM pennation angle vs ankle angle - 1');
                 figure('Name',plottitle)
@@ -7163,15 +7774,15 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,33),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,33),'b','LineStyle','-','LineWidth',1)
                 
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_GM_pennation_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_GM_pennation_licht_mean, STR_PRE_GM_pennation_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_GM_pennation_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_GM_pennation_licht_mean, STR_POST_GM_pennation_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_pennation_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_pennation_GMfas_licht_mean, STR_PRE_pennation_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
                 
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_GM_pennation_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_GM_pennation_licht_mean, CON_PRE_GM_pennation_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_GM_pennation_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_GM_pennation_licht_mean, CON_POST_GM_pennation_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_pennation_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_pennation_GMfas_licht_mean, CON_PRE_pennation_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_penn_GMFAS)
                 xlabel('Gonio angle (°)')
@@ -7239,263 +7850,7 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
-            %% SOL MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 1');
-                figure('Name',plottitle)
-                hold on
-                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,20),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,20),'r','LineStyle','-','LineWidth',1)
-                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,20),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,20),'b','LineStyle','-','LineWidth',1)
-                
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_L_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_L_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_L_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_L_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
             
-            if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCH PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,20),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,20))
-                end
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROL PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,20),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,20))
-                end
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            % the following plots require that trials are analysed in
-            % systematic order, and all subjects have all 4 legs/timepoints
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
-                for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
-                    figure('Name',plottitle)
-                    hold on
-
-                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,20),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,20),'r','LineStyle','-','LineWidth',1)
-                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,20),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,20),'b','LineStyle','-','LineWidth',1)
-                axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_length)
-                    title(plottitle)
-                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-                end
-            end
-            
-            %% SOL MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 1');
-                figure('Name',plottitle)
-                hold on
-                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,19),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,19),'r','LineStyle','-','LineWidth',1)
-                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,19),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,19),'b','LineStyle','-','LineWidth',1)
-                
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_elong_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_elong_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_elong_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_elong_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCH PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,19),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,19))
-                end
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROL PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,19),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,19))
-                end
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            % the following plots require that trials are analysed in
-            % systematic order, and all subjects have all 4 legs/timepoints
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
-                for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
-                    figure('Name',plottitle)
-                    hold on
-
-                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,19),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,19),'r','LineStyle','-','LineWidth',1)
-                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,19),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,19),'b','LineStyle','-','LineWidth',1)
-                axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_elong)
-                    title(plottitle)
-                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-                end
-            end
-            
-            %% SOL MUSCLE portion: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 1');
-                figure('Name',plottitle)
-                hold on
-                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,27),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,27),'r','LineStyle','-','LineWidth',1)
-                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,27),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,27),'b','LineStyle','-','LineWidth',1)
-                
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_strain_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_strain_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                
-                herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_strain_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_strain_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCH PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,27),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,27))
-                end
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROL PRE-POST');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,27),'LineStyle','--')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,27))
-                end
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-            end
-            
-            % the following plots require that trials are analysed in
-            % systematic order, and all subjects have all 4 legs/timepoints
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
-                for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
-                    figure('Name',plottitle)
-                    hold on
-
-                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,27),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,27),'r','LineStyle','-','LineWidth',1)
-                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,27),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,27),'b','LineStyle','-','LineWidth',1)
-                axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
-                ylabel(txt_strain)
-                    title(plottitle)
-                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-                end
-            end
             
             %% Full MTU: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -7672,90 +8027,90 @@ function [] = passiveUS(input_project, input_plot)
             % commenting out MTU strain plots since they simply show the Grieve calculation factor
             
             %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             if plot_check
-%                 plottitle = horzcat('MTU strain vs angle - 1');
-%                 figure('Name',plottitle)
-%                 hold on
-%                 plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,23),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-%                 plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,23),'r','LineStyle','-','LineWidth',1)
-%                 plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,23),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-%                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,23),'b','LineStyle','-','LineWidth',1)
-%                 
-%                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_ROM_SD, '*m')
-%                 errorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_strain_MTU_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-%                 herrorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_ROM_SD, '*r')
-%                 errorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_strain_MTU_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-%                 
-%                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_ROM_SD, '*c')
-%                 errorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_strain_MTU_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-%                 herrorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_ROM_SD, '*b')
-%                 errorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_strain_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-%                 
-%                 axis(axis_str_MTU)
-%                 xlabel('Gonio angle (°)')
-%                 ylabel(txt_strain)
-%                 title(plottitle)
-%                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-%                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-%             end
-%             
-%             if plot_check
-%                 plottitle = horzcat('MTU strain vs angle - 2 STRETCH PRE-POST');
-%                 figure('Name',plottitle)
-%                 hold on
-%                 for i = 1:STR_PRE_count
-%                     plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,23),'LineStyle','--')
-%                 end
-%                 set(gca,'ColorOrderIndex',1)
-%                 for i = 1:STR_POST_count
-%                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,23))
-%                 end
-%                 axis(axis_str_MTU)
-%                 xlabel('Gonio angle (°)')
-%                 ylabel(txt_strain)
-%                 title(plottitle)
-%                 %legend
-%                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-%             end
-%             if plot_check
-%                 plottitle = horzcat('MTU strain vs angle - 3 CONTROL PRE-POST');
-%                 figure('Name',plottitle)
-%                 hold on
-%                 for i = 1:CON_PRE_count
-%                     plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,23),'LineStyle','--')
-%                 end
-%                 set(gca,'ColorOrderIndex',1)
-%                 for i = 1:CON_POST_count
-%                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,23))
-%                 end
-%                 axis(axis_str_MTU)
-%                 xlabel('Gonio angle (°)')
-%                 ylabel(txt_strain)
-%                 title(plottitle)
-%                 %legend
-%                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
-%             end
-%             
-%             % the following plots require that trials are analysed in
-%             % systematic order, and all subjects have all 4 legs/timepoints
-%             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
-%                 for i = 1:CON_PRE_count
-%                     plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
-%                     figure('Name',plottitle)
-%                     hold on
-% 
-%                     plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,23),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-%                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,23),'r','LineStyle','-','LineWidth',1)
-%                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,23),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-%                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,23),'b','LineStyle','-','LineWidth',1)
-%                 axis(axis_str_MTU)
-%                 xlabel('Gonio angle (°)')
-%                 ylabel(txt_strain)
-%                     title(plottitle)
-%                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-%                     saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
-%                 end
-%             end
+            if plot_check
+                plottitle = horzcat('MTU strain vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,23),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,1), STR_POST_angle_vars_mean(:,23),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,1), CON_PRE_angle_vars_mean(:,23),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,23),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_strain_MTU_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_ROM_SD, '*r')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_strain_MTU_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_strain_MTU_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_ROM_SD, '*b')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_strain_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                
+                axis(axis_str_MTU)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            if plot_check
+                plottitle = horzcat('MTU strain vs angle - 2 STRETCH PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,1),STR_PRE_angle_vars{1,i}(:,23),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,23))
+                end
+                axis(axis_str_MTU)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            if plot_check
+                plottitle = horzcat('MTU strain vs angle - 3 CONTROL PRE-POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,1),CON_PRE_angle_vars{1,i}(:,23),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,23))
+                end
+                axis(axis_str_MTU)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+            end
+            
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,1), STR_PRE_angle_vars{1,i}(:,23),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,23),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,23),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,23),'b','LineStyle','-','LineWidth',1)
+                axis(axis_str_MTU)
+                xlabel('Gonio angle (°)')
+                ylabel(txt_strain)
+                    title(plottitle)
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                end
+            end
             
             %% GMFAS scans: Displacement vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check

@@ -333,13 +333,15 @@ function [] = passiveUS(input_project, input_plot)
     if input_project == 1 % BD study
         BD_count = 0; % # of ballet dancer subjects
         CON_count = 0; % # of controls = intervention study subjects
-
+        
+        BD_no(ceil(linestotal)) = zeros;
         BD_angle_vars{ceil(linestotal)} = zeros;
         BD_angle_vars_mean{ceil(linestotal)} = zeros;
         BD_angle_vars_norm{ceil(linestotal)} = zeros;
         BD_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         BD_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
+        CON_no(ceil(linestotal)) = zeros;
         CON_angle_vars{ceil(linestotal)} = zeros;
         CON_angle_vars_mean{ceil(linestotal)} = zeros;
         CON_angle_vars_norm{ceil(linestotal)} = zeros;
@@ -352,24 +354,28 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_count = 0;
         CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study - rough coding
 
+        CON_PRE_no(ceil(linestotal)) = zeros;
         CON_PRE_angle_vars{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
+        CON_POST_no(ceil(linestotal)) = zeros;
         CON_POST_angle_vars{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
+        STR_PRE_no(ceil(linestotal)) = zeros;
         STR_PRE_angle_vars{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
+        STR_POST_no(ceil(linestotal)) = zeros;
         STR_POST_angle_vars{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
@@ -400,23 +406,29 @@ function [] = passiveUS(input_project, input_plot)
                 filepath = 'data\BD\';
                 subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
                 BD_count = BD_count + 1;
+                BD_no(BD_count) = str2double(dm_subjectno{line});
             else
                 filepath = 'data\';
                 subject_id = horzcat('Control ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
                 CON_count = CON_count + 1;
+                CON_no(CON_count) = str2double(dm_subjectno{line});
             end
         elseif input_project == 2 % intervention
             filepath = 'data\';
             subject_id = horzcat('Intervent ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
             if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
                 CON_PRE_count = CON_PRE_count + 1;
+                CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
                 CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
             elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
                 STR_PRE_count = STR_PRE_count + 1;
+                STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
                 CON_POST_count = CON_POST_count + 1;
+                CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
                 STR_POST_count = STR_POST_count + 1;
+                STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
             end
         end
         cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
@@ -2144,6 +2156,26 @@ function [] = passiveUS(input_project, input_plot)
     %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
+    %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if input_project == 1 % BD study
+        BD_angle_vars(BD_count+1:end) = [];
+        %BD_angle_vars_mean(BD_count+1:end) = [];
+        BD_angle_vars_norm(BD_count+1:end) = [];
+        %BD_angle_vars_norm_indlength(BD_count+1:end) = [];
+        %BD_angle_vars_norm_mean(BD_count+1:end) = [];
+        CON_angle_vars(CON_count+1:end) = [];
+        CON_angle_vars_norm(CON_count+1:end) = [];
+    else % intervention study
+        CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
+        CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
+        CON_POST_angle_vars(CON_POST_count+1:end) = [];
+        CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
+        STR_PRE_angle_vars(STR_PRE_count+1:end) = [];
+        STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
+        STR_POST_angle_vars(STR_POST_count+1:end) = [];
+        STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
+    end
+    %% Truncate vars arrays %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
     
@@ -2166,27 +2198,114 @@ function [] = passiveUS(input_project, input_plot)
     
     
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MMM TODO GOON
+    
     angle_step_stats_abs = 0.5; % every 0.5 degrees
     angle_step_stats_norm = 5;  % every 5 percent
     
-    %simple spline, or smoothing / averaging over x degrees?
-    
-    % preallocate
-    
-    % reshape absolute arrays
-    XXXX = 5; % stop angle
-    BD_angle_vars_STAT{BD_count} = spline(BD_angle_vars{1,BD_count}(1:XXXX,1)',BD_angle_vars{1,BD_count}',0:angle_step_stats_abs:XXXX)';
-    
-    % reshape normalized arrays
-    for i = 1:BD_count
-        BD_angle_vars_norm_STAT{BD_count} = spline(BD_angle_vars_norm{1,BD_count}(:,1)',BD_angle_vars_norm{1,BD_count}',0:angle_step_stats_norm:100)';
+    %simple spline, or smoothing / averaging over x degrees? MMM TODO
+
+    if input_project == 1 && BD_count > 0 && CON_count > 0
+        %% BD study
+        
+        % preallocate
+        BD_angle_vars_STAT{BD_count} = zeros;
+        BD_angle_vars_norm_STAT{BD_count} = zeros;
+        CON_angle_vars_STAT{CON_count} = zeros;
+        CON_angle_vars_norm_STAT{CON_count} = zeros;
+        
+        % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
+        loc_commonROM = min([cellfun('length',BD_angle_vars) cellfun('length',CON_angle_vars)]); % location of largest common ROM
+
+        for i = 1:BD_count
+            % reshape absolute arrays
+            BD_angle_vars_STAT{i} = spline(BD_angle_vars{1,i}(1:loc_commonROM,1)',BD_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:BD_angle_vars{1,i}(loc_commonROM,1))';
+
+            % reshape normalized arrays
+            BD_angle_vars_norm_STAT{i} = spline(BD_angle_vars_norm{1,i}(:,1)',BD_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+
+        for i = 1:CON_count
+            % reshape absolute arrays
+            CON_angle_vars_STAT{i} = spline(CON_angle_vars{1,i}(1:loc_commonROM,1)',CON_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_angle_vars{1,i}(loc_commonROM,1))';
+
+            % reshape normalized arrays
+            CON_angle_vars_norm_STAT{i} = spline(CON_angle_vars_norm{1,i}(:,1)',CON_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+        
+        % organize tables for files
+                %   2 F 
+                %  18 Torque            
+
+                % 36 length msc GM (from Lichtwark/Fukunaga)
+                % 28 elong msc GM (from Lichtwark/Fukunaga)
+                % 30 strain msc GM (from Lichtwark/Fukunaga)
+
+                % 37 length tend GM (from Lichtwark/Fukunaga)
+                % 29 elong tend GM (from Lichtwark/Fukunaga)
+                % 31 strain tend GM (from Lichtwark/Fukunaga)
+                
+                % 32 length fascicles GM (from Lichtwark)
+                % 34 elongation fascicles GM (from Lichtwark)
+                % 35 strain fascicles GM (from Lichtwark)
+                % 33 pennation GM (from Lichtwark)
+
+       out_arrays_cols = [2 18 36 28 30 37 29 31 32 34 35 33];
+       out_arrays_labels = {'Force' 'Torque' 'GM muscle length' 'GM muscle elong' 'GM muscle strain' 'GM tendon length' 'GM tendon elong' 'GM tendon strain' 'GMfas length' 'GMfas elong' 'GMfas strain' 'GMfas pennation'};
+       cols_abs = size(CON_angle_vars_STAT{1},1) + 1; % adding 1 for 1st row for subject numbers
+       cols_norm = size(CON_angle_vars_norm_STAT{1},1) + 1; % adding 1 for 1st row for subject numbers
+       rows = BD_count+CON_count + 1; % adding 1 for column for joint angles
+       
+       for var = 1:length(out_arrays_cols)
+           % preallocate / reset output arrays
+           out_arrays_abs(cols_abs,rows) = zeros;
+           out_arrays_norm(cols_norm,rows) = zeros;
+
+           % add as first column, joint angles - abs and normalized angles
+           out_arrays_abs(2:end,1) = BD_angle_vars_STAT{1}(:,1);
+           out_arrays_norm(2:end,1) = BD_angle_vars_norm_STAT{1}(:,1);
+           
+           % add as first row, subject numbers
+           out_arrays_abs(1,3:2+BD_count) = BD_no(1:BD_count);
+           out_arrays_abs(1,3+BD_count:2+BD_count+CON_count) = CON_no(1:CON_count);
+           out_arrays_norm(1,3:2+BD_count) = BD_no(1:BD_count);
+           out_arrays_norm(1,3+BD_count:2+BD_count+CON_count) = CON_no(1:CON_count);
+           
+           % add BD subjects first
+           for subj = 1:BD_count
+               % absolute values
+               out_arrays_abs(2:end,subj+2) = BD_angle_vars_STAT{subj}(:,out_arrays_cols(var));
+               % normalized values
+               out_arrays_norm(2:end,subj+2) = BD_angle_vars_norm_STAT{subj}(:,out_arrays_cols(var));
+           end
+           
+           % add CON subjects second
+           for subj = 1:CON_count
+               % absolute values
+               out_arrays_abs(2:end,subj+BD_count+2) = CON_angle_vars_STAT{subj}(:,out_arrays_cols(var));
+               % normalized values
+               out_arrays_norm(2:end,subj+BD_count+2) = CON_angle_vars_norm_STAT{subj}(:,out_arrays_cols(var));
+           end
+           
+           % TODO GOON
+           % modify table headers
+           %% Modify variable names
+           % T.Properties.VariableNames = {'Gender' 'Age' 'Height' 'Weight'}
+           
+           % save file
+           out_arrays_abs_table = table(out_arrays_abs);
+           filename_output = strcat('data_output/BD_arrays_stat_', out_arrays_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+           writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
+           % csvwrite(filename_output, out_arrays_abs)
+           
+           out_arrays_norm_table = table(out_arrays_norm);
+           filename_output = strcat('data_output/BD_arrays_stat_', out_arrays_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
+           % csvwrite(filename_output, out_arrays_norm)
+           writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
+       end
+    else
+        %% intervention study
+        % TODO - repeat above, for 4 groups
     end
-    
-	% organize tables for files
-    
-    % export
-    
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     

@@ -64,7 +64,9 @@ function [] = passiveUS(input_project, input_plot)
     noraxonfreq = 1500; % sampling frequency of noraxon data
     freq_default = 100; % output frequency for noraxon data without US video (MVC, etc)
     angle_step_plots = 0.05; % reshaped, averaged data extracted every x degrees for PLOTS
-    angle_step_stats = 0.5; %  reshaped, averaged data extracted every x degrees for STATS
+    angle_step_stats_abs = 0.5; % every 0.5 degrees
+    angle_step_stats_norm = 10;  % every 5 percent
+    
 
     % variables for NORM conversion factors calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
@@ -1793,6 +1795,19 @@ function [] = passiveUS(input_project, input_plot)
                 % reshape for plots
                 BD_angle_vars_norm{BD_count} = spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1)',BD_angle_vars_norm_indlength{1,BD_count}',0:angle_step_plots:100)';
                 
+% plot to show interpolation of NORMALIZED angles, from ca 0.20 % intervals (unequal
+% intervals, depending on sample frequency and gonio angle development) to
+% 0.05 % of ROM intervals
+%         sub = 1;
+%         var = 33; %pennation
+%         figure
+%         hold on
+%         plot(BD_angle_vars_norm_indlength{1,sub}(:,1),BD_angle_vars_norm_indlength{1,sub}(:,var))
+%         plot(BD_angle_vars_norm{1,sub}(:,1),BD_angle_vars_norm{1,sub}(:,var),'o')
+%         legend('orig','stat spline')
+
+                
+                
                 %% END BD subjects
             else
                 %% CON subjects
@@ -2199,10 +2214,24 @@ function [] = passiveUS(input_project, input_plot)
     
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    angle_step_stats_abs = 0.5; % every 0.5 degrees
-    angle_step_stats_norm = 5;  % every 5 percent
-    
-    %simple spline, or smoothing / averaging over x degrees? MMM TODO
+    % variables to export to file
+        %   2 F
+        %  18 Torque
+        
+        % 36 length msc GM (from Lichtwark/Fukunaga)
+        % 28 elong msc GM (from Lichtwark/Fukunaga)
+        % 30 strain msc GM (from Lichtwark/Fukunaga)
+        
+        % 37 length tend GM (from Lichtwark/Fukunaga)
+        % 29 elong tend GM (from Lichtwark/Fukunaga)
+        % 31 strain tend GM (from Lichtwark/Fukunaga)
+        
+        % 32 length fascicles GM (from Lichtwark)
+        % 34 elongation fascicles GM (from Lichtwark)
+        % 35 strain fascicles GM (from Lichtwark)
+        % 33 pennation GM (from Lichtwark)
+    out_arrays_input_cols = [2 18 36 28 30 37 29 31 32 34 35 33];
+    out_arrays_input_labels = {'Force' 'Torque' 'GM muscle length' 'GM muscle elong' 'GM muscle strain' 'GM tendon length' 'GM tendon elong' 'GM tendon strain' 'GMfas length' 'GMfas elong' 'GMfas strain' 'GMfas pennation'};
 
     if input_project == 1 && BD_count > 0 && CON_count > 0
         %% BD study
@@ -2215,96 +2244,244 @@ function [] = passiveUS(input_project, input_plot)
         
         % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
         loc_commonROM = min([cellfun('length',BD_angle_vars) cellfun('length',CON_angle_vars)]); % location of largest common ROM
-
+        
+        % reshape absolute & normalized arrays
         for i = 1:BD_count
-            % reshape absolute arrays
             BD_angle_vars_STAT{i} = spline(BD_angle_vars{1,i}(1:loc_commonROM,1)',BD_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:BD_angle_vars{1,i}(loc_commonROM,1))';
-
-            % reshape normalized arrays
             BD_angle_vars_norm_STAT{i} = spline(BD_angle_vars_norm{1,i}(:,1)',BD_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
         end
-
         for i = 1:CON_count
-            % reshape absolute arrays
             CON_angle_vars_STAT{i} = spline(CON_angle_vars{1,i}(1:loc_commonROM,1)',CON_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_angle_vars{1,i}(loc_commonROM,1))';
-
-            % reshape normalized arrays
             CON_angle_vars_norm_STAT{i} = spline(CON_angle_vars_norm{1,i}(:,1)',CON_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
         end
         
-        % organize tables for files
-                %   2 F 
-                %  18 Torque            
+        % Flexigym: Torque data were interpolated using a spline function
+        % to extract torque at 0.25° intervals. Statistics were applied to torque values at 5° intervals.
+        %
+        % current data: Torque exists at 0.05° intervals. Statistics
+        % applied to values at every 10°, no averaging/smoothing.
+        % MMM TODO? Some smoothing at some point? avg over 5% or 0.5 deg?
 
-                % 36 length msc GM (from Lichtwark/Fukunaga)
-                % 28 elong msc GM (from Lichtwark/Fukunaga)
-                % 30 strain msc GM (from Lichtwark/Fukunaga)
-
-                % 37 length tend GM (from Lichtwark/Fukunaga)
-                % 29 elong tend GM (from Lichtwark/Fukunaga)
-                % 31 strain tend GM (from Lichtwark/Fukunaga)
-                
-                % 32 length fascicles GM (from Lichtwark)
-                % 34 elongation fascicles GM (from Lichtwark)
-                % 35 strain fascicles GM (from Lichtwark)
-                % 33 pennation GM (from Lichtwark)
-
-       out_arrays_cols = [2 18 36 28 30 37 29 31 32 34 35 33];
-       out_arrays_labels = {'Force' 'Torque' 'GM muscle length' 'GM muscle elong' 'GM muscle strain' 'GM tendon length' 'GM tendon elong' 'GM tendon strain' 'GMfas length' 'GMfas elong' 'GMfas strain' 'GMfas pennation'};
-       cols_abs = size(CON_angle_vars_STAT{1},1) + 1; % adding 1 for 1st row for subject numbers
-       cols_norm = size(CON_angle_vars_norm_STAT{1},1) + 1; % adding 1 for 1st row for subject numbers
-       rows = BD_count+CON_count + 1; % adding 1 for column for joint angles
-       
-       for var = 1:length(out_arrays_cols)
-           % preallocate / reset output arrays
-           out_arrays_abs(cols_abs,rows) = zeros;
-           out_arrays_norm(cols_norm,rows) = zeros;
-
-           % add as first column, joint angles - abs and normalized angles
-           out_arrays_abs(2:end,1) = BD_angle_vars_STAT{1}(:,1);
-           out_arrays_norm(2:end,1) = BD_angle_vars_norm_STAT{1}(:,1);
-           
-           % add as first row, subject numbers
-           out_arrays_abs(1,3:2+BD_count) = BD_no(1:BD_count);
-           out_arrays_abs(1,3+BD_count:2+BD_count+CON_count) = CON_no(1:CON_count);
-           out_arrays_norm(1,3:2+BD_count) = BD_no(1:BD_count);
-           out_arrays_norm(1,3+BD_count:2+BD_count+CON_count) = CON_no(1:CON_count);
-           
-           % add BD subjects first
-           for subj = 1:BD_count
-               % absolute values
-               out_arrays_abs(2:end,subj+2) = BD_angle_vars_STAT{subj}(:,out_arrays_cols(var));
-               % normalized values
-               out_arrays_norm(2:end,subj+2) = BD_angle_vars_norm_STAT{subj}(:,out_arrays_cols(var));
-           end
-           
-           % add CON subjects second
-           for subj = 1:CON_count
-               % absolute values
-               out_arrays_abs(2:end,subj+BD_count+2) = CON_angle_vars_STAT{subj}(:,out_arrays_cols(var));
-               % normalized values
-               out_arrays_norm(2:end,subj+BD_count+2) = CON_angle_vars_norm_STAT{subj}(:,out_arrays_cols(var));
-           end
-           
-           % TODO GOON
-           % modify table headers
-           %% Modify variable names
-           % T.Properties.VariableNames = {'Gender' 'Age' 'Height' 'Weight'}
-           
-           % save file
-           out_arrays_abs_table = table(out_arrays_abs);
-           filename_output = strcat('data_output/BD_arrays_stat_', out_arrays_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
-           writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
-           % csvwrite(filename_output, out_arrays_abs)
-           
-           out_arrays_norm_table = table(out_arrays_norm);
-           filename_output = strcat('data_output/BD_arrays_stat_', out_arrays_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
-           % csvwrite(filename_output, out_arrays_norm)
-           writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
-       end
-    else
+% plot to verify no smoothing:
+%         sub = 1;
+%         var = 33; %pennation
+%         figure
+%         hold on
+%         plot(BD_angle_vars{1,sub}(1:loc_commonROM,1),BD_angle_vars{1,sub}(1:loc_commonROM,var))
+%         plot(BD_angle_vars_STAT{1,sub}(:,1),BD_angle_vars_STAT{1,sub}(:,var),'o')
+%         legend('orig','stat spline')
+        
+        % create table headers (subject numbers)
+        out_arrays_headers{1+BD_count+CON_count} = [];
+        out_arrays_headers{1} = 'Joint_angle';
+        for i=1:BD_count
+            out_arrays_headers{i+1} = strcat('BD ', num2str(BD_no(i)));
+        end
+        for i=1:CON_count
+            out_arrays_headers{i+1+BD_count} = strcat('CON ', num2str(CON_no(i)));
+        end
+        
+        % preallocate output arrays
+        cols_abs = size(CON_angle_vars_STAT{1},1);
+        cols_norm = size(CON_angle_vars_norm_STAT{1},1);
+        rows = BD_count+CON_count + 1; % adding 1 for column for joint angles
+        out_arrays_abs(cols_abs,rows) = zeros;
+        out_arrays_norm(cols_norm,rows) = zeros;
+        
+        % organize and output table for each of the selected variables
+        for var = 1:length(out_arrays_input_cols)
+            % reset output arrays
+            out_arrays_abs(cols_abs,rows) = zeros;
+            out_arrays_norm(cols_norm,rows) = zeros;
+            
+            % add as first column, joint angles: abs and normalized angles
+            out_arrays_abs(:,1) = BD_angle_vars_STAT{1}(:,1);
+            out_arrays_norm(:,1) = BD_angle_vars_norm_STAT{1}(:,1);
+            
+            % add BD subjects first
+            for subj = 1:BD_count
+                % absolute values
+                out_arrays_abs(:,subj+1) = BD_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+1) = BD_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add CON subjects second
+            for subj = 1:CON_count
+                % absolute values
+                out_arrays_abs(:,subj+BD_count+1) = CON_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+BD_count+1) = CON_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % create tables and save as file
+            out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
+            
+            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
+            
+            clear out_arrays_abs_table out_arrays_norm_table
+        end
+    elseif input_project == 2 && CON_PRE_count > 0 && CON_POST_count > 0 && STR_PRE_count > 0 && STR_POST_count > 0
         %% intervention study
-        % TODO - repeat above, for 4 groups
+        
+        % preallocate
+        STR_PRE_angle_vars_STAT{STR_PRE_count} = zeros;
+        STR_PRE_angle_vars_norm_STAT{STR_PRE_count} = zeros;
+        STR_POST_angle_vars_STAT{STR_POST_count} = zeros;
+        STR_POST_angle_vars_norm_STAT{STR_POST_count} = zeros;
+        CON_PRE_angle_vars_STAT{CON_PRE_count} = zeros;
+        CON_PRE_angle_vars_norm_STAT{CON_PRE_count} = zeros;
+        CON_POST_angle_vars_STAT{CON_POST_count} = zeros;
+        CON_POST_angle_vars_norm_STAT{CON_POST_count} = zeros;
+        
+        % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
+        loc_commonROM = min([cellfun('length',STR_PRE_angle_vars) cellfun('length',STR_POST_angle_vars) cellfun('length',CON_PRE_angle_vars) cellfun('length',CON_POST_angle_vars)]); % location of largest common ROM
+        
+        % reshape absolute & normalized arrays
+        for i = 1:STR_PRE_count
+            STR_PRE_angle_vars_STAT{i} = spline(STR_PRE_angle_vars{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:STR_PRE_angle_vars{1,i}(loc_commonROM,1))';
+            STR_PRE_angle_vars_norm_STAT{i} = spline(STR_PRE_angle_vars_norm{1,i}(:,1)',STR_PRE_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+        for i = 1:STR_POST_count
+            STR_POST_angle_vars_STAT{i} = spline(STR_POST_angle_vars{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:STR_POST_angle_vars{1,i}(loc_commonROM,1))';
+            STR_POST_angle_vars_norm_STAT{i} = spline(STR_POST_angle_vars_norm{1,i}(:,1)',STR_POST_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+        for i = 1:CON_PRE_count
+            CON_PRE_angle_vars_STAT{i} = spline(CON_PRE_angle_vars{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_PRE_angle_vars{1,i}(loc_commonROM,1))';
+            CON_PRE_angle_vars_norm_STAT{i} = spline(CON_PRE_angle_vars_norm{1,i}(:,1)',CON_PRE_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+        for i = 1:CON_POST_count
+            CON_POST_angle_vars_STAT{i} = spline(CON_POST_angle_vars{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_POST_angle_vars{1,i}(loc_commonROM,1))';
+            CON_POST_angle_vars_norm_STAT{i} = spline(CON_POST_angle_vars_norm{1,i}(:,1)',CON_POST_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+        end
+        
+        % create table headers (subject numbers)
+        % pre and post values
+        out_arrays_headers{1+STR_PRE_count+STR_POST_count+CON_PRE_count+CON_POST_count} = [];
+        out_arrays_headers{1} = 'Joint_angle';
+        for i=1:STR_PRE_count
+            out_arrays_headers{i+1} = strcat('STR_PRE_', num2str(STR_PRE_no(i)));
+        end
+        for i=1:STR_POST_count
+            out_arrays_headers{i+1+STR_PRE_count} = strcat('STR_POST_', num2str(STR_POST_no(i)));
+        end
+        for i=1:CON_PRE_count
+            out_arrays_headers{i+1+STR_PRE_count+STR_POST_count} = strcat('CON_PRE_', num2str(CON_PRE_no(i)));
+        end
+        for i=1:CON_POST_count
+            out_arrays_headers{i+1+STR_PRE_count+STR_POST_count+CON_PRE_count} = strcat('CON_POST_', num2str(CON_POST_no(i)));
+        end
+        % difference values
+        out_arrays_headers_diff{1+STR_PRE_count+CON_PRE_count} = [];
+        out_arrays_headers_diff{1} = 'Joint_angle';
+        for i=1:STR_PRE_count % rough coding - necessary that all subjects have all timepoints
+            out_arrays_headers_diff{i+1} = strcat('STR_PP_', num2str(STR_PRE_no(i)), '__', num2str(STR_POST_no(i)));
+        end
+        for i=1:CON_PRE_count % rough coding - necessary that all subjects have all timepoints
+            out_arrays_headers_diff{i+1+STR_PRE_count} = strcat('CON_PP_', num2str(CON_PRE_no(i)), '__',num2str(CON_POST_no(i)));
+        end
+        
+        % preallocate output arrays
+        cols_abs = size(STR_PRE_angle_vars_STAT{1},1);
+        cols_norm = size(STR_PRE_angle_vars_norm_STAT{1},1);
+        rows = STR_PRE_count+STR_POST_count+CON_PRE_count+CON_POST_count + 1; % adding 1 for column for joint angles
+        rows_diff = STR_PRE_count+CON_PRE_count + 1; % adding 1 for column for joint angles
+        out_arrays_abs(cols_abs,rows) = zeros;
+        out_arrays_norm(cols_norm,rows) = zeros;
+        out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
+        out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
+
+        % organize and output table for each of the selected variables
+        for var = 1:length(out_arrays_input_cols)
+            % reset output arrays
+            out_arrays_abs(cols_abs,rows) = zeros;
+            out_arrays_norm(cols_norm,rows) = zeros;
+            out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
+            out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
+            
+            % add as first column, joint angles: abs and normalized angles
+            out_arrays_abs(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
+            out_arrays_norm(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
+            out_arrays_abs_diff(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
+            out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
+            
+            % pre and post values
+            
+            % add STR PRE first
+            for subj = 1:STR_PRE_count
+                % absolute values
+                out_arrays_abs(:,subj+1) = STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+1) = STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add STR POST second
+            for subj = 1:STR_POST_count
+                % absolute values
+                out_arrays_abs(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add CON PRE
+            for subj = 1:CON_PRE_count
+                % absolute values
+                out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add CON POST
+            for subj = 1:CON_POST_count
+                % absolute values
+                out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % diff values
+            
+            % add STR first
+            for subj = 1:STR_PRE_count
+                % absolute values
+                out_arrays_abs_diff(:,subj+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add CON second
+            for subj = 1:CON_PRE_count
+                % absolute values
+                out_arrays_abs_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % create tables and save as file
+            % pre and post values
+            out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
+            
+            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
+            
+            % difference values
+            out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
+            
+            out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
+            
+            clear out_arrays_abs_table out_arrays_norm_table out_arrays_abs_diff_table out_arrays_norm_diff_table
+        end
     end
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3237,7 +3414,6 @@ function [] = passiveUS(input_project, input_plot)
     
     
     %% PLOT GROUP FIGURES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MMM LATER? add figures showing US displacements
     
     if input_project == 1
         %% BD study

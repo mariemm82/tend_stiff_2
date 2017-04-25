@@ -41,7 +41,7 @@ function [] = passiveUS(input_project, input_plot)
         plot_individual = 0;
     end
     
-    toggle_normalization = 0; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
+    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
 
     % LEVEL 2: main checkpoint plots
     plot_norm = 0;

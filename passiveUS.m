@@ -2291,8 +2291,8 @@ function [] = passiveUS(input_project, input_plot)
         % organize and output table for each of the selected variables
         for var = 1:length(out_arrays_input_cols)
             % reset output arrays
-            out_arrays_abs(cols_abs,rows) = zeros;
-            out_arrays_norm(cols_norm,rows) = zeros;
+            out_arrays_abs(1:cols_abs,1:rows) = zeros;
+            out_arrays_norm(1:cols_norm,1:rows) = zeros;
             
             % add as first column, joint angles: abs and normalized angles
             out_arrays_abs(:,1) = BD_angle_vars_STAT{1}(:,1);

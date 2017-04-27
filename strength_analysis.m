@@ -14,15 +14,12 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
 function [] = strength_analysis(input_plot)
     close all
     
     
     
-    %%% Determine which plots to produce during script running
+    %% PLOTS_ Determine which plots to output 
     global plot_check subject_id plot_individual plot_conversion plot_norm
 
     if input_plot >= 1 
@@ -40,7 +37,7 @@ function [] = strength_analysis(input_plot)
 
 
 
-    %%% Set constants and globals % PROJECTSPECIFIC
+    %% Set CONSTANTS and globals % PROJECTSPECIFIC
 
     % sampling frequencies
     global noraxonfreq freq_default
@@ -92,13 +89,7 @@ function [] = strength_analysis(input_plot)
     
 
     
-    
-    
-    
-    
-    
-    
-    %%% Read datamaster file, to connect corresponding data files
+    %% Read datamaster file, to connect corresponding data files
     %%% Produces arrays with file names and variables per trial, to be retrieved later
 
     global dm_subjectno dm_timepoint dm_side dm_trial 
@@ -111,11 +102,9 @@ function [] = strength_analysis(input_plot)
     dm_columns = 22; % number of data columns entered per subject % PROJECTSPECIFIC
     linestotal = read_datamaster_strength(dm_filename,dm_columns);
     
-    
-    
-    
+        
 
-    %%% preallocate output arrays
+    %% preallocate output arrays
     
     % common arrays for numbers across all subjects:
     all_strength_output = nan(ceil(linestotal),20); 
@@ -126,13 +115,14 @@ function [] = strength_analysis(input_plot)
     % BD-SPECIFIC
     BD_count = 0;
     CON_count = 0;
-    
     BD_angle_vars{ceil(linestotal)} = [];
     CON_angle_vars{ceil(linestotal)} = [];
     BD_angle_intervals_vars{ceil(linestotal)} = [];
     CON_angle_intervals_vars{ceil(linestotal)} = [];
     BD_data = nan(ceil(linestotal),20);
     CON_data = nan(ceil(linestotal),20);
+    BD_no(ceil(linestotal)) = zeros;
+    CON_no(ceil(linestotal)) = zeros;
     
     % below variables are also deleted + preallocated within the loop
     isokinetic_torque_angle_work(1:5,1:4) = nan;
@@ -142,40 +132,33 @@ function [] = strength_analysis(input_plot)
 
 
     
-    
-
-    
-    %%%%%%%%%%%%%%%% LOOP through all lines in datamaster file (except header line)
+    %% LOOP through all lines in datamaster file (except header line)
     for line = 1:linestotal
 
         
-        
 
-
-
-        %%% subject/trial identifier
+        %% subject/trial identifier
         subjectno = str2double(dm_subjectno{line});
         if subjectno > 100
             filepath = 'data\BD\';
             subject_id = horzcat('dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
             BD_count = BD_count + 1;
+            BD_no(BD_count) = str2double(dm_subjectno{line});
             isokinetic_labels = {'isokin DF 30' 'isokin PF 45' 'isokin PF 60' 'isokin PF 90' 'isokin PF 120'};
             %isokinetic_speeds = [30 45 60 90 120];
         else
             filepath = 'data/stretcher_strength/';
             subject_id = horzcat('control ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
             CON_count = CON_count + 1;
+            CON_no(CON_count) = str2double(dm_subjectno{line});
             isokinetic_labels = {'isokin DF 30' 'isokin PF 30' 'isokin PF 45' 'isokin PF 60' 'isokin PF 90'};
             %isokinetic_speeds = [30 30 45 60 90];
         end
         cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
-
-
-
-
         
         
-        %%% Calculate data for muscle activation (EMG)
+        
+        %% Calculate data for muscle activation (EMG)
         % script below is from passiveUS.m, not modified for strength data,
         % and disabled because for now, we do not analyse EMG with strength
         % data
@@ -214,21 +197,14 @@ function [] = strength_analysis(input_plot)
 %         [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_sol, 0);
 
 
-
-
-
         
-        %%% calculate NORM conversion factors
+        %% calculate NORM conversion factors
         % retrieve conversion constants for Norm data
         [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(subjectno, dm_side{line}, dm_timepoint{line}, line, 'active');
         
         
         
-        
-        
-        
-        
-        %%% calculations for ISOKINETIC trials
+        %% calculations for ISOKINETIC trials
         
         % identify files
         isokinetic_data = {dm_isokinD30{line} dm_isokinP30{line} dm_isokinP45{line} dm_isokinP60{line} dm_isokinP90{line}};
@@ -304,13 +280,7 @@ function [] = strength_analysis(input_plot)
         
         
         
-        
-        
-        
-        
-        
-        
-        %%% calculations for ISOMETRIC trials
+        %% calculations for ISOMETRIC trials
         
         % identify files
         isometric_data = {dm_isomet_P10_1{line} dm_isomet_P10_2{line} dm_isomet_D00_1{line} dm_isomet_D00_2{line} dm_isomet_D05_1{line} dm_isomet_D05_2{line} dm_isomet_D10_1{line} dm_isomet_D10_2{line} dm_isomet_D15_1{line} dm_isomet_D15_2{line}};
@@ -318,7 +288,7 @@ function [] = strength_analysis(input_plot)
 
         % preallocate
         isometric_torque_angle(1:10,1:2) = nan;
-        isometric_arrays = [];
+        isometric_arrays = []; % clear previous content
         isometric_arrays{length(isometric_data)} = [];
 
         % extract data from Noraxon files
@@ -395,13 +365,8 @@ function [] = strength_analysis(input_plot)
         cprintf('blue', horzcat('Isometric angle check: ', num2str(round(isometric_torque_angle(:,2)',0)), '.\n'))
         
         
-        
-        
-        
-        
-        
 
-        %%% collect OUTPUT DATA FOR AVERAGE PLOTS
+        %% collect OUTPUT DATA FOR AVERAGE PLOTS
         
         % arrays for averaging isokinetic curves across subjects
         if subjectno > 100
@@ -453,80 +418,28 @@ function [] = strength_analysis(input_plot)
         end
 
 
-        
-        
-        
-        
-        
 
-
-
-
-
-
-        %%% OUTPUT final individual data to file
-        
-        % add data to a common array for all subjects    
-        i = 1;
+        %% prepare arrays for individual trial data to file
+        % save following arrays:
+        %     all_strength_output_txt
+        %     all_strength_output
+        %     all_strength_isokin_angles
         
         % txt trial ID
-        all_strength_output_txt(line,1) = dm_subjectno(line);
-        all_strength_output_txt(line,2) = dm_timepoint(line);
-        all_strength_output_txt(line,3) = dm_side(line);
-        all_strength_output_txt(line,4) = dm_trial(line);
-        
-        % ----- isokinetic:
-        % comes from extract_isokinetic: torque_max, torque_max_angle, torque_max_velocity, work_max, array_output
+        all_strength_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
 
-        % peak torque
-        all_strength_output(line,i) = isokinetic_torque_angle_work(1,1);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(2,1);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(3,1);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(4,1);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(5,1);
-        i = i+1;
-        % angle of peak torque
-        all_strength_output(line,i) = isokinetic_torque_angle_work(1,2);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(2,2);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(3,2);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(4,2);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(5,2);
-        i = i+1;
-        % work
-        all_strength_output(line,i) = isokinetic_torque_angle_work(1,4);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(2,4);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(3,4);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(4,4);
-        i = i+1;
-        all_strength_output(line,i) = isokinetic_torque_angle_work(5,4);
-        i = i+1;
-        
-        % ----- isometric:
-        
-        all_strength_output(line,i) = isometric_10;
-        i = i+1;
-        all_strength_output(line,i) = isometric_0;
-        i = i+1;
-        all_strength_output(line,i) = isometric_n5;
-        i = i+1;
-        all_strength_output(line,i) = isometric_n10;
-        i = i+1;
-        all_strength_output(line,i) = isometric_n15;
+        % isokinetic:
+        % - comes from extract_isokinetic: torque_max, torque_max_angle, torque_max_velocity, work_max, array_output
 
-        % --------------------- isokinetic @ common angles:
-        
-        angles_common2 = -7.5:2.5:27.5'; % must match selection in extr_isokin
+        % add data to a common array for all subjects    
+        all_strength_output(line,:) = [isokinetic_torque_angle_work(1,1) isokinetic_torque_angle_work(2,1) isokinetic_torque_angle_work(3,1) isokinetic_torque_angle_work(4,1) isokinetic_torque_angle_work(5,1) ... % peak torque
+            isokinetic_torque_angle_work(1,2) isokinetic_torque_angle_work(2,2) isokinetic_torque_angle_work(3,2) isokinetic_torque_angle_work(4,2) isokinetic_torque_angle_work(5,2) ... % angle of peak torque
+            isokinetic_torque_angle_work(1,4) isokinetic_torque_angle_work(2,4) isokinetic_torque_angle_work(3,4) isokinetic_torque_angle_work(4,4) isokinetic_torque_angle_work(5,4) ... % work
+            isometric_10 isometric_0 isometric_n5 isometric_n10 isometric_n15 ... % isometric
+            ];
+
+        % isokinetic @ common angles:
+        angles_common2 = (-7.5:2.5:27.5)'; % must match selection in extr_isokin
         n_o_angles = length(angles_common2);
 
         % data
@@ -540,22 +453,12 @@ function [] = strength_analysis(input_plot)
             end
         end
         
-        
-        
-        
-
-
     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% LOOP FINISHED
+    %% LOOP FINISHED
     
     
     
-    
-    
-    
-    
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% HEADERS FOR DATA SAVED PER SUBJECT
+    %% HEADERS FOR DATA SAVED PER SUBJECT
 
     % isokinetic @ common angles
     for j=1:length(isokinetic_intervals)
@@ -574,15 +477,8 @@ function [] = strength_analysis(input_plot)
         }; % PROJECTSPECIFIC
 
 
-    
-    
-    
-    
-    
-    
-    
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - NUMBERS
+        
+    %% GROUP CALCULATIONS - mean and stdav for plots
     
     %%%  mean and stdav of each subject's isometric torque, isokinetic torque/angle/work
     
@@ -592,18 +488,8 @@ function [] = strength_analysis(input_plot)
     CON_data_SD = std(CON_data,'omitnan');
     
     
-
-     
-     
     
-    
-    
-    
-    
-    
-    
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% CALCULATIONS ACROSS SUBJECTS - ARRAYS
+    %% GROUP CALCULATIONS - average arrays for plots
     
     %%% average isokinetic arrays
     
@@ -648,7 +534,7 @@ function [] = strength_analysis(input_plot)
     % select lowest possible common starting angle, highest possible common ending angle
     angle_min = max([max(BD_angle_min) max(CON_angle_min)]);
     angle_max = min([min(BD_angle_max) min(CON_angle_max)]);
-    angle_array = [ceil(10*angle_min)/10:0.25:floor(10*angle_max)/10]';
+    angle_array = (ceil(10*angle_min)/10:0.25:floor(10*angle_max)/10)';
     
     % reshape and average all isokinetic trials
     if BD_count > 0
@@ -698,13 +584,7 @@ function [] = strength_analysis(input_plot)
     
 
     
-    
-    
-    
-    
-    
-        
-    %%%%%%%%%%%%%%%% OUTPUT KEY VARIABLES FOR ALL SUBJECTS TO FILE
+    %% OUTPUT individual trial data to file
     % write xls
     if ispc
         filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyy-mm-dd HH-MM'));
@@ -717,20 +597,78 @@ function [] = strength_analysis(input_plot)
     else
         filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
         csvwrite(filename_output, all_strength_output)
-        % MMM TODO? add all_strength_isokin_angles
     end
 
     
+    %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % MMM TODO
+    % work?
+    
+    % variables to export to file
+    out_arrays_input_cols = [1 16 31 46 61]; % loacations in all_strength_isokin_angles
+    out_arrays_input_labels = {'DF30' 'PF30' 'PF45' 'PF60' 'PF90' 'PF120'};
+    
+    % Flexigym: Torque data were interpolated using a spline function
+    % to extract torque at 0.25° intervals. Statistics were applied to torque values at 5° intervals.
+    %
+    % current data: Torque exists at intervals corresponding to 200 hz. Statistics
+    % applied to values at every 2.5° after using spline - no additional averaging/smoothing.
+    % MMM TODO? Some smoothing at some point? avg over 0.5 deg?
+    
+    % create table headers (subject numbers)
+    out_arrays_headers{1+BD_count+CON_count} = [];
+    out_arrays_headers{1} = 'Joint_angle';
+    for i=1:BD_count
+        out_arrays_headers{i+1} = strcat('BD ', num2str(BD_no(i)));
+    end
+    for i=1:CON_count
+        out_arrays_headers{i+1+BD_count} = strcat('CON ', num2str(CON_no(i)));
+    end
+    
+    % preallocate output arrays
+    cols_abs = length(angles_common2);
+    rows = BD_count+CON_count + 1; % adding 1 for column for joint angles
+    out_arrays_abs(cols_abs,rows) = zeros;
+    
+    % organize and output table for each of the selected variables
+    for var = 1:length(out_arrays_input_labels)
+        % reset output arrays
+        out_arrays_abs(1:cols_abs,1:rows) = zeros;
+        
+        % add as first column, joint angles: abs and normalized angles
+        out_arrays_abs(:,1) = angles_common2;
+        
+        % add BD subjects first
+        for subj = 1:BD_count
+            if var < 3 % dorsiflexion, PF30
+                out_arrays_abs(:,subj+1) = NaN;
+            else
+                correction = 1; % BD subjects' data are one row too far to the right (BD PF60 is in the column of COL PF30)
+                out_arrays_abs(:,subj+1) = all_strength_isokin_angles(subj,out_arrays_input_cols(var-correction):out_arrays_input_cols(var-correction)+14);
+            end
+        end
+        
+        % add CON subjects second
+        for subj = 1:CON_count
+            if var > 5 % plantarflexion, PF120
+                out_arrays_abs(:,subj+BD_count+1) = NaN;
+            else
+                out_arrays_abs(:,subj+BD_count+1) = all_strength_isokin_angles(subj+BD_count,out_arrays_input_cols(var):out_arrays_input_cols(var)+14);
+            end
+        end
+        
+        % create tables and save as file
+        out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+        filename_output = strcat('data_output/BD_arrays_strength_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyy-mm-dd HH-MM'));
+        writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
+        
+        clear out_arrays_abs_table
+    end
+
+
     
     
-    
-    
-    
-    
-    
-    
-    %%%%%%%%%%%%%%%% PLOT GROUP FIGURES
-    
+    %% PLOT GROUP FIGURES
     
     % isometric trials
     
@@ -1048,8 +986,6 @@ function [] = strength_analysis(input_plot)
              print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
     end
     
-    
-
     
     
 end

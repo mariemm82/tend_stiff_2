@@ -283,12 +283,12 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     array_raw_output = trials{torque_best_i};
     
     % spline for common angles @ 2.5 deg
-    angles_common2 = -7.5:2.5:27.5';
+    angles_common2 = (-7.5:2.5:27.5)';
     array_intervals_output = spline(array_raw_output(:,2), array_raw_output(:,1), angles_common2);
-    % tmp
-%     figure,plot(array_raw_output(:,2),array_raw_output(:,1))
-%     hold on
-%     plot(angles_common2,array_intervals_output,':ko', 'MarkerEdgeColor','k','MarkerFaceColor',[0 0 0])
+%     % tmp plot to confirm no smoothing
+%      figure,plot(array_raw_output(:,2),array_raw_output(:,1))
+%      hold on
+%      plot(angles_common2,array_intervals_output,':ko', 'MarkerEdgeColor','k','MarkerFaceColor',[0 0 0])
     
     
     

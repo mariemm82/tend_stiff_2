@@ -41,7 +41,7 @@ function [] = passiveUS(input_project, input_plot)
         plot_individual = 0;
     end
     
-    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
+    toggle_normalization = 0; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
 
     % LEVEL 2: main checkpoint plots
     plot_norm = 0;
@@ -325,6 +325,11 @@ function [] = passiveUS(input_project, input_plot)
             'faslen SOL @ trial ROM', 'faslen SOL @ subject max ROM', 'faslen SOL @ common max ROM', 'faslen SOL @ 0 deg', 'faslen SOL @ 10°', 'faslen SOL @ 67% ROM', ...
             'pennation SOL @ trial ROM', 'pennation SOL @ subject max ROM', 'pennation SOL @ common max ROM', 'pennation SOL @ 0 deg', 'pennation SOL @ 10°', 'pennation SOL @ 67% ROM', ...
             'GM elong contribution@ trial ROM (%)', 'GM elong contribution@ subject max ROM', 'GM elong contribution@ common max ROM', 'GM elong contribution@ 10°', 'GM elong contribution@ 67% ROM', ...
+            'MAX elong AT', 'MAX elong GMtend', 'MAX elong leg', 'MAX elong GMapo', 'MAX elong msc GM', 'MAX elong msc SOL', ...
+            'MAX strain AT', 'MAX strain GMtend', 'MAX strain leg', 'MAX strain GMapo', 'MAX strain msc GM', 'MAX strain msc SOL', ...
+            'MAX length AT', 'MAX length GMtend', 'MAX length leg', 'MAX length GMapo', 'MAX length msc GM', 'MAX length msc SOL', ...
+            'MAX elong GMtend Fuku', 'MAX elong msc GM Fuku', 'MAX strain GMtend Fuku', 'MAX strain msc GM Fuku', 'MAX length GMtend Fuku', 'MAX length msc GM Fuku', ...
+            'MAX licht faslen GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
             'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', ...
             'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', ...
             'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', ...
@@ -1483,8 +1488,47 @@ function [] = passiveUS(input_project, input_plot)
         %% 
         
         
+        %% OUTPUT MAXIMAL ELONGATIONS (not angle specific) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
+        out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
+        out_elong_leg_max = max(MTU_elong_array(:,col_leg));
+        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo)); 
+        out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
+        out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
+        out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
+        out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
+        out_strain_leg_max = max(MTU_strain_array(:,col_leg));
+        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo)); 
+        out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
+        out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
+        out_length_AT_max = max(MTU_length_array(:,col_AT)); 
+        out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
+        out_length_leg_max = max(MTU_length_array(:,col_leg));
+        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo)); 
+        out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
+        out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
+        out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_GMtend_Fukunaga));
+        out_elong_msc_GM_Fuku_max = max(MTU_elong_array(:,col_GMmsc_Fukunaga));
+        out_strain_GMtend_Fuku_max = max(MTU_strain_array(:,col_GMtend_Fukunaga));
+        out_strain_msc_GM_Fuku_max = max(MTU_strain_array(:,col_GMmsc_Fukunaga));
+        out_length_GMtend_Fuku_max = max(MTU_length_array(:,col_GMtend_Fukunaga));
+        out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
         
-        %% PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006)
+        out_licht_faslen_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
+        out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
+        if (length((data_GMFAS_licht_SOL)) == 3) == 0
+            % SOL exists
+            out_licht_faslen_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
+            out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
+        else
+            out_licht_faslen_SOL_max = 100;
+            out_licht_pennation_SOL_max = 100;
+        end
+        %%
+        
+        
+        
+        %% PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % gonio angle = data_force_gonio(:,col_angle)
         % force = data_force_gonio(:,col_force)
@@ -2160,7 +2204,12 @@ function [] = passiveUS(input_project, input_plot)
         	out_licht_faslen_SOL_trial_max out_licht_faslen_SOL_ind_max out_licht_faslen_SOL_common_max out_licht_faslen_SOL_zero out_licht_faslen_SOL_submax_1 out_licht_faslen_SOL_submax_2...
             out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_zero out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2...
             out_contrib_GM_trial_max out_contrib_GM_ind_max out_contrib_GM_common_max out_contrib_GM_submax_1 out_contrib_GM_submax_2...
-        	out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2...
+            out_elong_AT_max out_elong_GMtend_max out_elong_leg_max out_elong_GMapo_max out_elong_msc_GM_max out_elong_msc_SOL_max ...
+            out_strain_AT_max out_strain_GMtend_max out_strain_leg_max out_strain_GMapo_max out_strain_msc_GM_max out_strain_msc_SOL_max ...
+            out_length_AT_max out_length_GMtend_max out_length_leg_max out_length_GMapo_max out_length_msc_GM_max out_length_msc_SOL_max ...
+            out_elong_GMtend_Fuku_max out_elong_msc_GM_Fuku_max out_strain_GMtend_Fuku_max out_strain_msc_GM_Fuku_max out_length_GMtend_Fuku_max out_length_msc_GM_Fuku_max ...
+            out_licht_faslen_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
+            out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2...
             out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2...
             out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2];
         %%

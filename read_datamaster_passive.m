@@ -9,7 +9,7 @@ function out = read_datamaster_passive(file,datamaster_columns)
     global dm_ROM_gmmtj1_NX dm_ROM_gmmtj1_US dm_ROM_gmmtj1_US_frame dm_ROM_gmmtj2_NX dm_ROM_gmmtj2_US dm_ROM_gmmtj2_US_frame
     global dm_ROM_gmfas1_NX dm_ROM_gmfas1_US dm_ROM_gmfas1_US_frame dm_ROM_gmfas2_NX dm_ROM_gmfas2_US dm_ROM_gmfas2_US_frame dm_ROM_gmfas1_licht dm_ROM_gmfas2_licht
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_CPM_sol_US dm_CPM_sol_US_frame 
-    global dm_leg_length dm_at_SOL_length dm_at_GM_length
+    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen
 
     % import datamaster file
     data = fileread(file);
@@ -58,6 +58,8 @@ function out = read_datamaster_passive(file,datamaster_columns)
         dm_leg_length{i-1,1}=datamaster{1,1}{delta+33,1};
         dm_at_SOL_length{i-1,1}=datamaster{1,1}{delta+34,1};
         dm_at_GM_length{i-1,1}=datamaster{1,1}{delta+35,1};
+        dm_GMmsc_penn{i-1,1}=datamaster{1,1}{delta+36,1};
+        dm_GMmsc_faslen{i-1,1}=datamaster{1,1}{delta+37,1};
     end
 
     out = nolines-1; % lines in datamaster to be analysed, minus header

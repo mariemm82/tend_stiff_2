@@ -7,9 +7,11 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_elong_GM_Fukunaga, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, angle_common)
-    global at_momentarm % subject_id
+function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, initial_GM_pennation, initial_GM_faslen, angle_common)
+    global at_momentarm  % subject_id
 
+    
+    
     %%%%%%%% create array of angles common to all 6 trials
     % angle_common is read from file from create_angles_passive, to avoid potential tiny discrepancies between various calculations of max
     angle_array = (0:0.05:(angle_common+0.01))'; %VAR  - adding 0.01 to ensure that the actual common angle is included - data stored as 10.9999999 
@@ -130,17 +132,47 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     
     %%%% GM msc elongation from anthropometry (Lichtwark/Fukunaga)
-    if angle_elong_GM_Fukunaga == 0
+    % angle_GM_Fukunaga contains:
+        %   averaged angle (currently calculated from gonio)
+        %   averaged fasicle length
+        %   averaged pennation angle
+        %   averaged fascicle elongation
+        %   averaged fascicle strain
+        
+    resting_GM_pennation = str2double(initial_GM_pennation);
+    resting_GM_faslen = str2double(initial_GM_faslen);
+    resting_GM_msc_len = resting_GM_faslen * cosd(resting_GM_pennation);
+
+    if angle_GM_Fukunaga == 0
         msc_GM_elong_Fukunaga(1:length(angle_array),1) = zeros;
     else
-        loc_frame = find(angle_elong_GM_Fukunaga(:,1)>=0,1,'first');
-        loc_frame2 = find(angle_elong_GM_Fukunaga(:,1)>=angle_common,1,'first');
-        % change to correct angle array
-        msc_GM_elong_Fukunaga = angle_elong_GM_Fukunaga(loc_frame:loc_frame2,2);
-        % calculate other elongations, lengths, strains
-        msc_GM_length_Fukunaga = (calf_length - AT_GM_length) + msc_GM_elong_Fukunaga;
-        tend_GM_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
-        tend_GM_elong_Fukunaga = tend_GM_length_Fukunaga - tend_GM_length_Fukunaga(1);
+%         % version 1: lower leg = tend + msc
+%         loc_frame = find(angle_GM_Fukunaga(:,1)>=0,1,'first');
+%         loc_frame2 = find(angle_GM_Fukunaga(:,1)>=angle_common,1,'first');
+%         % change to correct angle array
+%         msc_GM_elong_Fukunaga = angle_GM_Fukunaga(loc_frame:loc_frame2,2);
+%         % calculate other elongations, lengths, strains
+%         msc_GM_length_Fukunaga = (calf_length - AT_GM_length) + msc_GM_elong_Fukunaga;
+%         tend_GM_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
+%         tend_GM_elong_Fukunaga = tend_GM_length_Fukunaga - tend_GM_length_Fukunaga(1);
+
+        % version 2: msc = fascicle horiz displ, SEE = lower leg minus msc
+        loc_frame = find(angle_GM_Fukunaga(:,1)>=0,1,'first');
+        loc_frame2 = find(angle_GM_Fukunaga(:,1)>=angle_common,1,'first');
+        
+        % muscle length (longitudinal axis) from Fukunaga fasicles/pennation: % BREAK
+        msc_GM_length_Fukunaga = angle_GM_Fukunaga(loc_frame:loc_frame2,2) .* cosd(angle_GM_Fukunaga(loc_frame:loc_frame2,3)); %BREAK
+        msc_GM_elong_Fukunaga = msc_GM_length_Fukunaga - resting_GM_msc_len;
+        msc_GM_strain_Fukunaga = msc_GM_elong_Fukunaga / resting_GM_msc_len * 100;
+        
+        % remainder - SEE length:
+        SEE_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
+        SEE_elong_Fukunaga = SEE_length_Fukunaga - (calf_length - resting_GM_msc_len);
+        SEE_strain_Fukunaga = SEE_elong_Fukunaga / (calf_length - resting_GM_msc_len) * 100;
+        
+        % MMM GOON: why is msc elong negative(= from prone length), while SEE always from zero elong?
+        
+        % MMM GOON: plot of faslen + elong + strain?
     end
     
     
@@ -157,7 +189,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         msc_GM_length_array ...     % = from GM ins to knee
         msc_SOL_length_array ...    % = H&H SOL length minus free AT
         msc_GM_length_Fukunaga ...  % = GM muscle length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
-        tend_GM_length_Fukunaga ... % = GM tendon length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+        SEE_length_Fukunaga ... % = GM tendon length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
         ]; 
 
     MTU_elong_array = [...
@@ -170,7 +202,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         msc_GM_length_array-msc_GM_length_array(1)...
         msc_SOL_length_array-msc_SOL_length_array(1)...
         msc_GM_elong_Fukunaga ...
-        tend_GM_elong_Fukunaga ...
+        SEE_elong_Fukunaga ...
         ]; 
     
     MTU_strain_array = [ ...
@@ -182,8 +214,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         (apo_GM_array-apo_GM_array(1)) / apo_GM_array(1)*100 ...
         (msc_GM_length_array-msc_GM_length_array(1)) / msc_GM_length_array(1)*100 ...
         (msc_SOL_length_array-msc_SOL_length_array(1)) / msc_SOL_length_array(1)*100 ...
-        (msc_GM_length_Fukunaga-msc_GM_length_Fukunaga(1)) / msc_GM_length_Fukunaga(1)*100 ...
-    	(tend_GM_length_Fukunaga-tend_GM_length_Fukunaga(1)) / tend_GM_length_Fukunaga(1)*100 ...
+        msc_GM_strain_Fukunaga ...
+    	SEE_strain_Fukunaga ...
         ]; 
     
 end

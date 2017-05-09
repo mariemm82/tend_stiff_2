@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
+% MMM todo - tendon lengths, based on prone length or zero angle lengths?
 
 
 
@@ -277,17 +277,17 @@ function [] = passiveUS(input_project, input_plot)
     global dm_ROM_gmmtj1_NX dm_ROM_gmmtj1_US dm_ROM_gmmtj1_US_frame dm_ROM_gmmtj2_NX dm_ROM_gmmtj2_US dm_ROM_gmmtj2_US_frame
     global dm_ROM_gmfas1_NX dm_ROM_gmfas1_US dm_ROM_gmfas1_US_frame dm_ROM_gmfas2_NX dm_ROM_gmfas2_US dm_ROM_gmfas2_US_frame  dm_ROM_gmfas1_licht dm_ROM_gmfas2_licht
     global dm_MVC_PF %dm_MVC_DF %dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_CPM_sol_US dm_CPM_sol_US_frame 
-    global dm_leg_length dm_at_SOL_length dm_at_GM_length
+    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen
     global at_momentarm
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
-    dm_columns = 35; % number of data columns entered per subject % PROJECTSPECIFIC
+    dm_columns = 37; % number of data columns entered per subject % PROJECTSPECIFIC
     linestotal = read_datamaster_passive(dm_filename,dm_columns);
     %% Read datamaster file, to connect corresponding data files
         
     
     
-    %% preallocate output arrays
+    %% preallocate output arrays %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % common arrays for all subjects:
         all_passive_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
             'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', 'Submax - 10°', 'Submax - 67% ROM', ...
@@ -322,6 +322,8 @@ function [] = passiveUS(input_project, input_plot)
             'strain msc GM Fuku trial max', 'strain msc GM Fuku ind max', 'strain msc GM Fuku common max', 'strain msc GM Fuku submax 1', 'strain msc GM Fuku submax 2' ...
             'faslen GM @ trial ROM (mm)', 'faslen GM @ subject max ROM', 'faslen GM @ common max ROM', 'faslen GM @ 0 deg', 'faslen GM @ 10°', 'faslen GM @ 67% ROM', ...
             'pennation GM @ trial ROM (°)', 'pennation GM @ subject max ROM', 'pennation GM @ common max ROM', 'pennation GM @ 0 deg', 'pennation GM @ 10°', 'pennation GM @ 67% ROM', ...
+            'fas elong GM @ trial ROM (mm)', 'fas elong GM @ subject max ROM', 'fas elong GM @ common max ROM', 'fas elong GM @ 0 deg', 'fas elong GM @ 10°', 'fas elong GM @ 67% ROM', ...
+            'fas strain GM @ trial ROM (°)', 'fas strain GM @ subject max ROM', 'fas strain GM @ common max ROM', 'fas strain GM @ 0 deg', 'fas strain GM @ 10°', 'fas strain GM @ 67% ROM', ...
             'faslen SOL @ trial ROM', 'faslen SOL @ subject max ROM', 'faslen SOL @ common max ROM', 'faslen SOL @ 0 deg', 'faslen SOL @ 10°', 'faslen SOL @ 67% ROM', ...
             'pennation SOL @ trial ROM', 'pennation SOL @ subject max ROM', 'pennation SOL @ common max ROM', 'pennation SOL @ 0 deg', 'pennation SOL @ 10°', 'pennation SOL @ 67% ROM', ...
             'GM elong contribution@ trial ROM (%)', 'GM elong contribution@ subject max ROM', 'GM elong contribution@ common max ROM', 'GM elong contribution@ 10°', 'GM elong contribution@ 67% ROM', ...
@@ -329,7 +331,7 @@ function [] = passiveUS(input_project, input_plot)
             'MAX strain AT', 'MAX strain GMtend', 'MAX strain leg', 'MAX strain GMapo', 'MAX strain msc GM', 'MAX strain msc SOL', ...
             'MAX length AT', 'MAX length GMtend', 'MAX length leg', 'MAX length GMapo', 'MAX length msc GM', 'MAX length msc SOL', ...
             'MAX elong GMtend Fuku', 'MAX elong msc GM Fuku', 'MAX strain GMtend Fuku', 'MAX strain msc GM Fuku', 'MAX length GMtend Fuku', 'MAX length msc GM Fuku', ...
-            'MAX licht faslen GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
+            'MAX licht fas len GM', 'MAX licht fas elong GM', 'MAX licht fas strain GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
             'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', ...
             'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', ...
             'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', ...
@@ -389,14 +391,13 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
     end
-    %% preallocate output arrays
+    %% 
     
     
     
     
-    
-    
-    for line = 1:linestotal %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    for line = 1:linestotal 
         clear emg_all;
         emg_all{3,6} = zeros; % 6 EMG channels for 1 subject, to be reused across subjects
         
@@ -407,6 +408,7 @@ function [] = passiveUS(input_project, input_plot)
         trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
         trial_leg = strcmp(dm_trial{line},'STR'); % 0 = CON, 1 = STR
         trial_calf_length = str2double(dm_leg_length{line}) * 10;  % leg length is in cm
+        trial_GMfas_length = str2double(dm_GMmsc_faslen{line}); 
 
         if input_project == 1 % BD study
             if trial_subjectno > 100
@@ -659,7 +661,6 @@ function [] = passiveUS(input_project, input_plot)
         GMFAS_licht_SOL_1_exists = 0;
         if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null'))
             % allow for the possibility of discarded trials (null)
-            
         else 
             [GMFAS_licht_data_1] = read_us_licht(strcat(filepath, dm_ROM_gmfas1_licht{line}, '.txt'), str2double(dm_ROM_gmfas1_US_frame{line}), 'GMFAS1_Licht');
             % check if trial has both GM + SOL, or only GM
@@ -681,7 +682,6 @@ function [] = passiveUS(input_project, input_plot)
         GMFAS_licht_SOL_2_exists = 0;
         if(strcmpi(dm_ROM_gmfas2_licht{line}, 'null'))
             % allow for the possibility of discarded trials (null)
-
         else 
             [GMFAS_licht_data_2] = read_us_licht(strcat(filepath, dm_ROM_gmfas2_licht{line}, '.txt'), str2double(dm_ROM_gmfas2_US_frame{line}), 'GMFAS2_Licht');
             % check if trial has both GM + SOL, or only GM
@@ -707,7 +707,10 @@ function [] = passiveUS(input_project, input_plot)
         %   averaged angle (currently calculated from gonio)
         %   averaged fasicle length
         %   averaged pennation angle
+        %   averaged fascicle elongation
+        %   averaged fascicle strain
         % OR containing zeros (if nonexistent)
+        
         if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0 && strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0)
             
             % if 2 GM trials exist (none of variables are 'null')
@@ -748,8 +751,23 @@ function [] = passiveUS(input_project, input_plot)
             end    
             
         else % no trials exist
-            data_GMFAS_licht_GM = zeros(1,3);
+            data_GMFAS_licht_GM = zeros(1,5);
             data_GMFAS_licht_SOL = zeros(1,3);
+        end
+        
+        % add GM fascicle elongation and strain to data_GMFAS_licht_GM
+        if length(data_GMFAS_licht_GM) > 5
+%             % version 1 - length at zero degrees = zero elong, zero strain
+%             angle_zero = 0 - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999 %VAR
+%             loc_angle_zero = find(data_GMFAS_licht_GM(:,1)>=angle_zero,1,'first');
+%             data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2); %elong
+%             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2)) / data_GMFAS_licht_GM(loc_angle_zero,2) * 100; %strain
+
+            % version 2 - length prone is zero elong, zero strain
+            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - trial_GMfas_length; %elong  %BREAK
+            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - trial_GMfas_length) / trial_GMfas_length * 100; %strain
+
+            % MMM LATER - same for SOL?
         end
         %%
         
@@ -849,15 +867,22 @@ function [] = passiveUS(input_project, input_plot)
         
         %% GM MUSCLE LENGTH CHANGE from penn.ang. & fas.len. (Lichtwark/Fukunaga)
         % Fukunaga 2001: In vivo behavor of human ...
-
+        % outcome:    data_GMFAS_elong_Lichtwark    = elongation of GM muscle
+        % MMM TODO - obsolete?
+        % 
+        % in longitudinal direction, based on GM fascicle length change and
+        % pennation angle
+        
         %   data_GMFAS_licht_GM
         % containing:
         %   1 averaged angle (currently calculated from gonio)
         %   2 averaged fasicle length - in mm
-        %   3 averaged pennation angle - in radians?
-        % OR containing 3x zeros (if nonexistent)
+        %   3 averaged pennation angle - in deg
+        %   4 averaged fasicle elong - in mm
+        %   5 averaged fasicle strain - in %
+        % OR containing 5x zeros (if nonexistent)
         
-        if length(data_GMFAS_licht_GM) > 3
+        if length(data_GMFAS_licht_GM) > 5
             % fascicle longitudinal component = faslen * cos penn_ang, at each joint angle
             horiz_l = data_GMFAS_licht_GM(:,2) .* cosd(data_GMFAS_licht_GM(:,3));
 
@@ -865,15 +890,15 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS_licht_GM(:,1)>=0,1,'first');
             data_GMFAS_elong_Lichtwark = [data_GMFAS_licht_GM(:,1) horiz_l - horiz_l(loc_frame)];
 
-       %     x axis - elong and pennation, y axis - fas len
+       %     x1 axis - elong and pennation, X2 axis - fas len
             if plot_check && plot_individual
-                plottitle = horzcat('IND Lichtwark elong vs angle, ', subject_id);
+                plottitle = horzcat('IND Lichtwark GM muscle elong vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
                 yyaxis left
                 plot(data_GMFAS_elong_Lichtwark(:,1), data_GMFAS_elong_Lichtwark(:,2),'LineWidth',2)
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),':b','LineWidth',1) % pennation
-                ylabel('txt_elong / Pennation angle (°)')
+                ylabel('Elongation (mm) / Pennation angle (°)')
                 yyaxis right
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % faslen
                 ylabel(txt_length)
@@ -896,7 +921,7 @@ function [] = passiveUS(input_project, input_plot)
         %2       calc to SOL ins = free tendon                 
         %3       calc go GM ins = GM tendon
         %4       calc to knee = entire calf
-        %5       DISPLACEMENT from GMFAS tracking       GM muscle elongation from faslen + penn.ang. (Lichtwark/Fukunaga)
+        %5       DISPLACEMENT from GMFAS tracking       GM muscle elongation from faslen + penn.ang. (Lichtwark/Fukunaga) --- MMM verify this
         %6       SOL to GM = GM apo
         %7       GM to knee = GM msc
         %8       SOL length (H&H) minus free AT = SOL msc
@@ -925,7 +950,7 @@ function [] = passiveUS(input_project, input_plot)
         end
         
         % calculate MTU lengths
-        [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_elong_Lichtwark, dm_at_SOL_length{line}, dm_at_GM_length{line}, dm_leg_length{line}, out_ROM_trial_max);
+        [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, dm_leg_length{line}, dm_GMmsc_penn{line}, dm_GMmsc_faslen{line}, out_ROM_trial_max);
         
         % column choices MTU ELONGATION / LENGTH / STRAIN
         col_angle_elong = 1;
@@ -937,7 +962,7 @@ function [] = passiveUS(input_project, input_plot)
         col_GMmsc = 7;
         col_SOLmsc = 8;
         col_GMmsc_Fukunaga = 9;
-        col_GMtend_Fukunaga = 10;
+        col_SEE_Fukunaga = 10;
         
         if plot_check && plot_individual
             % raw lengths (mm)
@@ -958,8 +983,9 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_length)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('Full GM MTU', 'SOL MTU', 'GM tendon (linear)', 'GM tendon (anthro)', 'AT free', 'GM msc.', 'SOL msc.', 'GM apo.', 'Location','Southeast');
+            legend('Full GM MTU', 'SOL MTU', 'GM tendon (linear)', 'SEE (anthro)', 'AT free', 'GM msc.', 'SOL msc.', 'GM apo.', 'Location','Southeast');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            % MMM TODO -plots and headers, GMtend fukunaga --> SEE
             
             % raw elongation (mm)
             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
@@ -978,7 +1004,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_elong)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM tendon (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             xlim([-0.5 inf]) 
             ylim([-inf inf]) 
@@ -1003,7 +1029,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_strain)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM tendon (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             xlim([-0.5 inf]) 
             ylim([-inf inf]) 
@@ -1016,9 +1042,9 @@ function [] = passiveUS(input_project, input_plot)
         if input_project == 1 && toggle_normalization == 1
             % in MTU_ arrays, replace absolute values with normalization to initial leg length:
             MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/trial_calf_length*100; % in percent of initial leg length
-            MTU_elong_array(:,col_GMtend_Fukunaga) = MTU_elong_array(:,col_GMtend_Fukunaga)/trial_calf_length*100;
+            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/trial_calf_length*100;
             MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/trial_calf_length*100;
-            MTU_length_array(:,col_GMtend_Fukunaga) = MTU_length_array(:,col_GMtend_Fukunaga)/trial_calf_length*100;
+            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/trial_calf_length*100;
         end
         %%
         
@@ -1085,8 +1111,8 @@ function [] = passiveUS(input_project, input_plot)
             out_F_submax_1 = data_force_gonio(loc_frame,col_force);
             out_T_submax_1 = out_F_submax_1 *at_momentarm;
         else
-            out_F_submax_1 = 100;
-            out_T_submax_1 = 100;
+            out_F_submax_1 = NaN;
+            out_T_submax_1 = NaN;
         end
         loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_F_submax_2 = data_force_gonio(loc_frame,col_force);
@@ -1111,7 +1137,7 @@ function [] = passiveUS(input_project, input_plot)
         if isempty(loc_frame) == 0
             out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
         else
-            out_displ_SOL_submax_1 = 100;
+            out_displ_SOL_submax_1 = NaN;
         end
         loc_frame = find(data_SOL(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_SOL_submax_2 = data_SOL(loc_frame,col_displ); 
@@ -1127,7 +1153,7 @@ function [] = passiveUS(input_project, input_plot)
         if isempty(loc_frame) == 0
             out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
         else
-            out_displ_GMMTJ_submax_1 = 100;
+            out_displ_GMMTJ_submax_1 = NaN;
         end
         loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMMTJ_submax_2 = data_GMMTJ(loc_frame,col_displ); 
@@ -1143,7 +1169,7 @@ function [] = passiveUS(input_project, input_plot)
         if isempty(loc_frame) == 0
             out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
         else
-            out_displ_GMFAS_submax_1 = 100;
+            out_displ_GMFAS_submax_1 = NaN;
         end
         loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
@@ -1168,11 +1194,11 @@ function [] = passiveUS(input_project, input_plot)
         out_length_msc_GM_trial_max = MTU_length_array(loc_frame,col_GMmsc);
         out_length_msc_SOL_trial_max = MTU_length_array(loc_frame,col_SOLmsc);
         out_contrib_GM_trial_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_trial_max = MTU_elong_array(loc_frame,col_GMtend_Fukunaga);
+        out_elong_GMtend_Fuku_trial_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
         out_elong_msc_GM_Fuku_trial_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_trial_max = MTU_strain_array(loc_frame,col_GMtend_Fukunaga);
+        out_strain_GMtend_Fuku_trial_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
         out_strain_msc_GM_Fuku_trial_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_trial_max = MTU_length_array(loc_frame,col_GMtend_Fukunaga);
+        out_length_GMtend_Fuku_trial_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_trial_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
         loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_ind_max,1,'first'); 
@@ -1195,11 +1221,11 @@ function [] = passiveUS(input_project, input_plot)
         out_length_msc_GM_ind_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_ind_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_ind_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_ind_max = MTU_elong_array(loc_frame,col_GMtend_Fukunaga);
+        out_elong_GMtend_Fuku_ind_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
         out_elong_msc_GM_Fuku_ind_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_ind_max = MTU_strain_array(loc_frame,col_GMtend_Fukunaga);
+        out_strain_GMtend_Fuku_ind_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
         out_strain_msc_GM_Fuku_ind_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_ind_max = MTU_length_array(loc_frame,col_GMtend_Fukunaga);
+        out_length_GMtend_Fuku_ind_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_ind_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
         loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_common_max,1,'first'); 
@@ -1222,40 +1248,40 @@ function [] = passiveUS(input_project, input_plot)
         out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_common_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_common_max = MTU_elong_array(loc_frame,col_GMtend_Fukunaga);
+        out_elong_GMtend_Fuku_common_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
         out_elong_msc_GM_Fuku_common_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_common_max = MTU_strain_array(loc_frame,col_GMtend_Fukunaga);
+        out_strain_GMtend_Fuku_common_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
         out_strain_msc_GM_Fuku_common_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_common_max = MTU_length_array(loc_frame,col_GMtend_Fukunaga);
+        out_length_GMtend_Fuku_common_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_common_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
         loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame)
-            out_elong_AT_submax_1 = 100;
-            out_elong_GMtend_submax_1 = 100;
-            out_elong_leg_submax_1 = 100;
-            out_elong_GMapo_submax_1 = 100;
-            out_elong_msc_GM_submax_1 = 100;
-            out_elong_msc_SOL_submax_1 = 100;
-            out_strain_AT_submax_1 = 100;
-            out_strain_GMtend_submax_1 = 100;
-            out_strain_leg_submax_1 = 100;
-            out_strain_GMapo_submax_1 = 100;
-            out_strain_msc_GM_submax_1 = 100;
-            out_strain_msc_SOL_submax_1 = 100;
-            out_length_AT_submax_1 = 100;
-            out_length_GMtend_submax_1 = 100;
-            out_length_leg_submax_1 = 100;
-            out_length_GMapo_submax_1 = 100;
-            out_length_msc_GM_submax_1 = 100;
-            out_length_msc_SOL_submax_1 = 100;
-            out_contrib_GM_submax_1 = 100;
-            out_elong_GMtend_Fuku_submax_1 = 100;
-            out_elong_msc_GM_Fuku_submax_1 = 100;
-            out_strain_GMtend_Fuku_submax_1 = 100;
-            out_strain_msc_GM_Fuku_submax_1 = 100;
-            out_length_GMtend_Fuku_submax_1 = 100;
-            out_length_msc_GM_Fuku_submax_1 = 100;
+            out_elong_AT_submax_1 = NaN;
+            out_elong_GMtend_submax_1 = NaN;
+            out_elong_leg_submax_1 = NaN;
+            out_elong_GMapo_submax_1 = NaN;
+            out_elong_msc_GM_submax_1 = NaN;
+            out_elong_msc_SOL_submax_1 = NaN;
+            out_strain_AT_submax_1 = NaN;
+            out_strain_GMtend_submax_1 = NaN;
+            out_strain_leg_submax_1 = NaN;
+            out_strain_GMapo_submax_1 = NaN;
+            out_strain_msc_GM_submax_1 = NaN;
+            out_strain_msc_SOL_submax_1 = NaN;
+            out_length_AT_submax_1 = NaN;
+            out_length_GMtend_submax_1 = NaN;
+            out_length_leg_submax_1 = NaN;
+            out_length_GMapo_submax_1 = NaN;
+            out_length_msc_GM_submax_1 = NaN;
+            out_length_msc_SOL_submax_1 = NaN;
+            out_contrib_GM_submax_1 = NaN;
+            out_elong_GMtend_Fuku_submax_1 = NaN;
+            out_elong_msc_GM_Fuku_submax_1 = NaN;
+            out_strain_GMtend_Fuku_submax_1 = NaN;
+            out_strain_msc_GM_Fuku_submax_1 = NaN;
+            out_length_GMtend_Fuku_submax_1 = NaN;
+            out_length_msc_GM_Fuku_submax_1 = NaN;
         else
             out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GMtend);
@@ -1276,11 +1302,11 @@ function [] = passiveUS(input_project, input_plot)
             out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_GMmsc); 
             out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_SOLmsc); 
             out_contrib_GM_submax_1 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-            out_elong_GMtend_Fuku_submax_1 = MTU_elong_array(loc_frame,col_GMtend_Fukunaga);
+            out_elong_GMtend_Fuku_submax_1 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
             out_elong_msc_GM_Fuku_submax_1 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-            out_strain_GMtend_Fuku_submax_1 = MTU_strain_array(loc_frame,col_GMtend_Fukunaga);
+            out_strain_GMtend_Fuku_submax_1 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
             out_strain_msc_GM_Fuku_submax_1 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-            out_length_GMtend_Fuku_submax_1 = MTU_length_array(loc_frame,col_GMtend_Fukunaga);
+            out_length_GMtend_Fuku_submax_1 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
             out_length_msc_GM_Fuku_submax_1 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         end
         
@@ -1304,11 +1330,11 @@ function [] = passiveUS(input_project, input_plot)
         out_length_msc_GM_submax_2 = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_submax_2 = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_submax_2 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_submax_2 = MTU_elong_array(loc_frame,col_GMtend_Fukunaga);
+        out_elong_GMtend_Fuku_submax_2 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
         out_elong_msc_GM_Fuku_submax_2 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_submax_2 = MTU_strain_array(loc_frame,col_GMtend_Fukunaga);
+        out_strain_GMtend_Fuku_submax_2 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
         out_strain_msc_GM_Fuku_submax_2 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_submax_2 = MTU_length_array(loc_frame,col_GMtend_Fukunaga);
+        out_length_GMtend_Fuku_submax_2 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_submax_2 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
         
@@ -1351,9 +1377,9 @@ function [] = passiveUS(input_project, input_plot)
         out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
 
         if isempty(loc_frame_submax_1)
-            out_emg_gm_submax_1 = 100;
-            out_emg_gl_submax_1 = 100;
-            out_emg_sol_submax_1 = 100;
+            out_emg_gm_submax_1 = NaN;
+            out_emg_gl_submax_1 = NaN;
+            out_emg_sol_submax_1 = NaN;
         else
             out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
             out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
@@ -1370,50 +1396,69 @@ function [] = passiveUS(input_project, input_plot)
         %   averaged angle (currently calculated from gonio)
         %   averaged fasicle length
         %   averaged pennation angle
+        %   averaged fasicle elong
+        %   averaged fasicle strain
         % OR containing zeros (if nonexistent)
-        %    data_GM_elong_Lichtwark
+        %    data_GMFAS_elong_Lichtwark
         % containing:
         %  angle
-        %  elongation (Lichtwark/Fukunaga)
+        %  GM muscle elongation (Lichtwark/Fukunaga)
         
         % set columns:
         col_licht_angle = 1;   % in data_GMFAS_licht_x
         col_licht_faslen = 2;
         col_licht_penn = 3;
+        col_licht_fas_elong = 4;
+        col_licht_fas_strain = 5;
         
         % preallocate / set zero values:
         
         % --- GM pennation and fascicle length
-        out_licht_faslen_GM_trial_max = 100;
-        out_licht_pennation_GM_trial_max = 100;
-        out_licht_faslen_GM_common_max = 100;
-        out_licht_pennation_GM_common_max = 100;
-        out_licht_faslen_GM_ind_max = 100;
-        out_licht_pennation_GM_ind_max = 100;
-        out_licht_faslen_GM_zero = 100;
-        out_licht_pennation_GM_zero = 100;
-        out_licht_faslen_GM_submax_1 = 100;
-        out_licht_pennation_GM_submax_1 = 100;
-        out_licht_faslen_GM_submax_2 = 100;
-        out_licht_pennation_GM_submax_2 = 100;
+        out_licht_faslen_GM_trial_max = NaN;
+        out_licht_pennation_GM_trial_max = NaN;
+        out_licht_faslen_GM_common_max = NaN;
+        out_licht_pennation_GM_common_max = NaN;
+        out_licht_faslen_GM_ind_max = NaN;
+        out_licht_pennation_GM_ind_max = NaN;
+        out_licht_faslen_GM_zero = NaN;
+        out_licht_pennation_GM_zero = NaN;
+        out_licht_faslen_GM_submax_1 = NaN;
+        out_licht_pennation_GM_submax_1 = NaN;
+        out_licht_faslen_GM_submax_2 = NaN;
+        out_licht_pennation_GM_submax_2 = NaN;
+        out_licht_fas_elong_GM_trial_max = NaN;
+        out_licht_fas_strain_GM_trial_max = NaN;
+        out_licht_fas_elong_GM_common_max = NaN;
+        out_licht_fas_strain_GM_common_max = NaN;
+        out_licht_fas_elong_GM_ind_max = NaN;
+        out_licht_fas_strain_GM_ind_max = NaN;
+        out_licht_fas_elong_GM_zero = NaN;
+        out_licht_fas_strain_GM_zero = NaN;
+        out_licht_fas_elong_GM_submax_1 = NaN;
+        out_licht_fas_strain_GM_submax_1 = NaN;
+        out_licht_fas_elong_GM_submax_2 = NaN;
+        out_licht_fas_strain_GM_submax_2 = NaN;
+        
         % --- SOL pennation and fascicle length
-        out_licht_faslen_SOL_trial_max = 100;
-        out_licht_pennation_SOL_trial_max = 100;
-        out_licht_faslen_SOL_common_max = 100;
-        out_licht_pennation_SOL_common_max = 100;
-        out_licht_faslen_SOL_ind_max = 100;
-        out_licht_pennation_SOL_ind_max = 100;
-        out_licht_faslen_SOL_zero = 100;
-        out_licht_pennation_SOL_zero = 100;
-        out_licht_faslen_SOL_submax_1 = 100;
-        out_licht_pennation_SOL_submax_1 = 100;
-        out_licht_faslen_SOL_submax_2 = 100;
-        out_licht_pennation_SOL_submax_2 = 100;
+        out_licht_faslen_SOL_trial_max = NaN;
+        out_licht_pennation_SOL_trial_max = NaN;
+        out_licht_faslen_SOL_common_max = NaN;
+        out_licht_pennation_SOL_common_max = NaN;
+        out_licht_faslen_SOL_ind_max = NaN;
+        out_licht_pennation_SOL_ind_max = NaN;
+        out_licht_faslen_SOL_zero = NaN;
+        out_licht_pennation_SOL_zero = NaN;
+        out_licht_faslen_SOL_submax_1 = NaN;
+        out_licht_pennation_SOL_submax_1 = NaN;
+        out_licht_faslen_SOL_submax_2 = NaN;
+        out_licht_pennation_SOL_submax_2 = NaN;
+        % MMM LATER - SOL strain and elong
         
         % normalize faslen array to initial leg length --- BD study
         if input_project == 1 && toggle_normalization == 1
             % in MTU_ arrays, replace absolute values with normalization to initial leg length:
             data_GMFAS_licht_GM(:,col_licht_faslen) = data_GMFAS_licht_GM(:,col_licht_faslen)/trial_calf_length*100; % in percent of initial leg length
+            data_GMFAS_licht_GM(:,col_licht_fas_elong) = data_GMFAS_licht_GM(:,col_licht_fas_elong)/trial_calf_length*100; % in percent of initial leg length
         end
         
         if data_GMFAS_licht_GM == 0
@@ -1423,6 +1468,8 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_trial_max,1,'first'); 
             out_licht_faslen_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
             out_licht_pennation_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn);
+            out_licht_fas_elong_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+            out_licht_fas_strain_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_faslen_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1433,6 +1480,8 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_ind_max,1,'first'); 
             out_licht_faslen_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+            out_licht_fas_elong_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+            out_licht_fas_strain_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_faslen_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1443,6 +1492,8 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_common_max,1,'first'); 
             out_licht_faslen_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+            out_licht_fas_elong_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+            out_licht_fas_strain_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_faslen_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1453,6 +1504,8 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS(:,2)>=0,1,'first'); 
             out_licht_faslen_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+            out_licht_fas_elong_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+            out_licht_fas_strain_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_faslen_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1468,6 +1521,8 @@ function [] = passiveUS(input_project, input_plot)
                 % GM data exist:
                 out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                 out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                out_licht_fas_elong_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
                     out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1479,6 +1534,8 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
             out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+            out_licht_fas_elong_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+            out_licht_fas_strain_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_faslen_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
@@ -1507,24 +1564,27 @@ function [] = passiveUS(input_project, input_plot)
         out_length_GMapo_max = max(MTU_length_array(:,col_GMapo)); 
         out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
         out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
-        out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_GMtend_Fukunaga));
+        out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
         out_elong_msc_GM_Fuku_max = max(MTU_elong_array(:,col_GMmsc_Fukunaga));
-        out_strain_GMtend_Fuku_max = max(MTU_strain_array(:,col_GMtend_Fukunaga));
+        out_strain_GMtend_Fuku_max = max(MTU_strain_array(:,col_SEE_Fukunaga));
         out_strain_msc_GM_Fuku_max = max(MTU_strain_array(:,col_GMmsc_Fukunaga));
-        out_length_GMtend_Fuku_max = max(MTU_length_array(:,col_GMtend_Fukunaga));
+        out_length_GMtend_Fuku_max = max(MTU_length_array(:,col_SEE_Fukunaga));
         out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
         
         out_licht_faslen_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
         out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
+        out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_elong));
+        out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_strain));
         if (length((data_GMFAS_licht_SOL)) == 3) == 0
             % SOL exists
             out_licht_faslen_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
             out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
         else
-            out_licht_faslen_SOL_max = 100;
-            out_licht_pennation_SOL_max = 100;
+            out_licht_faslen_SOL_max = NaN;
+            out_licht_pennation_SOL_max = NaN;
         end
         %%
+
         
         
         
@@ -1549,14 +1609,14 @@ function [] = passiveUS(input_project, input_plot)
         if out_ROM_trial_max > out_ROM_submax_1 
             out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
         else
-            out_pstiff_submax_1 = 100;
+            out_pstiff_submax_1 = NaN;
         end
         out_pstiff_submax_2 = (4 * fit_ind_max(1) * out_ROM_submax_2^3) + (3 * fit_ind_max(2) * out_ROM_submax_2^2) + (2 * fit_ind_max(3) * out_ROM_submax_2) + fit_ind_max(4);
         out_pstiff_angle = 15; %VAR
         if out_ROM_trial_max > out_pstiff_angle
             out_pstiff_15 = (4 * fit_ind_max(1) * out_pstiff_angle^3) + (3 * fit_ind_max(2) * out_pstiff_angle^2) + (2 * fit_ind_max(3) * out_pstiff_angle) + fit_ind_max(4);
         else
-            out_pstiff_15 = 100;
+            out_pstiff_15 = NaN;
         end
         
 %         % plotting various methods of curve fit equations:
@@ -1658,11 +1718,11 @@ function [] = passiveUS(input_project, input_plot)
         % PRE/POST (not really sure what these data should be used for...)
         if str2double(input_for_ind_rmax(trial_subjectno)) > 9000
             % data do not exist for the right side (array preloaded with "empty" values of 10000)
-            out_angle_ind_rmax = 100;
+            out_angle_ind_rmax = NaN;
         else
             loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_rmax,1,'first'); 
             if isempty(loc_frame) % force level does not exist
-                out_angle_ind_rmax = 100;
+                out_angle_ind_rmax = NaN;
             else
                 out_angle_ind_rmax = data_force_gonio(loc_frame,col_angle);
             end
@@ -1670,11 +1730,11 @@ function [] = passiveUS(input_project, input_plot)
         
         if str2double(input_for_ind_lmax(trial_subjectno)) > 9000
             % data do not exist for the left side (array preloaded with "empty" values of 10000)
-            out_angle_ind_lmax = 100;
+            out_angle_ind_lmax = NaN;
         else
             loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_lmax,1,'first'); 
             if isempty(loc_frame) % force level does not exist
-                out_angle_ind_lmax = 100;
+                out_angle_ind_lmax = NaN;
             else
                 out_angle_ind_lmax = data_force_gonio(loc_frame,col_angle);
             end
@@ -1763,9 +1823,9 @@ function [] = passiveUS(input_project, input_plot)
                 % 27 strain msc SOL
         
                 % 28 elong msc GM (from Lichtwark/Fukunaga)
-                % 29 elong tend GM (from Lichtwark/Fukunaga)
+                % 29 elong SEE (from Lichtwark/Fukunaga)
                 % 30 strain msc GM (from Lichtwark/Fukunaga)
-                % 31 strain tend GM (from Lichtwark/Fukunaga)
+                % 31 strain SEE (from Lichtwark/Fukunaga)
                 
                 % 32 length fascicles GM (from Lichtwark)
                 % 33 pennation GM (from Lichtwark)
@@ -1773,9 +1833,11 @@ function [] = passiveUS(input_project, input_plot)
                 % 35 strain fascicles GM (from Lichtwark)
                 
                 % 36 length msc GM (from Lichtwark/Fukunaga)
-                % 37 length tend GM (from Lichtwark/Fukunaga)
+                % 37 length SEE (from Lichtwark/Fukunaga)
                 
                 % 38 angle (repeated - without normalization)
+                
+                % MMM TODO - tend GM licht/fuku --> SEE
 
          if input_project == 1 % BD study
          %% BD study
@@ -1816,8 +1878,8 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
@@ -2201,6 +2263,8 @@ function [] = passiveUS(input_project, input_plot)
             out_strain_msc_GM_Fuku_trial_max out_strain_msc_GM_Fuku_ind_max out_strain_msc_GM_Fuku_common_max out_strain_msc_GM_Fuku_submax_1 out_strain_msc_GM_Fuku_submax_2 ...
         	out_licht_faslen_GM_trial_max out_licht_faslen_GM_ind_max out_licht_faslen_GM_common_max out_licht_faslen_GM_zero out_licht_faslen_GM_submax_1 out_licht_faslen_GM_submax_2...
             out_licht_pennation_GM_trial_max out_licht_pennation_GM_ind_max out_licht_pennation_GM_common_max out_licht_pennation_GM_zero out_licht_pennation_GM_submax_1 out_licht_pennation_GM_submax_2...
+        	out_licht_fas_elong_GM_trial_max out_licht_fas_elong_GM_ind_max out_licht_fas_elong_GM_common_max out_licht_fas_elong_GM_zero out_licht_fas_elong_GM_submax_1 out_licht_fas_elong_GM_submax_2...
+            out_licht_fas_strain_GM_trial_max out_licht_fas_strain_GM_ind_max out_licht_fas_strain_GM_common_max out_licht_fas_strain_GM_zero out_licht_fas_strain_GM_submax_1 out_licht_fas_strain_GM_submax_2...
         	out_licht_faslen_SOL_trial_max out_licht_faslen_SOL_ind_max out_licht_faslen_SOL_common_max out_licht_faslen_SOL_zero out_licht_faslen_SOL_submax_1 out_licht_faslen_SOL_submax_2...
             out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_zero out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2...
             out_contrib_GM_trial_max out_contrib_GM_ind_max out_contrib_GM_common_max out_contrib_GM_submax_1 out_contrib_GM_submax_2...
@@ -2208,7 +2272,7 @@ function [] = passiveUS(input_project, input_plot)
             out_strain_AT_max out_strain_GMtend_max out_strain_leg_max out_strain_GMapo_max out_strain_msc_GM_max out_strain_msc_SOL_max ...
             out_length_AT_max out_length_GMtend_max out_length_leg_max out_length_GMapo_max out_length_msc_GM_max out_length_msc_SOL_max ...
             out_elong_GMtend_Fuku_max out_elong_msc_GM_Fuku_max out_strain_GMtend_Fuku_max out_strain_msc_GM_Fuku_max out_length_GMtend_Fuku_max out_length_msc_GM_Fuku_max ...
-            out_licht_faslen_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
+            out_licht_faslen_GM_max out_licht_fas_elong_GM_max out_licht_fas_strain_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
             out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2...
             out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2...
             out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2];
@@ -2239,7 +2303,7 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_angle_vars(STR_POST_count+1:end) = [];
         STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
     end
-    %% Truncate vars arrays %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
     
@@ -2247,14 +2311,19 @@ function [] = passiveUS(input_project, input_plot)
     
     %% OUTPUT individual trial data TO FILE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % write xls
+        if toggle_normalization == 0
+            appendix = '_abs';
+        else
+            appendix = '_norm';
+        end
     if ispc
-        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'));
+        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix);
         
         xlswrite(filename_output, all_passive_output_head, 1, 'A1')
         xlswrite(filename_output, all_passive_output_txt, 1, 'A2')
         xlswrite(filename_output, all_passive_output, 1, 'E2')
     else
-        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
+        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
         csvwrite(filename_output, all_passive_output)
     end
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2578,7 +2647,7 @@ function [] = passiveUS(input_project, input_plot)
 %             CON_angle_vars{i}(:,28) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14)*100; % in percent
 %             % GM fascicle length, elong
 %             CON_angle_vars{i}(:,32) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14)*100; % in percent
-%             CON_angle_vars{i}(:,34) = CON_angle_vars{i}(:,34)/CON_angle_vars{i}(1,14)*100; % in percent
+%             CON_angle_vars{i}(:,34) = CON_angle_vars{i}(:,34/CON_angle_vars{i}(1,14)*100; % in percent
 %         end
 
         %%% adjust relevant axes:

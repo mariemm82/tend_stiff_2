@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% MMM todo - tendon lengths, based on prone length or zero angle lengths?
+% MMM todo - input tendon lengths: based on prone length or zero angle lengths?
 
 
 
@@ -764,10 +764,30 @@ function [] = passiveUS(input_project, input_plot)
 %             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2)) / data_GMFAS_licht_GM(loc_angle_zero,2) * 100; %strain
 
             % version 2 - length prone is zero elong, zero strain
-            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - trial_GMfas_length; %elong  %BREAK
-            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - trial_GMfas_length) / trial_GMfas_length * 100; %strain
-
-            % MMM LATER - same for SOL?
+            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - trial_GMfas_length; %fascicle elong  %BREAK
+            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - trial_GMfas_length) / trial_GMfas_length * 100; %fascicle strain
+        
+            if plot_check && plot_individual
+                plottitle = horzcat('IND Lichtwark GM fascicle vs angle, ', subject_id);
+                figure('Name',plottitle);
+                hold on
+                yyaxis left
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',2) % fascicle elongation
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),':b','LineWidth',1) % pennation angle
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'--b','LineWidth',1) % fascicle strain
+                ylabel('Elongation (mm) / Strain (%) / Pennation angle (°)')
+                yyaxis right
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % fascicle length
+                plot([0 0],[trial_GMfas_length trial_GMfas_length], 'Marker','o', 'MarkerSize',5) % initial fascicle length
+                % MMM GOON remove %tmp
+                ylabel(txt_length)
+                xlabel('Gonio angle (°)')
+                title(plottitle)
+                legend('Fasc elong', 'Pennation angle','Fasc strain','Fasc length','Fas len PRONE','Location','Southeast')
+                saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            end %BREAK
+            
+        % LATER - same for SOL?
         end
         %%
         
@@ -865,52 +885,53 @@ function [] = passiveUS(input_project, input_plot)
         
         
         
-        %% GM MUSCLE LENGTH CHANGE from penn.ang. & fas.len. (Lichtwark/Fukunaga)
-        % Fukunaga 2001: In vivo behavor of human ...
-        % outcome:    data_GMFAS_elong_Lichtwark    = elongation of GM muscle
-        % MMM TODO - obsolete?
-        % 
-        % in longitudinal direction, based on GM fascicle length change and
-        % pennation angle
-        
-        %   data_GMFAS_licht_GM
-        % containing:
-        %   1 averaged angle (currently calculated from gonio)
-        %   2 averaged fasicle length - in mm
-        %   3 averaged pennation angle - in deg
-        %   4 averaged fasicle elong - in mm
-        %   5 averaged fasicle strain - in %
-        % OR containing 5x zeros (if nonexistent)
-        
-        if length(data_GMFAS_licht_GM) > 5
-            % fascicle longitudinal component = faslen * cos penn_ang, at each joint angle
-            horiz_l = data_GMFAS_licht_GM(:,2) .* cosd(data_GMFAS_licht_GM(:,3));
-
-            % elongation: longitudinal component at angle zero = zero elongation
-            loc_frame = find(data_GMFAS_licht_GM(:,1)>=0,1,'first');
-            data_GMFAS_elong_Lichtwark = [data_GMFAS_licht_GM(:,1) horiz_l - horiz_l(loc_frame)];
-
-       %     x1 axis - elong and pennation, X2 axis - fas len
-            if plot_check && plot_individual
-                plottitle = horzcat('IND Lichtwark GM muscle elong vs angle, ', subject_id);
-                figure('Name',plottitle);
-                hold on
-                yyaxis left
-                plot(data_GMFAS_elong_Lichtwark(:,1), data_GMFAS_elong_Lichtwark(:,2),'LineWidth',2)
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),':b','LineWidth',1) % pennation
-                ylabel('Elongation (mm) / Pennation angle (°)')
-                yyaxis right
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % faslen
-                ylabel(txt_length)
-                xlabel('Gonio angle (°)')
-                title(plottitle)
-                legend('Elongation', 'Pennation angle','Fascicle length','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            end
-        else % GM licht data don't exist
-            data_GMFAS_elong_Lichtwark = 0;
-        end
-        %% 
+%         %% GM MUSCLE LENGTH CHANGE from penn.ang. & fas.len. (Lichtwark/Fukunaga)
+%         % 2017-05-09: OBSOLETE, calculated in "calculate_mtu_length" instead
+%         %
+%         % Fukunaga 2001: In vivo behavor of human ...
+%         % outcome:    data_GMFAS_elong_Lichtwark    = elongation of GM muscle
+%         % 
+%         % in longitudinal direction, based on GM fascicle length change and
+%         % pennation angle
+%         
+%         %   data_GMFAS_licht_GM
+%         % containing:
+%         %   1 averaged angle (currently calculated from gonio)
+%         %   2 averaged fasicle length - in mm
+%         %   3 averaged pennation angle - in deg
+%         %   4 averaged fasicle elong - in mm
+%         %   5 averaged fasicle strain - in %
+%         % OR containing 5x zeros (if nonexistent)
+%         
+%         if length(data_GMFAS_licht_GM) > 5
+%             % fascicle longitudinal component = faslen * cos penn_ang, at each joint angle
+%             horiz_l = data_GMFAS_licht_GM(:,2) .* cosd(data_GMFAS_licht_GM(:,3));
+% 
+%             % elongation: longitudinal component at angle zero = zero elongation
+%             loc_frame = find(data_GMFAS_licht_GM(:,1)>=0,1,'first');
+%             data_GMFAS_elong_Lichtwark = [data_GMFAS_licht_GM(:,1) horiz_l - horiz_l(loc_frame)];
+% 
+%        %     x1 axis - elong and pennation, X2 axis - fas len
+%             if plot_check && plot_individual
+%                 plottitle = horzcat('IND Lichtwark GM muscle elong vs angle, ', subject_id);
+%                 figure('Name',plottitle);
+%                 hold on
+%                 yyaxis left
+%                 plot(data_GMFAS_elong_Lichtwark(:,1), data_GMFAS_elong_Lichtwark(:,2),'LineWidth',2)
+%                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),':b','LineWidth',1) % pennation
+%                 ylabel('Elongation (mm) / Pennation angle (°)')
+%                 yyaxis right
+%                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % faslen
+%                 ylabel(txt_length)
+%                 xlabel('Gonio angle (°)')
+%                 title(plottitle)
+%                 legend('Elongation', 'Pennation angle','Fascicle length','Location','Southeast')
+%                 saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+%             end
+%         else % GM licht data don't exist
+%             data_GMFAS_elong_Lichtwark = 0;
+%         end
+%         %% 
 
         
          
@@ -921,12 +942,12 @@ function [] = passiveUS(input_project, input_plot)
         %2       calc to SOL ins = free tendon                 
         %3       calc go GM ins = GM tendon
         %4       calc to knee = entire calf
-        %5       DISPLACEMENT from GMFAS tracking       GM muscle elongation from faslen + penn.ang. (Lichtwark/Fukunaga) --- MMM verify this
+        %5       DISPLACEMENT from GMFAS tracking
         %6       SOL to GM = GM apo
         %7       GM to knee = GM msc
         %8       SOL length (H&H) minus free AT = SOL msc
-        %9       GM tendon Fukunaga
-        %10      GM muscle Fukunaga
+        %9       SEE Fukunaga
+        %10      GM muscle Fukunaga (longitudinal aspect of one fascicle)
         
         % retrieve max gonio angle
         if strcmpi(dm_timepoint{line}, 'PRE') == 1
@@ -970,12 +991,13 @@ function [] = passiveUS(input_project, input_plot)
             figure('Name',plottitle);
             hold on
             plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_leg),'LineWidth',1.5,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
+            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
             plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
             plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_GMtend),'LineWidth',1.5,'LineStyle','-','Color','red') % GM tendon from anthropometry Lichtwark/Fukunaga
             plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
             % plot vertical lines to show color coding of subsequent figs
             plot([0,0], [MTU_length_array(1,col_leg), MTU_length_array(1,col_GMtend)],'Color','cyan')
+            plot([1,1], [MTU_length_array(1,col_leg), MTU_length_array(1,col_SEE_Fukunaga)],'Color','cyan')
             plot([1,1], [MTU_length_array(1,col_SOLmsc)+MTU_length_array(1,col_AT), MTU_length_array(1,col_GMtend)],'Color','black')
             plot([0,0], [MTU_length_array(1,col_GMtend), MTU_length_array(1,col_AT)],'Color',col_orange)
             plot([0,0], [MTU_length_array(1,col_AT), 0],'Color','green')
@@ -983,9 +1005,9 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_length)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('Full GM MTU', 'SOL MTU', 'GM tendon (linear)', 'SEE (anthro)', 'AT free', 'GM msc.', 'SOL msc.', 'GM apo.', 'Location','Southeast');
+            legend('Full GM MTU', 'SEE (anthro)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            % MMM TODO -plots and headers, GMtend fukunaga --> SEE
+            % MMM GOON TODO - final plots and headers, GMtend fukunaga --> SEE
             
             % raw elongation (mm)
             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
@@ -994,7 +1016,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',1.5,'Color','red','LineStyle','-') % GM tendon from anthropometry Lichtwark/Fukunaga
+            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
@@ -1010,6 +1032,20 @@ function [] = passiveUS(input_project, input_plot)
             ylim([-inf inf]) 
             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
             
+            % raw elongation (mm) - CLEANED VERSION, LICHT ONLY
+            plottitle = horzcat('IND MTU elongation v2 vs angle, ', subject_id);
+            figure('Name',plottitle);
+            hold on
+            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+            axis(axis_ind_elong)
+            ylabel(txt_elong)
+            xlabel('Gonio angle (°)')
+            title(plottitle)
+            legend('GM MTU', 'SEE (anthro)', 'GM msc. (anthro)', 'Location','Northwest');
+            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            
             % strain (percent of initial length)
             plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
             figure('Name',plottitle);
@@ -1017,7 +1053,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',1.5,'Color','red','LineStyle','-') % GM tendon from anthropometry Lichtwark/Fukunaga
+            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
@@ -1034,6 +1070,20 @@ function [] = passiveUS(input_project, input_plot)
             xlim([-0.5 inf]) 
             ylim([-inf inf]) 
             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
+            
+            % strain (percent of initial length) - CLEANED VERSION, LICHT ONLY
+            plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
+            figure('Name',plottitle);
+            hold on
+            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+            axis(axis_ind_strain)
+            ylabel(txt_strain)
+            xlabel('Gonio angle (°)')
+            title(plottitle)
+            legend('GM MTU', 'SEE (anthro)', 'GM msc. (anthro)', 'Location','Northwest');
+            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
         end
         %%
         

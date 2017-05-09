@@ -160,7 +160,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         loc_frame = find(angle_GM_Fukunaga(:,1)>=0,1,'first');
         loc_frame2 = find(angle_GM_Fukunaga(:,1)>=angle_common,1,'first');
         
-        % muscle length (longitudinal axis) from Fukunaga fasicles/pennation: % BREAK
+        % muscle length (longitudinal axis) from Fukunaga fasicles/pennation:
         msc_GM_length_Fukunaga = angle_GM_Fukunaga(loc_frame:loc_frame2,2) .* cosd(angle_GM_Fukunaga(loc_frame:loc_frame2,3)); %BREAK
         msc_GM_elong_Fukunaga = msc_GM_length_Fukunaga - resting_GM_msc_len;
         msc_GM_strain_Fukunaga = msc_GM_elong_Fukunaga / resting_GM_msc_len * 100;
@@ -169,10 +169,6 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         SEE_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
         SEE_elong_Fukunaga = SEE_length_Fukunaga - (calf_length - resting_GM_msc_len);
         SEE_strain_Fukunaga = SEE_elong_Fukunaga / (calf_length - resting_GM_msc_len) * 100;
-        
-        % MMM GOON: why is msc elong negative(= from prone length), while SEE always from zero elong?
-        
-        % MMM GOON: plot of faslen + elong + strain?
     end
     
     

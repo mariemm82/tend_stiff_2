@@ -161,7 +161,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         loc_frame2 = find(angle_GM_Fukunaga(:,1)>=angle_common,1,'first');
         
         % muscle length (longitudinal axis) from Fukunaga fasicles/pennation:
-        msc_GM_length_Fukunaga = angle_GM_Fukunaga(loc_frame:loc_frame2,2) .* cosd(angle_GM_Fukunaga(loc_frame:loc_frame2,3)); %BREAK
+        msc_GM_length_Fukunaga = angle_GM_Fukunaga(loc_frame:loc_frame2,2) .* cosd(angle_GM_Fukunaga(loc_frame:loc_frame2,3));
         msc_GM_elong_Fukunaga = msc_GM_length_Fukunaga - resting_GM_msc_len;
         msc_GM_strain_Fukunaga = msc_GM_elong_Fukunaga / resting_GM_msc_len * 100;
         

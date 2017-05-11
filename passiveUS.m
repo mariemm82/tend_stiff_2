@@ -240,7 +240,7 @@ function [] = passiveUS(input_project, input_plot)
         axis_ind_strain = [-1 37 -6 30];
     end
     %% set AXES etc for plots
-    
+    %TODO MMM axes for new faslen/elong/strain and Fukunaga msc/SEE
     
     
     %% Read max angles and forces from "create_angles_passive.m"
@@ -408,7 +408,7 @@ function [] = passiveUS(input_project, input_plot)
         trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
         trial_leg = strcmp(dm_trial{line},'STR'); % 0 = CON, 1 = STR
         trial_calf_length = str2double(dm_leg_length{line}) * 10;  % leg length is in cm
-        trial_GMfas_length = str2double(dm_GMmsc_faslen{line}); 
+        trial_GMfas_length = str2double(dm_GMmsc_faslen{line}); % resting (prone) length of GM fascicle 
 
         if input_project == 1 % BD study
             if trial_subjectno > 100
@@ -445,7 +445,7 @@ function [] = passiveUS(input_project, input_plot)
         
         
         
-        %% calculate EMG data 
+        %% calculate MVC from EMG data
 
         % prepare column placement
         if strcmpi(dm_side{line},'R') == 1
@@ -764,7 +764,7 @@ function [] = passiveUS(input_project, input_plot)
 %             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2)) / data_GMFAS_licht_GM(loc_angle_zero,2) * 100; %strain
 
             % version 2 - length prone is zero elong, zero strain
-            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - trial_GMfas_length; %fascicle elong  %BREAK
+            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - trial_GMfas_length; %fascicle elong 
             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - trial_GMfas_length) / trial_GMfas_length * 100; %fascicle strain
         
             if plot_check && plot_individual
@@ -772,20 +772,19 @@ function [] = passiveUS(input_project, input_plot)
                 figure('Name',plottitle);
                 hold on
                 yyaxis left
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',2) % fascicle elongation
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),':b','LineWidth',1) % pennation angle
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',2) % fascicle elongation
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'--b','LineWidth',1) % fascicle strain
                 ylabel('Elongation (mm) / Strain (%) / Pennation angle (°)')
                 yyaxis right
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % fascicle length
-                plot([0 0],[trial_GMfas_length trial_GMfas_length], 'Marker','o', 'MarkerSize',5) % initial fascicle length
-                % MMM GOON remove %tmp
+                plot([0 0],[trial_GMfas_length trial_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor', 'r') % initial fascicle length
                 ylabel(txt_length)
                 xlabel('Gonio angle (°)')
                 title(plottitle)
-                legend('Fasc elong', 'Pennation angle','Fasc strain','Fasc length','Fas len PRONE','Location','Southeast')
+                legend( 'Pennation angle', 'Fasc elong', 'Fasc strain','Fasc length','Faslen PRONE','Location','Southeast')
                 saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            end %BREAK
+            end
             
         % LATER - same for SOL?
         end
@@ -796,7 +795,7 @@ function [] = passiveUS(input_project, input_plot)
         %% average SOL + GMMTJ + GMFAS trials for force, gonio, angle, EMG
         
         % average 3 force arrays into one
-        data_force_gonio = average_passive_forces_EMG(data_SOL, data_GMMTJ, data_GMFAS);
+        data_force_gonio = average_passive_forces_EMG(data_SOL, data_GMMTJ, data_GMFAS, trial_subjectno);
         
         % plot all 6 trials separately: Force-angle
         if plot_check && plot_individual
@@ -831,21 +830,21 @@ function [] = passiveUS(input_project, input_plot)
                     plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2),'y');
                 end
             end
-            plot(data_force_gonio(:,2),data_force_gonio(:,3),'y','LineWidth',2);
+            plot(data_force_gonio(:,2),data_force_gonio(:,3),'y','LineWidth',2); % mean GM
             
             for i = 1:6 % 6 trials GL
                 if ~isempty(emg_all{1,i})
                     plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2),'m');
                 end
             end
-            plot(data_force_gonio(:,2),data_force_gonio(:,4),'m','LineWidth',2);
+            plot(data_force_gonio(:,2),data_force_gonio(:,4),'m','LineWidth',2); % mean GL
             
             for i = 1:6 % 6 trials SOL
                 if ~isempty(emg_all{1,i})
                     plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2),'c');
                 end
             end
-            plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2);
+            plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2); % mean SOL
             
             axis(axis_EMG)
             ylabel('Muscle activation (% of MVC)')
@@ -1005,9 +1004,8 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_length)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('Full GM MTU', 'SEE (anthro)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
+            legend('Full GM MTU', 'SEE (from GM arch)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            % MMM GOON TODO - final plots and headers, GMtend fukunaga --> SEE
             
             % raw elongation (mm)
             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
@@ -1026,7 +1024,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_elong)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             xlim([-0.5 inf]) 
             ylim([-inf inf]) 
@@ -1043,7 +1041,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_elong)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'SEE (anthro)', 'GM msc. (anthro)', 'Location','Northwest');
+            legend('GM MTU', 'SEE (from GM arch)', 'GM msc. (anthro)', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             
             % strain (percent of initial length)
@@ -1065,7 +1063,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_strain)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (anthro)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
+            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             xlim([-0.5 inf]) 
             ylim([-inf inf]) 
@@ -1082,7 +1080,7 @@ function [] = passiveUS(input_project, input_plot)
             ylabel(txt_strain)
             xlabel('Gonio angle (°)')
             title(plottitle)
-            legend('GM MTU', 'SEE (anthro)', 'GM msc. (anthro)', 'Location','Northwest');
+            legend('GM MTU', 'SEE (from GM arch)', 'GM msc. (anthro)', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
         end
         %%
@@ -1887,8 +1885,6 @@ function [] = passiveUS(input_project, input_plot)
                 
                 % 38 angle (repeated - without normalization)
                 
-                % MMM TODO - tend GM licht/fuku --> SEE
-
          if input_project == 1 % BD study
          %% BD study
             if trial_subjectno > 100 % BD subject
@@ -1949,7 +1945,15 @@ function [] = passiveUS(input_project, input_plot)
                 BD_angle_vars_norm_indlength{BD_count}(:,20) = (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20); % 20 SOL msc length - normalized to initial msc length
             
                 % reshape for plots
+                
+                % tweak for NaN EMG data - replace  with 1000
+                BD_angle_vars_norm_indlength{1,BD_count}(isnan(BD_angle_vars_norm_indlength{1,BD_count})) = 1000;       
+                % spline
                 BD_angle_vars_norm{BD_count} = spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1)',BD_angle_vars_norm_indlength{1,BD_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if BD_angle_vars_norm{BD_count}(1,3) == 1000
+                    BD_angle_vars_norm{BD_count}(:,3:5) = NaN;
+                end
                 
 % plot to show interpolation of NORMALIZED angles, from ca 0.20 % intervals (unequal
 % intervals, depending on sample frequency and gonio angle development) to
@@ -2023,7 +2027,15 @@ function [] = passiveUS(input_project, input_plot)
                 CON_angle_vars_norm_indlength{CON_count}(:,20) = (CON_angle_vars{1,CON_count}(:,20)-CON_angle_vars{1,CON_count}(1,20)) *100/CON_angle_vars{1,CON_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
                 % reshape for plots
+                
+                % tweak for NaN EMG data - replace  with 1000
+                CON_angle_vars_norm_indlength{1,CON_count}(isnan(CON_angle_vars_norm_indlength{1,CON_count})) = 1000;       
+                % spline
                 CON_angle_vars_norm{CON_count} = spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1)',CON_angle_vars_norm_indlength{1,CON_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if CON_angle_vars_norm{CON_count}(1,3) == 1000
+                    CON_angle_vars_norm{CON_count}(:,3:5) = NaN;
+                end
                 %% END CON subjects
             end
          %%
@@ -2086,8 +2098,15 @@ function [] = passiveUS(input_project, input_plot)
                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
                 % reshape for plots
+
+                % tweak for NaN EMG data - replace  with 1000
+                CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
+                % spline
                 CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
-                
+                % replace 1000 with NaN
+                if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
+                    CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
+                end
                 %% END PRE CON
             elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
                 %% PRE STR
@@ -2146,8 +2165,14 @@ function [] = passiveUS(input_project, input_plot)
                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
                 % reshape for plots
+                % tweak for NaN EMG data - replace  with 1000
+                STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
+                % spline
                 STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
-
+                % replace 1000 with NaN
+                if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
+                    STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
+                end
                 %% END PRE STR
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
                 %% POST CON
@@ -2206,8 +2231,15 @@ function [] = passiveUS(input_project, input_plot)
                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
                 % reshape for plots
+                
+                % tweak for NaN EMG data - replace  with 1000
+                CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
+                % spline
                 CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
-
+                % replace 1000 with NaN
+                if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
+                    CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
+                end
                 %% END POST CON
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
                 %% POST STR
@@ -2266,7 +2298,15 @@ function [] = passiveUS(input_project, input_plot)
                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
                 % reshape for plots
+
+                % tweak for NaN EMG data - replace  with 1000
+                STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
+                % spline
                 STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
+                    STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
+                end
 
                 %% END POST STR
             end
@@ -2326,6 +2366,10 @@ function [] = passiveUS(input_project, input_plot)
             out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2...
             out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2...
             out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2];
+        
+        
+%        % MMM TMP output fascicle data
+%        all_GMfas_output(line,:) = [trial_GMfas_length MTU_length_array(1,col_GMmsc_Fukunaga) max(MTU_length_array(:,col_GMmsc_Fukunaga)) out_ROM_trial_max];
         %%
 
         
@@ -2360,6 +2404,11 @@ function [] = passiveUS(input_project, input_plot)
     
     
     %% OUTPUT individual trial data TO FILE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+%    % MMM TMP output fascicle data
+%    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'));
+%    csvwrite(filename_output, all_GMfas_output)
+    
     % write xls
         if toggle_normalization == 0
             appendix = '_abs';
@@ -2376,6 +2425,9 @@ function [] = passiveUS(input_project, input_plot)
         filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
         csvwrite(filename_output, all_passive_output)
     end
+    
+
+    
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
@@ -2414,6 +2466,9 @@ function [] = passiveUS(input_project, input_plot)
         loc_commonROM = min([cellfun('length',BD_angle_vars) cellfun('length',CON_angle_vars)]); % location of largest common ROM
         
         % reshape absolute & normalized arrays
+        
+        % MMM GOON TODO - spline NaN error
+        
         for i = 1:BD_count
             BD_angle_vars_STAT{i} = spline(BD_angle_vars{1,i}(1:loc_commonROM,1)',BD_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:BD_angle_vars{1,i}(loc_commonROM,1))';
             BD_angle_vars_norm_STAT{i} = spline(BD_angle_vars_norm{1,i}(:,1)',BD_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
@@ -4828,7 +4883,7 @@ function [] = passiveUS(input_project, input_plot)
 
             %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,37),'r','LineStyle','-','LineWidth',2)
@@ -4846,7 +4901,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if BD_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 2 ind curves dancers');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 2 ind curves dancers');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:BD_count
@@ -4860,7 +4915,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             if CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 3 ind curves controls');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 3 ind curves controls');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_count
@@ -4876,7 +4931,7 @@ function [] = passiveUS(input_project, input_plot)
             
             %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,29),'r','LineStyle','-','LineWidth',2)
@@ -4894,7 +4949,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if BD_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 2 ind curves dancers');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 2 ind curves dancers');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:BD_count
@@ -4908,7 +4963,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             if CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 3 ind curves controls');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 3 ind curves controls');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_count
@@ -4924,7 +4979,7 @@ function [] = passiveUS(input_project, input_plot)
             
             %% GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,31),'r','LineStyle','-','LineWidth',2)
@@ -4942,7 +4997,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if BD_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 2 ind curves dancers');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 2 ind curves dancers');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:BD_count
@@ -4956,7 +5011,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             if CON_count > 1 && plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 3 ind curves controls');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 3 ind curves controls');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_count
@@ -7324,7 +7379,7 @@ function [] = passiveUS(input_project, input_plot)
             
             %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,37),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -7351,7 +7406,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 2 STRETCH PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7369,7 +7424,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
             end
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) length vs angle - 3 CONTROL PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7391,7 +7446,7 @@ function [] = passiveUS(input_project, input_plot)
             % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (architecture) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from GM arch) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7410,7 +7465,7 @@ function [] = passiveUS(input_project, input_plot)
 
             %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,29),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -7437,7 +7492,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 2 STRETCH PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7455,7 +7510,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
             end
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) elongation vs angle - 3 CONTROL PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7477,7 +7532,7 @@ function [] = passiveUS(input_project, input_plot)
             % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (architecture) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from GM arch) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7496,7 +7551,7 @@ function [] = passiveUS(input_project, input_plot)
 
             %% GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 1');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,1), STR_PRE_angle_vars_mean(:,31),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -7523,7 +7578,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 2 STRETCH PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7541,7 +7596,7 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
             end
             if plot_check
-                plottitle = horzcat('GM tendon (architecture) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from GM arch) strain vs angle - 3 CONTROL PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7563,7 +7618,7 @@ function [] = passiveUS(input_project, input_plot)
             % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (architecture) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from GM arch) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

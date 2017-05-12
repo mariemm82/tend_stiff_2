@@ -18,8 +18,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% MMM todo - input tendon lengths: based on prone length or zero angle lengths?
-
+% MMM todo 
+% input tendon lengths: based on prone length or zero angle lengths?
+% axes for new faslen/elong/strain and Fukunaga msc/SEE
 
 
 function [] = passiveUS(input_project, input_plot)
@@ -63,7 +64,7 @@ function [] = passiveUS(input_project, input_plot)
     us_zerodispframes = 1; % No of US frames to average as zero displacement
     noraxonfreq = 1500; % sampling frequency of noraxon data
     freq_default = 100; % output frequency for noraxon data without US video (MVC, etc)
-    angle_step_plots = 0.05; % reshaped, averaged data extracted every x degrees for PLOTS
+    angle_step_plots = 0.05; % resampled, averaged data extracted every x degrees for PLOTS
     angle_step_stats_abs = 0.5; % every 0.5 degrees
     angle_step_stats_norm = 10;  % every 5 percent
     
@@ -125,6 +126,7 @@ function [] = passiveUS(input_project, input_plot)
     txt_strain = 'Strain (% of initial length)';
     txt_displ = 'Displacement (mm)';
     txt_emg = 'EMG (% of MVC)';
+    txt_gonio = 'Gonio angle (°)';
     
     if input_project == 1 
         %% dancer study
@@ -140,11 +142,18 @@ function [] = passiveUS(input_project, input_plot)
         axis_el_GMFAS = [-1 35 0 12];
         axis_str_GMFAS = [-1 35 0 22];
         
-        axis_el_GMmsc_arch = [-1 35 -1 22];
-        axis_str_GMmsc_arch = [-1 35 -0.5 7];
+%         axis_el_GMmsc_arch = [-1 35 -1 22];
+%         axis_str_GMmsc_arch = [-1 35 -0.5 7];
+%         axis_len_GMmsc_arch = [-1 35 0 350];
+%         axis_el_GMtend_arch = [-1 35 -1 18];
+%         axis_str_GMtend_arch = [-0 35 -1 10];
+%         axis_len_GMtend_arch = [-1 35 0 300];
+
+        axis_el_GMmsc_arch = [-1 35 -Inf Inf]; % TODO MMM
+        axis_str_GMmsc_arch = [-1 35 -Inf Inf];
         axis_len_GMmsc_arch = [-1 35 0 350];
-        axis_el_GMtend_arch = [-1 35 -1 18];
-        axis_str_GMtend_arch = [-0 35 -1 10];
+        axis_el_GMtend_arch = [-1 35 -Inf Inf];
+        axis_str_GMtend_arch = [-0 35 -Inf Inf];
         axis_len_GMtend_arch = [-1 35 0 300];
 
         axis_displ_GMFAS = [-1 35 -2.5 2.5];
@@ -240,12 +249,12 @@ function [] = passiveUS(input_project, input_plot)
         axis_ind_strain = [-1 37 -6 30];
     end
     %% set AXES etc for plots
-    %TODO MMM axes for new faslen/elong/strain and Fukunaga msc/SEE
+    
     
     
     %% Read max angles and forces from "create_angles_passive.m"
     %%% To extract max angles and forces per trial/subject/common
-    %%% Produces arrays with angles and forces, to be retrieved later
+    %%% Produces arrays with angles and forces
 
 %    global ang_subjectno 
 %    global ang_pre_r ang_pre_l ang_post_r ang_post_l ang_ind_max ang_common_max % ang = norm ankle angle, probably not to be used
@@ -270,7 +279,7 @@ function [] = passiveUS(input_project, input_plot)
 
 
     %% Read datamaster file, to connect corresponding data files
-    %%% Produces arrays with file names and variables per trial, to be retrieved later
+    %%% Produces arrays with file names and variables per trial
 
     global dm_subjectno dm_timepoint dm_side dm_trial 
     global dm_ROM_sol1_NX dm_ROM_sol1_US dm_ROM_sol1_US_frame dm_ROM_sol2_NX dm_ROM_sol2_US dm_ROM_sol2_US_frame
@@ -332,9 +341,10 @@ function [] = passiveUS(input_project, input_plot)
             'MAX length AT', 'MAX length GMtend', 'MAX length leg', 'MAX length GMapo', 'MAX length msc GM', 'MAX length msc SOL', ...
             'MAX elong GMtend Fuku', 'MAX elong msc GM Fuku', 'MAX strain GMtend Fuku', 'MAX strain msc GM Fuku', 'MAX length GMtend Fuku', 'MAX length msc GM Fuku', ...
             'MAX licht fas len GM', 'MAX licht fas elong GM', 'MAX licht fas strain GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
-            'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', ...
-            'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', ...
-            'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', ...
+            'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', 'EMG GM @ zero', ...
+            'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', 'EMG GL @ zero', ...
+            'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', 'EMG SOL @ zero', ...
+            'MAX EMG GM', 'MAX EMG GL', 'MAX EMG SOL', ...
             }; % PROJECTSPECIFIC
     all_passive_output = zeros(ceil(linestotal),length(all_passive_output_head)-4); 
     all_passive_output_txt = cell(ceil(linestotal),4);
@@ -544,7 +554,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(SOL_gonio_2,SOL_displacement_2,'LineWidth',2)
             axis(axis_displ_SOL)
             ylabel(txt_displ)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('Trial 1','Trial 2','Location','Southeast')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -596,7 +606,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(GMMTJ_gonio_2,GMMTJ_displacement_2,'LineWidth',2)
             axis(axis_el_GMmsc)
             ylabel(txt_displ)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('Trial 1','Trial 2','Location','Southeast')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -648,7 +658,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(GMFAS_gonio_2,GMFAS_displacement_2,'LineWidth',2)
             axis(axis_displ_GMFAS)
             ylabel(txt_displ)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('Trial 1','Trial 2','Location','Southeast')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -780,13 +790,13 @@ function [] = passiveUS(input_project, input_plot)
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % fascicle length
                 plot([0 0],[trial_GMfas_length trial_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor', 'r') % initial fascicle length
                 ylabel(txt_length)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 title(plottitle)
                 legend( 'Pennation angle', 'Fasc elong', 'Fasc strain','Fasc length','Faslen PRONE','Location','Southeast')
                 saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             end
             
-        % LATER - same for SOL?
+        % LATER - Fukunaga fascicle/muscle/SEE faslen/elong/strain also for SOL fascicle scans?
         end
         %%
         
@@ -810,7 +820,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
             axis(axis_force)
             ylabel('Force (N)')
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Location','Southeast')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -848,7 +858,7 @@ function [] = passiveUS(input_project, input_plot)
             
             axis(axis_EMG)
             ylabel('Muscle activation (% of MVC)')
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('Gastr.med.','Gastr.lat.','Soleus','Location','Northwest')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -875,7 +885,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             plot([0 0],[0 0], 'Marker','o', 'MarkerSize',10, 'MarkerFaceColor',col_grey)% zero point
             xlabel('Norm angle (°)')
-            ylabel('Gonio angle (°)')
+            ylabel(txt_gonio)
             title(plottitle)
             legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Norm/Norm','Location','Southeast')
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -922,7 +932,7 @@ function [] = passiveUS(input_project, input_plot)
 %                 yyaxis right
 %                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % faslen
 %                 ylabel(txt_length)
-%                 xlabel('Gonio angle (°)')
+%                 xlabel(txt_gonio)
 %                 title(plottitle)
 %                 legend('Elongation', 'Pennation angle','Fascicle length','Location','Southeast')
 %                 saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -930,7 +940,7 @@ function [] = passiveUS(input_project, input_plot)
 %         else % GM licht data don't exist
 %             data_GMFAS_elong_Lichtwark = 0;
 %         end
-%         %% 
+         %% 
 
         
          
@@ -1002,7 +1012,7 @@ function [] = passiveUS(input_project, input_plot)
             plot([0,0], [MTU_length_array(1,col_AT), 0],'Color','green')
             axis(axis_len_MTU)
             ylabel(txt_length)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('Full GM MTU', 'SEE (from GM arch)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -1022,7 +1032,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
             axis(axis_ind_elong)
             ylabel(txt_elong)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -1039,7 +1049,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             axis(axis_ind_elong)
             ylabel(txt_elong)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('GM MTU', 'SEE (from GM arch)', 'GM msc. (anthro)', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -1061,7 +1071,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             axis(axis_ind_strain)
             ylabel(txt_strain)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -1078,7 +1088,7 @@ function [] = passiveUS(input_project, input_plot)
             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             axis(axis_ind_strain)
             ylabel(txt_strain)
-            xlabel('Gonio angle (°)')
+            xlabel(txt_gonio)
             title(plottitle)
             legend('GM MTU', 'SEE (from GM arch)', 'GM msc. (anthro)', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
@@ -1398,9 +1408,9 @@ function [] = passiveUS(input_project, input_plot)
         loc_frame_common_max = find(data_force_gonio(:,col_angle)>=out_ROM_common_max,1,'first'); 
         loc_frame_submax_1 = find(data_force_gonio(:,col_angle)>=out_ROM_submax_1,1,'first'); 
         loc_frame_submax_2 = find(data_force_gonio(:,col_angle)>=out_ROM_submax_2,1,'first'); 
-        loc_frame_zero = find(data_force_gonio(:,col_angle)>=0,1,'first'); 
+        loc_frame_zero = 1; % find(data_force_gonio(:,col_angle)>=0,1,'first'); 
 
-        % break if frame not found
+        % stop running if frame not found
         if isempty(loc_frame_ind_max)
             % cprintf('error', horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ));
             error(horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ))
@@ -1411,19 +1421,25 @@ function [] = passiveUS(input_project, input_plot)
         out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,3));
         out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,3));
         out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,3));
+        out_emg_gm_zero = data_force_gonio(1,3); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,3));
+        out_emg_gm_max = max(data_force_gonio(:,3));
 
         % EMG gl
         out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gl = column 4
         out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4)); 
         out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
         out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
-
+        out_emg_gl_zero = data_force_gonio(1,4); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,4));
+        out_emg_gl_max = max(data_force_gonio(:,4));
+        
         % EMG sol
         out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG sol = column 5
         out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5));
         out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
         out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
-
+        out_emg_sol_zero = data_force_gonio(1,5); % mean(data_force_gonio(emg_step:loc_frame_zero,5));
+        out_emg_sol_max = max(data_force_gonio(:,5));
+        
         if isempty(loc_frame_submax_1)
             out_emg_gm_submax_1 = NaN;
             out_emg_gl_submax_1 = NaN;
@@ -1500,7 +1516,6 @@ function [] = passiveUS(input_project, input_plot)
         out_licht_pennation_SOL_submax_1 = NaN;
         out_licht_faslen_SOL_submax_2 = NaN;
         out_licht_pennation_SOL_submax_2 = NaN;
-        % MMM LATER - SOL strain and elong
         
         % normalize faslen array to initial leg length --- BD study
         if input_project == 1 && toggle_normalization == 1
@@ -1678,7 +1693,7 @@ function [] = passiveUS(input_project, input_plot)
 %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max2,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'--')
 %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max3,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'-.')
 %                 axis([0 max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]) 0 1.5*max(at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force))])
-%                 xlabel('Gonio angle (°)')
+%                 xlabel(txt_gonio)
 %                 ylabel('Force (N)')
 %                 title(plottitle)
 %                 legend('Raw data', 'Fit 4th order','Fit 3rd order','Fit 2nd order','Location','Northwest')
@@ -1696,9 +1711,10 @@ function [] = passiveUS(input_project, input_plot)
         
         
         
-        %%% AT STIFFNESS:     % MMM LATER
-        
-        % stiffness = delta force / delta length for AT ? check literature
+        %%% AT STIFFNESS - possible?
+        % LATER
+        % stiffness = delta force / delta length for AT? check literature
+
         %%
         
         
@@ -1820,7 +1836,9 @@ function [] = passiveUS(input_project, input_plot)
         %   averaged angle (currently calculated from gonio)
         %   averaged fasicle length
         %   averaged pennation angle
-        %   --- OR containing 3x zeros (if nonexistent)
+        %   fascicle elongation
+        %   fascicle strain
+        %   --- OR containing 5x zeros (if nonexistent)
 
         
         % extract angle range common to all trials for current subject
@@ -1944,9 +1962,10 @@ function [] = passiveUS(input_project, input_plot)
                 BD_angle_vars_norm_indlength{BD_count}(:,18) = BD_angle_vars{1,BD_count}(:,18)*100/max(BD_angle_vars{1,BD_count}(:,18));  %        18 torque - to max torque in trial
                 BD_angle_vars_norm_indlength{BD_count}(:,20) = (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20); % 20 SOL msc length - normalized to initial msc length
             
-                % reshape for plots
+                % resample for plots
                 
-                % tweak for NaN EMG data - replace  with 1000
+                % tweak for NaN EMG data - replace with 1000
+                % LATER - change to the more elegant method used for CON_PRE_angle_vars_STAT
                 BD_angle_vars_norm_indlength{1,BD_count}(isnan(BD_angle_vars_norm_indlength{1,BD_count})) = 1000;       
                 % spline
                 BD_angle_vars_norm{BD_count} = spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1)',BD_angle_vars_norm_indlength{1,BD_count}',0:angle_step_plots:100)';
@@ -2007,13 +2026,16 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
                     ];
 
+                
+                
+                
                 % all data in ONE cell, NORMALIZED data:
                 CON_angle_vars_norm_indlength{CON_count} = CON_angle_vars{CON_count};
                 CON_angle_vars_norm_indlength{CON_count}(:,1) = CON_angle_vars{1,CON_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
@@ -2026,7 +2048,7 @@ function [] = passiveUS(input_project, input_plot)
                 CON_angle_vars_norm_indlength{CON_count}(:,18) = CON_angle_vars{1,CON_count}(:,18)*100/max(CON_angle_vars{1,CON_count}(:,18));  %        18 torque - to max torque in trial
                 CON_angle_vars_norm_indlength{CON_count}(:,20) = (CON_angle_vars{1,CON_count}(:,20)-CON_angle_vars{1,CON_count}(1,20)) *100/CON_angle_vars{1,CON_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
-                % reshape for plots
+                % resample for plots
                 
                 % tweak for NaN EMG data - replace  with 1000
                 CON_angle_vars_norm_indlength{1,CON_count}(isnan(CON_angle_vars_norm_indlength{1,CON_count})) = 1000;       
@@ -2078,8 +2100,8 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
@@ -2097,7 +2119,7 @@ function [] = passiveUS(input_project, input_plot)
                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
-                % reshape for plots
+                % resample for plots
 
                 % tweak for NaN EMG data - replace  with 1000
                 CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
@@ -2145,8 +2167,8 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
@@ -2164,7 +2186,8 @@ function [] = passiveUS(input_project, input_plot)
                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
-                % reshape for plots
+                % resample for plots
+                
                 % tweak for NaN EMG data - replace  with 1000
                 STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
                 % spline
@@ -2211,8 +2234,8 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
@@ -2230,7 +2253,7 @@ function [] = passiveUS(input_project, input_plot)
                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
-                % reshape for plots
+                % resample for plots
                 
                 % tweak for NaN EMG data - replace  with 1000
                 CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
@@ -2278,8 +2301,8 @@ function [] = passiveUS(input_project, input_plot)
                     MTU_strain_array(:,10) ...                                      31
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen) ...   34
-                    (data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen)-data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen))/data_GMFAS_licht_GM(loc_angle_licht_start,col_licht_faslen)*100 ...   35
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
@@ -2297,7 +2320,7 @@ function [] = passiveUS(input_project, input_plot)
                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
 
-                % reshape for plots
+                % resample for plots
 
                 % tweak for NaN EMG data - replace  with 1000
                 STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
@@ -2363,12 +2386,14 @@ function [] = passiveUS(input_project, input_plot)
             out_length_AT_max out_length_GMtend_max out_length_leg_max out_length_GMapo_max out_length_msc_GM_max out_length_msc_SOL_max ...
             out_elong_GMtend_Fuku_max out_elong_msc_GM_Fuku_max out_strain_GMtend_Fuku_max out_strain_msc_GM_Fuku_max out_length_GMtend_Fuku_max out_length_msc_GM_Fuku_max ...
             out_licht_faslen_GM_max out_licht_fas_elong_GM_max out_licht_fas_strain_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
-            out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2...
-            out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2...
-            out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2];
+            out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2 out_emg_gm_zero...
+            out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2 out_emg_gl_zero...
+            out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2 out_emg_sol_zero...
+            out_emg_gm_max out_emg_gl_max out_emg_sol_max ...
+            ];
         
         
-%        % MMM TMP output fascicle data
+%        % TMP output fascicle data
 %        all_GMfas_output(line,:) = [trial_GMfas_length MTU_length_array(1,col_GMmsc_Fukunaga) max(MTU_length_array(:,col_GMmsc_Fukunaga)) out_ROM_trial_max];
         %%
 
@@ -2405,7 +2430,7 @@ function [] = passiveUS(input_project, input_plot)
     
     %% OUTPUT individual trial data TO FILE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-%    % MMM TMP output fascicle data
+%    % TMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'));
 %    csvwrite(filename_output, all_GMfas_output)
     
@@ -2416,7 +2441,7 @@ function [] = passiveUS(input_project, input_plot)
             appendix = '_norm';
         end
     if ispc
-        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix);
+        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.xlsx');
         
         xlswrite(filename_output, all_passive_output_head, 1, 'A1')
         xlswrite(filename_output, all_passive_output_txt, 1, 'A2')
@@ -2465,17 +2490,25 @@ function [] = passiveUS(input_project, input_plot)
         % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
         loc_commonROM = min([cellfun('length',BD_angle_vars) cellfun('length',CON_angle_vars)]); % location of largest common ROM
         
-        % reshape absolute & normalized arrays
-        
-        % MMM GOON TODO - spline NaN error
-        
+        % resample absolute & normalized arrays - ommit columns with NaN only
+
         for i = 1:BD_count
-            BD_angle_vars_STAT{i} = spline(BD_angle_vars{1,i}(1:loc_commonROM,1)',BD_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:BD_angle_vars{1,i}(loc_commonROM,1))';
-            BD_angle_vars_norm_STAT{i} = spline(BD_angle_vars_norm{1,i}(:,1)',BD_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(BD_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:BD_angle_vars{1,i}(loc_commonROM,1))';
+            BD_angle_vars_STAT{i} = BD_angle_vars{1,i}(1:numel(resample_axis),:);
+            BD_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(BD_angle_vars{1,i}(1:loc_commonROM,1)',BD_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            BD_angle_vars_norm_STAT{i} = BD_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            BD_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(BD_angle_vars_norm{1,i}(1:loc_commonROM,1)',BD_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_count
-            CON_angle_vars_STAT{i} = spline(CON_angle_vars{1,i}(1:loc_commonROM,1)',CON_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_angle_vars{1,i}(loc_commonROM,1))';
-            CON_angle_vars_norm_STAT{i} = spline(CON_angle_vars_norm{1,i}(:,1)',CON_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(CON_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:CON_angle_vars{1,i}(loc_commonROM,1))';
+            CON_angle_vars_STAT{i} = CON_angle_vars{1,i}(1:numel(resample_axis),:);
+            CON_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_angle_vars{1,i}(1:loc_commonROM,1)',CON_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            CON_angle_vars_norm_STAT{i} = CON_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            CON_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         
         % Flexigym: Torque data were interpolated using a spline function
@@ -2564,22 +2597,43 @@ function [] = passiveUS(input_project, input_plot)
         % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
         loc_commonROM = min([cellfun('length',STR_PRE_angle_vars) cellfun('length',STR_POST_angle_vars) cellfun('length',CON_PRE_angle_vars) cellfun('length',CON_POST_angle_vars)]); % location of largest common ROM
         
-        % reshape absolute & normalized arrays
+        % resample absolute & normalized arrays - ommit columns with NaN only
+        
         for i = 1:STR_PRE_count
-            STR_PRE_angle_vars_STAT{i} = spline(STR_PRE_angle_vars{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:STR_PRE_angle_vars{1,i}(loc_commonROM,1))';
-            STR_PRE_angle_vars_norm_STAT{i} = spline(STR_PRE_angle_vars_norm{1,i}(:,1)',STR_PRE_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(STR_PRE_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:STR_PRE_angle_vars{1,i}(loc_commonROM,1))';
+            STR_PRE_angle_vars_STAT{i} = STR_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
+            STR_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            STR_PRE_angle_vars_norm_STAT{i} = STR_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            STR_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:STR_POST_count
-            STR_POST_angle_vars_STAT{i} = spline(STR_POST_angle_vars{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:STR_POST_angle_vars{1,i}(loc_commonROM,1))';
-            STR_POST_angle_vars_norm_STAT{i} = spline(STR_POST_angle_vars_norm{1,i}(:,1)',STR_POST_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(STR_POST_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:STR_POST_angle_vars{1,i}(loc_commonROM,1))';
+            STR_POST_angle_vars_STAT{i} = STR_POST_angle_vars{1,i}(1:numel(resample_axis),:);
+            STR_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            STR_POST_angle_vars_norm_STAT{i} = STR_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            STR_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_PRE_count
-            CON_PRE_angle_vars_STAT{i} = spline(CON_PRE_angle_vars{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_PRE_angle_vars{1,i}(loc_commonROM,1))';
-            CON_PRE_angle_vars_norm_STAT{i} = spline(CON_PRE_angle_vars_norm{1,i}(:,1)',CON_PRE_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(CON_PRE_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:CON_PRE_angle_vars{1,i}(loc_commonROM,1))';
+            CON_PRE_angle_vars_STAT{i} = CON_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
+            CON_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            CON_PRE_angle_vars_norm_STAT{i} = CON_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            CON_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_POST_count
-            CON_POST_angle_vars_STAT{i} = spline(CON_POST_angle_vars{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars{1,i}(1:loc_commonROM,:)',0:angle_step_stats_abs:CON_POST_angle_vars{1,i}(loc_commonROM,1))';
-            CON_POST_angle_vars_norm_STAT{i} = spline(CON_POST_angle_vars_norm{1,i}(:,1)',CON_POST_angle_vars_norm{1,i}',0:angle_step_stats_norm:100)';
+            locate_NaN_cols = ~all(isnan(CON_POST_angle_vars{1,i}(1:5,:)),1);
+            resample_axis = (0:angle_step_stats_abs:CON_POST_angle_vars{1,i}(loc_commonROM,1))';
+            CON_POST_angle_vars_STAT{i} = CON_POST_angle_vars{1,i}(1:numel(resample_axis),:);
+            CON_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+            resample_axis = 0:angle_step_stats_norm:100;
+            CON_POST_angle_vars_norm_STAT{i} = CON_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+            CON_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         
         % create table headers (subject numbers)
@@ -3653,7 +3707,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_F_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_F_mean, CON_ROM_SD, '*b')
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -3667,7 +3721,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,2))
                 end
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 %legend
@@ -3681,7 +3735,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,2))
                 end
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 %legend
@@ -3731,9 +3785,10 @@ function [] = passiveUS(input_project, input_plot)
                         
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            if BD_count > 1 && CON_count > 1 && plot_check
+            if BD_count > 1 && CON_count > 1 % TMP MMM && plot_check
                 plottitle = horzcat('torque vs angle - 1');
                 figure('Name',plottitle)
+                yyaxis left
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,18),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,18),'b','LineWidth',2)
@@ -3741,11 +3796,20 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_ROM_mean, CON_torque_mean, CON_torque_SD, '*b', 'MarkerFaceColor', 'b')
                 herrorbar(BD_ROM_mean, BD_torque_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_torque_mean, CON_ROM_SD, '*b')
-                axis(axis_torque)
-                xlabel('Gonio angle (°)')
                 ylabel('Torque (Nm)')
+                axis(axis_torque)
+                % plot EMG
+                yyaxis right
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,3),'y','LineWidth',1) % GM
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,3),'y--','LineWidth',1) % GM
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,4),'m','LineWidth',1) % GL 
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,4),'m--','LineWidth',1) % GL
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,5),'c','LineWidth',1) % SOL
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,5),'c--','LineWidth',1) % SOL
+                ylabel(txt_emg)
+                xlabel(txt_gonio)
                 title(plottitle)
-                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
+                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max', 'EMG GM BD', 'EMG GM CON', 'Location','Northwest')
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             if BD_count > 1 && plot_check
@@ -3756,7 +3820,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,18))
                 end
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle)
                 %legend
@@ -3770,7 +3834,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,18))
                 end
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle)
                 %legend
@@ -3832,7 +3896,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_ROM_SD, '*b')
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -3846,7 +3910,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,12))
                 end
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -3860,7 +3924,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,12))
                 end
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -3890,7 +3954,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_ROM_SD, '*b')
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -3918,7 +3982,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,12))
                 end
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -3946,7 +4010,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,12))
                 end
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -3966,7 +4030,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_AT_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_AT_mean, CON_ROM_SD, '*b')
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -3980,7 +4044,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,6))
                 end
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -3994,7 +4058,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,6))
                 end
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4015,7 +4079,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_ROM_SD, '*b')
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4029,7 +4093,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,13))
                 end
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4043,7 +4107,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,13))
                 end
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4073,7 +4137,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_ROM_SD, '*b')
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -4101,7 +4165,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,13))
                 end
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4129,7 +4193,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,13))
                 end
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4149,7 +4213,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_ROM_SD, '*b')
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4163,7 +4227,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,7))
                 end
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4177,7 +4241,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,7))
                 end
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4198,7 +4262,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_ROM_SD, '*b')
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4212,7 +4276,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,16))
                 end
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4226,7 +4290,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,16))
                 end
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4256,7 +4320,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_ROM_SD, '*b')
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -4285,7 +4349,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,16))
                 end
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4313,7 +4377,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,16))
                 end
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4333,7 +4397,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_ROM_SD, '*b')
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4347,7 +4411,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,10))
                 end
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4361,7 +4425,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,10))
                 end
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4382,7 +4446,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, '*b')
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4396,7 +4460,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,20))
                 end
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4410,7 +4474,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,20))
                 end
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4440,7 +4504,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, '*b')
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -4468,7 +4532,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,20))
                 end
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4496,7 +4560,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,20))
                 end
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4516,7 +4580,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, '*b')
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4530,7 +4594,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,19))
                 end
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4544,7 +4608,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,19))
                 end
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4565,7 +4629,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_ROM_SD, '*b')
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4579,7 +4643,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,17))
                 end
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4593,7 +4657,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,17))
                 end
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4623,7 +4687,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_ROM_SD, '*b')
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -4652,7 +4716,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,17))
                 end
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4680,7 +4744,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,17))
                 end
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4700,7 +4764,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_ROM_SD, '*b')
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4714,7 +4778,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,11))
                 end
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4728,7 +4792,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,11))
                 end
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4748,7 +4812,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4763,7 +4827,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,36))
                 end
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4777,7 +4841,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,36))
                 end
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4796,7 +4860,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4811,7 +4875,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,28))
                 end
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4825,7 +4889,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,28))
                 end
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4844,7 +4908,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4859,7 +4923,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,30))
                 end
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4873,7 +4937,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,30))
                 end
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -4893,7 +4957,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -4908,7 +4972,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,37))
                 end
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4922,7 +4986,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,37))
                 end
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -4941,7 +5005,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -4956,7 +5020,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,29))
                 end
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4970,7 +5034,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,29))
                 end
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -4989,7 +5053,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5004,7 +5068,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,31))
                 end
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5018,7 +5082,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,31))
                 end
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5038,7 +5102,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -5053,7 +5117,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,32))
                 end
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5067,7 +5131,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,32))
                 end
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5086,7 +5150,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5101,7 +5165,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,34))
                 end
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5115,7 +5179,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,34))
                 end
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5134,7 +5198,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5149,7 +5213,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,35))
                 end
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5163,7 +5227,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,35))
                 end
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5182,7 +5246,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, '*b')
                 errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5197,7 +5261,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,33))
                 end
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 %legend
@@ -5211,7 +5275,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,33))
                 end
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 %legend
@@ -5232,7 +5296,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, '*b')
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
@@ -5246,7 +5310,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,14))
                 end
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5260,7 +5324,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,14))
                 end
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5291,7 +5355,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_ROM_SD, '*b')
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Location','Northwest')
@@ -5319,7 +5383,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars_norm_indlength{1,i}(:,14))
                 end
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5347,7 +5411,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars_norm_indlength{1,i}(:,14))
                 end
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -5367,7 +5431,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_ROM_SD, '*b')
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5381,7 +5445,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,8))
                 end
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5395,7 +5459,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,8))
                 end
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5416,7 +5480,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_ROM_SD, '*b')
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5430,7 +5494,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,9))
                 end
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 %legend
@@ -5444,7 +5508,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,9))
                 end
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 %legend
@@ -5481,7 +5545,7 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12)-CON_angle_vars_SD(:,12),'b','LineWidth',0.25)
                 
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('Dancer MTU', 'Dancer GM tend','Dancer free AT','Control MTU','Control GM tend','Control free AT','Location','Southeast')
@@ -5502,7 +5566,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_ROM_SD, '*b')
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5516,7 +5580,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,3))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5530,7 +5594,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,3))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5550,7 +5614,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_ROM_SD, '*b')
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5564,7 +5628,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,4))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5578,7 +5642,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,4))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5598,7 +5662,7 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_ROM_SD, '*r')
                 herrorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_ROM_SD, '*b')
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
@@ -5612,7 +5676,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,5))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5626,7 +5690,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,5))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -5657,7 +5721,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_F_mean, CON_POST_F_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -5676,7 +5740,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,2))
                 end
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 %legend
@@ -5694,7 +5758,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,2))
                 end
                 axis(axis_force)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle)
                 %legend
@@ -5714,7 +5778,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,2),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,2),'b','LineStyle','-','LineWidth',1)
                     axis(axis_force)
-                    xlabel('Gonio angle (°)')
+                    xlabel(txt_gonio)
                     ylabel('Force (N)')
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -5724,7 +5788,7 @@ function [] = passiveUS(input_project, input_plot)
 
             
             
-            % MMM LATER? other type of normalization - normalize to what? add plots with individual data normalised (same as #2 and #3)?
+            % LATER? other type of normalization - normalize to what? add plots with individual data normalised (same as #2 and #3)?
             if plot_check
                 plottitle = horzcat('force vs angle - 4 NORMALIZED');
                 figure('Name',plottitle)
@@ -5763,7 +5827,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_torque_mean, CON_POST_torque_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -5782,7 +5846,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,18))
                 end
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle)
                 %legend
@@ -5800,7 +5864,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,18))
                 end
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle)
                 %legend
@@ -5820,7 +5884,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,18),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,18),'b','LineStyle','-','LineWidth',1)
                 axis(axis_torque)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -5849,7 +5913,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_at_SOL_mean, CON_POST_L_at_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -5868,7 +5932,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,12))
                 end
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5886,7 +5950,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,12))
                 end
                 axis(axis_len_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -5906,7 +5970,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,12),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,12),'b','LineStyle','-','LineWidth',1)
                     axis(axis_len_AT)
-                    xlabel('Gonio angle (°)')
+                    xlabel(txt_gonio)
                     ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -5935,7 +5999,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_AT_mean, CON_POST_elong_AT_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -5954,7 +6018,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,6))
                 end
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5972,7 +6036,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,6))
                 end
                 axis(axis_el_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -5992,7 +6056,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,6),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,6),'b','LineStyle','-','LineWidth',1)
                     axis(axis_el_AT)
-                    xlabel('Gonio angle (°)')
+                    xlabel(txt_gonio)
                     ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6021,7 +6085,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_at_SOL_mean, CON_POST_strain_at_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6040,7 +6104,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,21))
                 end
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6058,7 +6122,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,21))
                 end
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6078,7 +6142,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,21),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,21),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_AT)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6107,7 +6171,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_at_GM_mean, CON_POST_L_at_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -6126,7 +6190,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,13))
                 end
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6144,7 +6208,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,13))
                 end
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6164,7 +6228,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,13),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,13),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6193,7 +6257,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_GMtend_mean, CON_POST_elong_GMtend_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6212,7 +6276,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,7))
                 end
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6230,7 +6294,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,7))
                 end
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6250,7 +6314,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,7),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,7),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6279,7 +6343,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_at_GM_mean, CON_POST_strain_at_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6298,7 +6362,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,22))
                 end
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6316,7 +6380,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,22))
                 end
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6336,7 +6400,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,22),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,22),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMtend)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6365,7 +6429,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_GMapo_mean, CON_POST_L_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -6384,7 +6448,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,16))
                 end
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6402,7 +6466,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,16))
                 end
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6422,7 +6486,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,16),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,16),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6451,7 +6515,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_GMapo_mean, CON_POST_elong_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northeast')
@@ -6470,7 +6534,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,10))
                 end
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6488,7 +6552,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,10))
                 end
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6508,7 +6572,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,10),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,10),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6537,7 +6601,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_GMapo_mean, CON_POST_strain_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northeast')
@@ -6556,7 +6620,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,25))
                 end
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6574,7 +6638,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,25))
                 end
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6594,7 +6658,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,25),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,25),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMapo)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6623,7 +6687,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_L_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -6642,7 +6706,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,20))
                 end
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6660,7 +6724,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,20))
                 end
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6680,7 +6744,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,20),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,20),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
@@ -6709,7 +6773,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_elong_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6728,7 +6792,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,19))
                 end
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6746,7 +6810,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,19))
                 end
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -6766,7 +6830,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,19),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,19),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6795,7 +6859,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_strain_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6814,7 +6878,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,27))
                 end
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6832,7 +6896,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,27))
                 end
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -6852,7 +6916,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,27),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,27),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_SOL)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6881,7 +6945,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_msc_GM_mean, CON_POST_L_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -6900,7 +6964,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,17))
                 end
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6918,7 +6982,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,17))
                 end
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -6938,7 +7002,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,17),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,17),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -6967,7 +7031,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_mean, CON_POST_elong_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -6986,7 +7050,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,11))
                 end
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7004,7 +7068,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,11))
                 end
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7024,7 +7088,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,11),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,11),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7053,7 +7117,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_mean, CON_POST_strain_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7072,7 +7136,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,26))
                 end
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7090,7 +7154,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,26))
                 end
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7110,7 +7174,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,26),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,26),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMmsc)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7140,7 +7204,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -7159,7 +7223,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,36))
                 end
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7177,7 +7241,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,36))
                 end
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7197,7 +7261,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,36),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,36),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7226,7 +7290,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7245,7 +7309,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,28))
                 end
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7263,7 +7327,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,28))
                 end
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7283,7 +7347,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,28),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,28),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7312,7 +7376,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7331,7 +7395,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,30))
                 end
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7349,7 +7413,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,30))
                 end
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7369,7 +7433,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,30),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,30),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMmsc_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7398,7 +7462,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -7417,7 +7481,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,37))
                 end
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7435,7 +7499,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,37))
                 end
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7455,7 +7519,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,37),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,37),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7484,7 +7548,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7503,7 +7567,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,29))
                 end
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7521,7 +7585,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,29))
                 end
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -7541,7 +7605,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,29),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,29),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7570,7 +7634,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7589,7 +7653,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,31))
                 end
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7607,7 +7671,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,31))
                 end
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -7627,7 +7691,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,31),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,31),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMtend_arch)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7657,7 +7721,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -7676,7 +7740,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,32))
                 end
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7694,7 +7758,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,32))
                 end
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7714,7 +7778,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,32),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,32),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7743,7 +7807,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7762,7 +7826,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,34))
                 end
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7780,7 +7844,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,34))
                 end
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7800,7 +7864,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,34),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,34),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7829,7 +7893,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7848,7 +7912,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,35))
                 end
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7866,7 +7930,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,35))
                 end
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -7886,7 +7950,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,35),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,35),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -7915,7 +7979,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -7934,7 +7998,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,33))
                 end
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 %legend
@@ -7952,7 +8016,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,33))
                 end
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
                 %legend
@@ -7972,7 +8036,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,33),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,33),'b','LineStyle','-','LineWidth',1)
                 axis(axis_penn_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8003,7 +8067,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
@@ -8022,7 +8086,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,14))
                 end
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -8040,7 +8104,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,14))
                 end
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
@@ -8060,7 +8124,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,14),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,14),'b','LineStyle','-','LineWidth',1)
                 axis(axis_len_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_length)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
@@ -8089,7 +8153,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_MTU_mean, CON_POST_elong_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8108,7 +8172,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,8))
                 end
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -8126,7 +8190,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,8))
                 end
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle)
                 %legend
@@ -8146,7 +8210,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,8),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,8),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_elong)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8177,7 +8241,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_strain_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8196,7 +8260,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,23))
                 end
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -8214,7 +8278,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,23))
                 end
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle)
                 %legend
@@ -8234,7 +8298,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,23),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,23),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_MTU)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_strain)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8263,7 +8327,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_displ_GMFAS_mean, CON_POST_displ_GMFAS_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8282,7 +8346,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,9))
                 end
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 %legend
@@ -8300,7 +8364,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,9))
                 end
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle)
                 %legend
@@ -8320,7 +8384,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,9),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,9),'b','LineStyle','-','LineWidth',1)
                 axis(axis_displ_GMFAS)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_displ)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8329,7 +8393,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             %% Length +- SD, 3 MTU components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % MMM LATER if needed?
+            % LATER if needed?
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -8352,7 +8416,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_EMG_gm_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8371,7 +8435,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,3))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8389,7 +8453,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,3))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8409,7 +8473,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,3),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,3),'b','LineStyle','-','LineWidth',1)
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8438,7 +8502,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_EMG_gl_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8457,7 +8521,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,4))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8475,7 +8539,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,4))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8495,7 +8559,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,4),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,4),'b','LineStyle','-','LineWidth',1)
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
@@ -8524,7 +8588,7 @@ function [] = passiveUS(input_project, input_plot)
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_EMG_sol_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
@@ -8543,7 +8607,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,5))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8561,7 +8625,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,5))
                 end
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle)
                 %legend
@@ -8581,7 +8645,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,5),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,5),'b','LineStyle','-','LineWidth',1)
                 axis(axis_EMG)
-                xlabel('Gonio angle (°)')
+                xlabel(txt_gonio)
                 ylabel(txt_emg)
                     title(plottitle)
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')

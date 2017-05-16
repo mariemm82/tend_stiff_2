@@ -22,7 +22,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
 
     %%% extract initial calf length in mm
     % my initial calf length = centimeters from lateral epicondyle to calc insertion
-    calf_length = str2double(initial_calf_length) * 10;
+    resting_leg_length = str2double(initial_calf_length) * 10;
     
     %%% Grieve 1978:
     % calculate percent change in MTU length, across angle array (degrees)
@@ -36,7 +36,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     MTU_length_Grieve_rel = (a0 + (a1*(90+angle_array)) + (a2*(90+angle_array).^2))/100;
 
     % absolute calf/MTU length (mm), across angle array
-    MTU_length_Grieve_abs = calf_length * (1 + MTU_length_Grieve_rel);
+    MTU_length_Grieve_abs = resting_leg_length * (1 + MTU_length_Grieve_rel);
 
     %%% Hawkins & Hull (1990)
     % "normalized muscle tendon length" = normalized to shank = lateral malleolus to lateral epicondyle
@@ -66,12 +66,12 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     % we KNOW the exact initial MTU length = calc insert to lat epi = 100% length (instead of H&H which says MTU length = ~108% of lat mall to lat epi)
     % first data point = 0 degrees ankle = 100% length
     % extracting length change from this point (% of calf/MTU length)
-    MTU_length_HH_GM_abs = calf_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
-    MTU_length_HH_SOL_abs = calf_length * MTU_length_HH_SOL_rel;
+    MTU_length_HH_GM_abs = resting_leg_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
+    MTU_length_HH_SOL_abs = resting_leg_length * MTU_length_HH_SOL_rel;
     
     %%% elongation from ankle rotation and moment arm (geometry)
     % convert momentarm from m to mm (* 1000)
-    MTU_length_geometry = calf_length + (at_momentarm * 1000 * sind(angle_array));
+    MTU_length_geometry = resting_leg_length + (at_momentarm * 1000 * sind(angle_array));
 
 %     %%% plot method comparison
 %     plottitle = horzcat('Comparison of MTU length models, ', subject_id);
@@ -167,8 +167,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         
         % remainder - SEE length:
         SEE_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
-        SEE_elong_Fukunaga = SEE_length_Fukunaga - (calf_length - resting_GM_msc_len);
-        SEE_strain_Fukunaga = SEE_elong_Fukunaga / (calf_length - resting_GM_msc_len) * 100;
+        SEE_elong_Fukunaga = SEE_length_Fukunaga - (resting_leg_length - resting_GM_msc_len);
+        SEE_strain_Fukunaga = SEE_elong_Fukunaga / (resting_leg_length - resting_GM_msc_len) * 100;
     end
     
     

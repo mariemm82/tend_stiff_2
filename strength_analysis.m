@@ -706,6 +706,56 @@ function [] = strength_analysis(input_plot)
      % ...
      % trial 5 = CON: PF 90°/s, BD: PF 120°/s
 
+     
+        % plot torque-velocity summary - 4 velocities
+        if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP ISOKINETIC torque-velocity (all vel)');
+            figure('Name',plottitle)
+            hold on
+            
+            plot_velocity_BD = [45 60 90 120];
+            plot_velocity_CON = [30 45 60 90];
+            plot(plot_velocity_BD, BD_data_mean(2:5), '-ob', 'MarkerSize',6)
+            plot(plot_velocity_CON, CON_data_mean(2:5), '-or', 'MarkerSize',6)
+            errorbar(plot_velocity_BD, BD_data_mean(2:5), BD_data_SD(2:5),'-b')
+            errorbar(plot_velocity_CON, CON_data_mean(2:5), CON_data_SD(2:5),':r')
+            
+            axis([20 130 0 150]) %VAR
+            xlabel('Velocity (°/s)')
+            ylabel('Isokinetic peak torque (Nm)')
+            title(plottitle)
+            legend('BD','CON','location','NorthEast')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
+        end
+
+        
+        
+        % plot torque-velocity summary - common velocities
+        if BD_count > 1 && CON_count > 1 && plot_check
+            plottitle = horzcat('GRP ISOKINETIC torque-velocity');
+            figure('Name',plottitle)
+            hold on
+            
+            plot_velocity_BD = [45 60 90];
+            plot_velocity_CON = [45 60 90];
+            plot(plot_velocity_BD, BD_data_mean(2:4), '-ob', 'MarkerSize',6)
+            plot(plot_velocity_CON, CON_data_mean(3:5), '-or', 'MarkerSize',6)
+            errorbar(plot_velocity_BD, BD_data_mean(2:4), BD_data_SD(2:4),'-b')
+            errorbar(plot_velocity_CON, CON_data_mean(3:5), CON_data_SD(3:5),':r')
+            
+            axis([40 100 0 140]) %VAR
+            xlabel('Velocity (°/s)')
+            ylabel('Isokinetic peak torque (Nm)')
+            title(plottitle)
+            legend('BD','CON','location','NorthEast')
+            saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
+        end 
+
+        
+     
+     
     if BD_count > 1 && CON_count > 1 && plot_check
 
              plottitle = horzcat('GRP isokinetic torque-angle, 30°-s, plantar flexion');

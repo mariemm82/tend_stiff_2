@@ -17,9 +17,8 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% LATER? change tendon lengths to be based on prone length, not zero angle length?
 
-% MMM todo 
-% input tendon lengths: based on prone length or zero angle lengths?
 
 
 
@@ -42,7 +41,7 @@ function [] = passiveUS(input_project, input_plot)
         plot_individual = 0;
     end
     
-    toggle_normalization = 0; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
+    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of leg length
 
     % LEVEL 2: main checkpoint plots
     plot_norm = 0;
@@ -155,7 +154,7 @@ function [] = passiveUS(input_project, input_plot)
         axis_len_GMmsc_arch = [-1 35 0 350];
         axis_el_SEE_arch = [-1 35 -Inf Inf];
         axis_str_SEE_arch = [-0 35 -Inf Inf];
-        axis_len_SEE_arch = [-1 35 0 300];
+        axis_len_SEE_arch = [-1 35 0 450];
 
         axis_displ_GMFAS = [-1 35 -2.5 2.5];
         axis_displ_SOL = [-1 35 -3 11];
@@ -209,7 +208,7 @@ function [] = passiveUS(input_project, input_plot)
 
         axis_el_SEE_arch = [-1 37 -1 22];
         axis_str_SEE_arch = [-1 37 -0.5 12];
-        axis_len_SEE_arch = [-1 37 0 250];
+        axis_len_SEE_arch = [-1 37 0 450];
         axis_el_GMmsc_arch = [-1 37 -0.5 15];
         axis_str_GMmsc_arch = [-1 37 -0.5 6];
         axis_len_GMmsc_arch = [-1 37 0 350];
@@ -287,12 +286,11 @@ function [] = passiveUS(input_project, input_plot)
     global dm_ROM_gmmtj1_NX dm_ROM_gmmtj1_US dm_ROM_gmmtj1_US_frame dm_ROM_gmmtj2_NX dm_ROM_gmmtj2_US dm_ROM_gmmtj2_US_frame
     global dm_ROM_gmfas1_NX dm_ROM_gmfas1_US dm_ROM_gmfas1_US_frame dm_ROM_gmfas2_NX dm_ROM_gmfas2_US dm_ROM_gmfas2_US_frame  dm_ROM_gmfas1_licht dm_ROM_gmfas2_licht
     global dm_MVC_PF %dm_MVC_DF %dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_CPM_sol_US dm_CPM_sol_US_frame 
-    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen
-    global at_momentarm
+    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen dm_ankle_angle_rest
+    global at_momentarm 
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
-    dm_columns = 37; % number of data columns entered per subject % PROJECTSPECIFIC
-    linestotal = read_datamaster_passive(dm_filename,dm_columns);
+    linestotal = read_datamaster_passive(dm_filename);
     %% Read datamaster file, to connect corresponding data files
         
     
@@ -418,7 +416,7 @@ function [] = passiveUS(input_project, input_plot)
         trial_subjectno = str2double(dm_subjectno{line});
         trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
         trial_leg = strcmp(dm_trial{line},'STR'); % 0 = CON, 1 = STR
-        trial_calf_length = str2double(dm_leg_length{line}) * 10;  % leg length is in cm
+        %trial_calf_length = str2double(dm_leg_length{line}) * 10;  % leg length is in cm
         trial_GMfas_length = str2double(dm_GMmsc_faslen{line}); % resting (prone) length of GM fascicle 
 
         if input_project == 1 % BD study
@@ -790,6 +788,7 @@ function [] = passiveUS(input_project, input_plot)
                 yyaxis right
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'--r','LineWidth',1) % fascicle length
                 plot([0 0],[trial_GMfas_length trial_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor', 'r') % initial fascicle length
+                % MMM TODO - change to broken x axis?
                 ylabel(txt_length)
                 xlabel(txt_gonio)
                 title(plottitle)
@@ -945,7 +944,7 @@ function [] = passiveUS(input_project, input_plot)
 
         
          
-        %% extract and plot arrays of MTU LENGTH, ELONGATION, STRAIN
+        %% extract arrays of MTU LENGTH, ELONGATION, STRAIN
 
         % MTU_length_array =                            MTU_elong_array =      MTU_strain_array =
         %1       angle
@@ -981,10 +980,10 @@ function [] = passiveUS(input_project, input_plot)
         end
         
         % calculate MTU lengths
-        [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, dm_leg_length{line}, dm_GMmsc_penn{line}, dm_GMmsc_faslen{line}, out_ROM_trial_max);
+        [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, dm_leg_length{line}, dm_GMmsc_penn{line}, dm_GMmsc_faslen{line}, out_ROM_trial_max, dm_ankle_angle_rest{line});
         
         % column choices MTU ELONGATION / LENGTH / STRAIN
-        col_angle_elong = 1;
+        col_angle_MTU = 1;
         col_AT = 2;
         col_GMtend = 3;
         col_leg = 4;
@@ -994,23 +993,45 @@ function [] = passiveUS(input_project, input_plot)
         col_SOLmsc = 8;
         col_GMmsc_Fukunaga = 9;
         col_SEE_Fukunaga = 10;
+        %%
         
+        
+        
+        %% NORMALIZE Lichtwark/Fukunaga length/elongation to initial leg length (BD study) %%%%%%%%%%%%%%%%%%
+        if input_project == 1 && toggle_normalization == 1
+            % in MTU arrays, replace absolute values with normalization to initial leg length
+            % using MTU length while resting in prone position: MTU_prone_len_ang(1)
+            
+            MTU_elong_array(:,col_leg) = MTU_elong_array(:,col_leg)/MTU_prone_vars(col_leg)*100;
+            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_prone_vars(col_leg)*100; % in percent of initial leg length
+            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_prone_vars(col_leg)*100;
+            
+            MTU_length_array(:,col_leg) = MTU_length_array(:,col_leg)/MTU_prone_vars(col_leg)*100;
+            MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/MTU_prone_vars(col_leg)*100;
+            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/MTU_prone_vars(col_leg)*100;
+        end
+        %%
+        
+        
+        
+        %% plot arrays of MTU LENGTH, ELONGATION, STRAIN
         if plot_check && plot_individual
             % raw lengths (mm)
             plottitle = horzcat('IND MTU length vs angle, ', subject_id);
             figure('Name',plottitle);
             hold on
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_leg),'LineWidth',1.5,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
-            plot(MTU_length_array(:,col_angle_elong),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_leg),'LineWidth',1.5,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
+            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
+            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
+            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
+            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
             % plot vertical lines to show color coding of subsequent figs
             plot([0,0], [MTU_length_array(1,col_leg), MTU_length_array(1,col_GMtend)],'Color','cyan')
             plot([1,1], [MTU_length_array(1,col_leg), MTU_length_array(1,col_SEE_Fukunaga)],'Color','cyan','LineWidth',1.5)
             plot([1,1], [MTU_length_array(1,col_SOLmsc)+MTU_length_array(1,col_AT), MTU_length_array(1,col_GMtend)],'Color','black')
             plot([0,0], [MTU_length_array(1,col_GMtend), MTU_length_array(1,col_AT)],'Color',col_orange)
             plot([0,0], [MTU_length_array(1,col_AT), 0],'Color','green')
+            
             axis(axis_len_MTU)
             ylabel(txt_length)
             xlabel(txt_gonio)
@@ -1018,36 +1039,36 @@ function [] = passiveUS(input_project, input_plot)
             legend('Full GM MTU', 'SEE (from GM arch)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             
-            % raw elongation (mm)
-            plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
-            axis(axis_ind_elong)
-            ylabel(txt_elong)
-            xlabel(txt_gonio)
-            title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            xlim([-0.5 inf]) 
-            ylim([-inf inf]) 
-            saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
+%             % raw elongation (mm)
+%             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
+%             figure('Name',plottitle);
+%             hold on
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             axis(axis_ind_elong)
+%             ylabel(txt_elong)
+%             xlabel(txt_gonio)
+%             title(plottitle)
+%             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
+%             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+%             xlim([-0.5 inf]) 
+%             ylim([-inf inf]) 
+%             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
             
             % raw elongation (mm) - CLEANED VERSION, LICHT ONLY
             plottitle = horzcat('IND MTU elongation v2 vs angle, ', subject_id);
             figure('Name',plottitle);
             hold on
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',1.5,'Color','yellow') % fascicle elongation
             axis(axis_ind_elong)
             ylabel(txt_elong)
@@ -1056,38 +1077,38 @@ function [] = passiveUS(input_project, input_plot)
             legend('GM MTU', 'SEE (from GM arch)', 'GM msc. (anthro)', 'GM fascicle', 'Location','Northwest');
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
             
-            % strain (percent of initial length)
-            plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
-            if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
-                text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
-            end
-            axis(axis_ind_strain)
-            ylabel(txt_strain)
-            xlabel(txt_gonio)
-            title(plottitle)
-            legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
-            xlim([-0.5 inf]) 
-            ylim([-inf inf]) 
-            saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
+%             % strain (percent of initial length)
+%             plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
+%             figure('Name',plottitle);
+%             hold on
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
+%                 text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
+%             end
+%             axis(axis_ind_strain)
+%             ylabel(txt_strain)
+%             xlabel(txt_gonio)
+%             title(plottitle)
+%             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from GM arch)', 'GM msc. (linear)', 'GM msc. (anthro)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
+%             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+%             xlim([-0.5 inf]) 
+%             ylim([-inf inf]) 
+%             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
             
             % strain (percent of initial length) - CLEANED VERSION, LICHT ONLY
             plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
             figure('Name',plottitle);
             hold on
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
             plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'LineWidth',1.5,'Color','yellow') % fascicle strain
             axis(axis_ind_strain)
             ylabel(txt_strain)
@@ -1097,18 +1118,6 @@ function [] = passiveUS(input_project, input_plot)
             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
         end
         %%
-        
-        
-        %% NORMALIZE Lichtwark/Fukunaga length/elongation to initial leg length (BD study) %%%%%%%%%%%%%%%%%%
-        if input_project == 1 && toggle_normalization == 1
-            % in MTU_ arrays, replace absolute values with normalization to initial leg length:
-            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/trial_calf_length*100; % in percent of initial leg length
-            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/trial_calf_length*100;
-            MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/trial_calf_length*100;
-            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/trial_calf_length*100;
-        end
-        %%
-        
         
         
         
@@ -1129,7 +1138,7 @@ function [] = passiveUS(input_project, input_plot)
         
         % column choices force, torque, displacement
         col_force = 1;      % from data_force_gonio / data_SOL etc
-        col_angle = 2;
+        col_angle_DFG = 2;
         col_displ = 3;
         
         % print error if max angles do not exist --> create_angles_passive needs to be run
@@ -1158,16 +1167,16 @@ function [] = passiveUS(input_project, input_plot)
         out_ROM_submax_1 = 10; %VAR
         
         % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
-        loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
         out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
         out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array
-        loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_ind_max,1,'first'); 
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
         out_F_ind_max = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_common_max,1,'first'); 
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
         out_F_common_max = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle)>=0,1,'first'); % zero angle
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=0,1,'first'); % zero angle
         out_F_zero = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_1,1,'first'); 
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame) == 0
             out_F_submax_1 = data_force_gonio(loc_frame,col_force);
             out_T_submax_1 = out_F_submax_1 *at_momentarm;
@@ -1175,7 +1184,7 @@ function [] = passiveUS(input_project, input_plot)
             out_F_submax_1 = NaN;
             out_T_submax_1 = NaN;
         end
-        loc_frame = find(data_force_gonio(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
         out_F_submax_2 = data_force_gonio(loc_frame,col_force);
         
         % torques
@@ -1188,54 +1197,54 @@ function [] = passiveUS(input_project, input_plot)
         out_T_submax_2 = out_F_submax_2 *at_momentarm;
 
         % displacements SOL
-        loc_frame = find(data_SOL(:,col_angle)>=out_ROM_trial_max,1,'first'); 
+        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
         out_displ_SOL_trial_max = data_SOL(loc_frame,col_displ);
-        loc_frame = find(data_SOL(:,col_angle)>=out_ROM_ind_max,1,'first'); 
+        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
         out_displ_SOL_ind_max = data_SOL(loc_frame,col_displ); 
-        loc_frame = find(data_SOL(:,col_angle)>=out_ROM_common_max,1,'first'); 
+        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
         out_displ_SOL_common_max = data_SOL(loc_frame,col_displ); 
-        loc_frame = find(data_SOL(:,col_angle)>=out_ROM_submax_1,1,'first'); 
+        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame) == 0
             out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
         else
             out_displ_SOL_submax_1 = NaN;
         end
-        loc_frame = find(data_SOL(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
         out_displ_SOL_submax_2 = data_SOL(loc_frame,col_displ); 
 
         % displacements GMMTJ
-        loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_trial_max,1,'first'); 
+        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
         out_displ_GMMTJ_trial_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_ind_max,1,'first'); 
+        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
         out_displ_GMMTJ_ind_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_common_max,1,'first'); 
+        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
         out_displ_GMMTJ_common_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_submax_1,1,'first'); 
+        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame) == 0
             out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
         else
             out_displ_GMMTJ_submax_1 = NaN;
         end
-        loc_frame = find(data_GMMTJ(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMMTJ_submax_2 = data_GMMTJ(loc_frame,col_displ); 
 
         % displacements GMFAS
-        loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_trial_max,1,'first'); 
+        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
         out_displ_GMFAS_trial_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_ind_max,1,'first'); 
+        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
         out_displ_GMFAS_ind_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_common_max,1,'first'); 
+        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
         out_displ_GMFAS_common_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_1,1,'first'); 
+        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame) == 0
             out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
         else
             out_displ_GMFAS_submax_1 = NaN;
         end
-        loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
         out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
 
-        loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_trial_max,1,'first'); 
+        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_trial_max,1,'first'); 
         out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
         out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_trial_max = MTU_elong_array(loc_frame,col_leg);
@@ -1262,7 +1271,7 @@ function [] = passiveUS(input_project, input_plot)
         out_length_GMtend_Fuku_trial_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_trial_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
-        loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_ind_max,1,'first'); 
+        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_ind_max,1,'first'); 
         out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
@@ -1289,7 +1298,7 @@ function [] = passiveUS(input_project, input_plot)
         out_length_GMtend_Fuku_ind_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_ind_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
-        loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_common_max,1,'first'); 
+        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_common_max,1,'first'); 
         out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
@@ -1316,7 +1325,7 @@ function [] = passiveUS(input_project, input_plot)
         out_length_GMtend_Fuku_common_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
         out_length_msc_GM_Fuku_common_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         
-        loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_submax_1,1,'first'); 
+        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_1,1,'first'); 
         if isempty(loc_frame)
             out_elong_AT_submax_1 = NaN;
             out_elong_GMtend_submax_1 = NaN;
@@ -1371,7 +1380,7 @@ function [] = passiveUS(input_project, input_plot)
             out_length_msc_GM_Fuku_submax_1 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
         end
         
-        loc_frame = find(MTU_elong_array(:,col_angle_elong)>=out_ROM_submax_2,1,'first');
+        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_2,1,'first');
         out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
@@ -1406,17 +1415,17 @@ function [] = passiveUS(input_project, input_plot)
         % cannot average values AROUND relevant angle, because for a few (least flexible) trials, we want the data AT the last available angle.
 
         % identify locations of the relevant goniometer angles, in the array with all 2+2+2 trials averaged:
-        loc_frame_trial_max = find(data_force_gonio(:,col_angle)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
-        loc_frame_ind_max = find(data_force_gonio(:,col_angle)>=out_ROM_ind_max,1,'first'); 
-        loc_frame_common_max = find(data_force_gonio(:,col_angle)>=out_ROM_common_max,1,'first'); 
-        loc_frame_submax_1 = find(data_force_gonio(:,col_angle)>=out_ROM_submax_1,1,'first'); 
-        loc_frame_submax_2 = find(data_force_gonio(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+        loc_frame_trial_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
+        loc_frame_ind_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+        loc_frame_common_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+        loc_frame_submax_1 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+        loc_frame_submax_2 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
         loc_frame_zero = 1; % find(data_force_gonio(:,col_angle)>=0,1,'first'); 
 
         % stop running if frame not found
         if isempty(loc_frame_ind_max)
             % cprintf('error', horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ));
-            error(horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ))
+            error(horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle_DFG))), '). Check "create_angles_passive" vs current data.\n' ))
         end
         
         % EMG gm
@@ -1523,15 +1532,15 @@ function [] = passiveUS(input_project, input_plot)
         % normalize faslen array to initial leg length --- BD study
         if input_project == 1 && toggle_normalization == 1
             % in MTU_ arrays, replace absolute values with normalization to initial leg length:
-            data_GMFAS_licht_GM(:,col_licht_faslen) = data_GMFAS_licht_GM(:,col_licht_faslen)/trial_calf_length*100; % in percent of initial leg length
-            data_GMFAS_licht_GM(:,col_licht_fas_elong) = data_GMFAS_licht_GM(:,col_licht_fas_elong)/trial_calf_length*100; % in percent of initial leg length
+            data_GMFAS_licht_GM(:,col_licht_faslen) = data_GMFAS_licht_GM(:,col_licht_faslen)/MTU_prone_vars(col_leg)*100; % in percent of initial leg length
+            data_GMFAS_licht_GM(:,col_licht_fas_elong) = data_GMFAS_licht_GM(:,col_licht_fas_elong)/MTU_prone_vars(col_leg)*100; % in percent of initial leg length
         end
         
         if data_GMFAS_licht_GM == 0
             % no licht data existing
         else
             % at trial max angle:
-            loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_trial_max,1,'first'); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
             out_licht_faslen_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
             out_licht_pennation_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn);
             out_licht_fas_elong_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
@@ -1543,7 +1552,7 @@ function [] = passiveUS(input_project, input_plot)
             end
 
             % at individual max angle (across sides/timepoints):
-            loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_ind_max,1,'first'); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
             out_licht_faslen_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
             out_licht_fas_elong_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
@@ -1555,7 +1564,7 @@ function [] = passiveUS(input_project, input_plot)
             end
 
             % at subject common max angle:
-            loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_common_max,1,'first'); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
             out_licht_faslen_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
             out_licht_fas_elong_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
@@ -1579,7 +1588,7 @@ function [] = passiveUS(input_project, input_plot)
             end
 
             % at submax_1 angle:
-            loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_1,1,'first'); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
             % does angle exist in data?
             if isempty(loc_frame)
                 %
@@ -1597,7 +1606,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             % at submax_2 angle:
-            loc_frame = find(data_GMFAS(:,col_angle)>=out_ROM_submax_2,1,'first'); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
             out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
             out_licht_pennation_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
             out_licht_fas_elong_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
@@ -1666,7 +1675,7 @@ function [] = passiveUS(input_project, input_plot)
         
         % passive stiffness = delta torque / delta angle, at various angles
         % fit 4th order polynomial to averaged torque-angle curve, using data from zero angle to subject's individual max ROM (across both legs)
-        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 4);
+        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 4);
 
         % extract passive stiffness (derivate of 4th order poly) at:
         out_pstiff_trial_max = (4 * fit_ind_max(1) * out_ROM_trial_max^3) + (3 * fit_ind_max(2) * out_ROM_trial_max^2) + (2 * fit_ind_max(3) * out_ROM_trial_max) + fit_ind_max(4);
@@ -1707,7 +1716,7 @@ function [] = passiveUS(input_project, input_plot)
         %%% STIFFNESS INDEX:
         
         % fit 2nd order polynomial to averaged torque-angle curve, using data from zero angle to ind max ROM:
-        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
+        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
 
         % extract stiffness index as 2 * a
         out_pstiff_index = 2 * fit_ind_max(1);
@@ -1770,15 +1779,15 @@ function [] = passiveUS(input_project, input_plot)
             loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
             cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
         end
-        out_angle_trial_max = data_force_gonio(loc_frame,col_angle); 
+        out_angle_trial_max = data_force_gonio(loc_frame,col_angle_DFG); 
         loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_max,1,'first'); 
         if isempty(loc_frame) % catch error of FORCE not found:
             loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
             cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
         end
-        out_angle_ind_max = data_force_gonio(loc_frame,col_angle);
+        out_angle_ind_max = data_force_gonio(loc_frame,col_angle_DFG);
         loc_frame = find(data_force_gonio(:,col_force)>=loc_F_common_max,1,'first');
-        out_angle_common_max = data_force_gonio(loc_frame,col_angle);
+        out_angle_common_max = data_force_gonio(loc_frame,col_angle_DFG);
         
         % for current trial (L or R), find the angle at the max force for
         % the other leg, if the other leg has a lower max force as lowest
@@ -1791,7 +1800,7 @@ function [] = passiveUS(input_project, input_plot)
             if isempty(loc_frame) % force level does not exist
                 out_angle_ind_rmax = NaN;
             else
-                out_angle_ind_rmax = data_force_gonio(loc_frame,col_angle);
+                out_angle_ind_rmax = data_force_gonio(loc_frame,col_angle_DFG);
             end
         end
         
@@ -1803,14 +1812,14 @@ function [] = passiveUS(input_project, input_plot)
             if isempty(loc_frame) % force level does not exist
                 out_angle_ind_lmax = NaN;
             else
-                out_angle_ind_lmax = data_force_gonio(loc_frame,col_angle);
+                out_angle_ind_lmax = data_force_gonio(loc_frame,col_angle_DFG);
             end
         end
         %%
         
                
         
-        %% prepare arrays for group plots & stats
+        %% prepare angle_vars arrays for group plots & stats
 
         % data_force_gonio
         % from M-file average_passive_forces_EMG
@@ -1849,8 +1858,8 @@ function [] = passiveUS(input_project, input_plot)
         angle_stop = out_ROM_trial_max;
 
         % identify locations of start/stop angles in above mentioned arrays
-        loc_angle_start = find(data_force_gonio(:,col_angle)>=angle_start,1,'first');
-        loc_angle_stop = find(data_force_gonio(:,col_angle)>=angle_stop,1,'first');
+        loc_angle_start = find(data_force_gonio(:,col_angle_DFG)>=angle_start,1,'first');
+        loc_angle_stop = find(data_force_gonio(:,col_angle_DFG)>=angle_stop,1,'first');
         loc_angle_licht_start = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_start,1,'first');
         loc_angle_licht_stop = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_stop,1,'first');
         
@@ -1912,7 +1921,7 @@ function [] = passiveUS(input_project, input_plot)
                 %% BD subjects
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 BD_angle_vars{BD_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -1949,11 +1958,17 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
-                %    NB: in #12-17, normalizing to initial length in array, instead of using constants: str2double(dm_at_SOL_length{line}), dm_at_GM_length, (cm to mm) 10*dm_leg_length. Tested and values are the same except rounding at 2nd or 3rd decimal.
+                % NB: length/elongation of leg, Fukunaga muscle/SEE, GM
+                %   fascicles - already normalizsed in MTU_ arrays, before
+                %   assembled into angle_vars arrays
+                % NB: other variables (from scans of SOL MTJ, GM MTJ):
+                %   normalizing to first value in array (=zero degree), instead 
+                %   of using constants from datamaster. Tested and values are 
+                %   the same except rounding at 2nd or 3rd decimal
                 BD_angle_vars_norm_indlength{BD_count} = BD_angle_vars{BD_count};
                 BD_angle_vars_norm_indlength{BD_count}(:,1) = BD_angle_vars{1,BD_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
                 BD_angle_vars_norm_indlength{BD_count}(:,2) = BD_angle_vars{1,BD_count}(:,2)*100/max(BD_angle_vars{1,BD_count}(:,2));   % 2 force - to maximal force in trial
@@ -1964,7 +1979,7 @@ function [] = passiveUS(input_project, input_plot)
                 BD_angle_vars_norm_indlength{BD_count}(:,17) = (BD_angle_vars{1,BD_count}(:,17)-BD_angle_vars{1,BD_count}(1,17)) *100/BD_angle_vars{1,BD_count}(1,17); % 17 GM msc length - normalized to initial msc length
                 BD_angle_vars_norm_indlength{BD_count}(:,18) = BD_angle_vars{1,BD_count}(:,18)*100/max(BD_angle_vars{1,BD_count}(:,18));  %        18 torque - to max torque in trial
                 BD_angle_vars_norm_indlength{BD_count}(:,20) = (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-            
+                
                 % resample for plots
                 
                 % tweak for NaN EMG data - replace with 1000
@@ -1996,7 +2011,7 @@ function [] = passiveUS(input_project, input_plot)
 
                 % all data in ONE cell, common angles, RAW data:
                 CON_angle_vars{CON_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -2033,7 +2048,7 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 
@@ -2070,7 +2085,7 @@ function [] = passiveUS(input_project, input_plot)
                 %% PRE CON
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 CON_PRE_angle_vars{CON_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -2107,7 +2122,7 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
@@ -2137,7 +2152,7 @@ function [] = passiveUS(input_project, input_plot)
                 %% PRE STR
                 % all data in ONE cell, common angles, RAW data:
                 STR_PRE_angle_vars{STR_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -2174,7 +2189,7 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
@@ -2204,7 +2219,7 @@ function [] = passiveUS(input_project, input_plot)
                 %% POST CON
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 CON_POST_angle_vars{CON_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -2241,7 +2256,7 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
@@ -2271,7 +2286,7 @@ function [] = passiveUS(input_project, input_plot)
                 %% POST STR
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 STR_POST_angle_vars{STR_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
@@ -2308,7 +2323,7 @@ function [] = passiveUS(input_project, input_plot)
                     data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
                     MTU_length_array(:,9) ...                                        36
                     MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
                 % all data in ONE cell, NORMALIZED data:
@@ -2340,6 +2355,40 @@ function [] = passiveUS(input_project, input_plot)
         end
         %%
         
+        
+        
+        %% prepare prone arrays for group plots & stats
+         if input_project == 1 % BD study
+         %% BD study
+            if trial_subjectno > 100 % BD subject
+                %% BD subjects
+                BD_prone(BD_count,:) = MTU_prone_vars;
+                %% END BD subjects
+            else
+                %% CON subjects
+                CON_prone(CON_count,:) = MTU_prone_vars;
+                %% END CON subjects
+            end
+         %%
+        else % project == 2 == intervention
+         %% intervention study
+         % LATER
+            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                %% PRE CON
+                %% END PRE CON
+            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                %% PRE STR
+                %% END PRE STR
+            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                %% POST CON
+                %% END POST CON
+            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                %% POST STR
+                %% END POST STR
+            end
+         %% 
+        end
+        %%
         
         
         %% prepare arrays for individual trial data to file
@@ -2409,12 +2458,11 @@ function [] = passiveUS(input_project, input_plot)
     %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if input_project == 1 % BD study
         BD_angle_vars(BD_count+1:end) = [];
-        %BD_angle_vars_mean(BD_count+1:end) = [];
         BD_angle_vars_norm(BD_count+1:end) = [];
-        %BD_angle_vars_norm_indlength(BD_count+1:end) = [];
-        %BD_angle_vars_norm_mean(BD_count+1:end) = [];
+        %BD_prone(BD_count+1:end,:) = [];
         CON_angle_vars(CON_count+1:end) = [];
         CON_angle_vars_norm(CON_count+1:end) = [];
+        %CON_prone(CON_count+1:end,:) = [];
     else % intervention study
         CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
         CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
@@ -2453,9 +2501,6 @@ function [] = passiveUS(input_project, input_plot)
     % TMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
-    
-
-    
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
@@ -2772,46 +2817,6 @@ function [] = passiveUS(input_project, input_plot)
     %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if input_project == 1 && toggle_normalization == 1
 
-%     % old version 2 - replacing direcly in angle_vars arrays
-%         %%% in angle_vars arrays, replace absolute values with
-%         %%% normalization to initial leg length:
-%         
-%         % --- angle_vars arrays:
-%         % 14 L_MTU/calf
-%         
-%         % 28 elong msc GM (from Lichtwark/Fukunaga)
-%         % 36 length msc GM (from Lichtwark/Fukunaga)
-%         
-%         % 29 elong tend GM (from Lichtwark/Fukunaga)
-%         % 37 length tend GM (from Lichtwark/Fukunaga)
-% 
-%         % 34 ELONG faslen GM (from Lichtwark)
-%         % 32 LENGTH faslen GM (from Lichtwark)
-%         
-%         for i = 1:BD_count
-%             % MTU length, elong --- normalized as MTU strain
-%             % GM tendon length, elong
-%             BD_angle_vars{i}(:,37) = BD_angle_vars{i}(:,37)/BD_angle_vars{i}(1,14)*100; % in percent
-%             BD_angle_vars{i}(:,29) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14)*100; % in percent
-%             % GM muscle length, elong
-%             BD_angle_vars{i}(:,36) = BD_angle_vars{i}(:,36)/BD_angle_vars{i}(1,14)*100; % in percent
-%             BD_angle_vars{i}(:,28) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14)*100; % in percent
-%             % GM fascicle length, elong
-%             BD_angle_vars{i}(:,32) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14)*100; % in percent
-%             BD_angle_vars{i}(:,34) = BD_angle_vars{i}(:,34)/BD_angle_vars{i}(1,14)*100; % in percent
-%         end
-%         for i = 1:CON_count
-%             % GM tendon length, elong
-%             CON_angle_vars{i}(:,37) = CON_angle_vars{i}(:,37)/CON_angle_vars{i}(1,14)*100; % in percent
-%             CON_angle_vars{i}(:,29) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14)*100; % in percent
-%             % GM muscle length, elong
-%             CON_angle_vars{i}(:,36) = CON_angle_vars{i}(:,36)/CON_angle_vars{i}(1,14)*100; % in percent
-%             CON_angle_vars{i}(:,28) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14)*100; % in percent
-%             % GM fascicle length, elong
-%             CON_angle_vars{i}(:,32) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14)*100; % in percent
-%             CON_angle_vars{i}(:,34) = CON_angle_vars{i}(:,34/CON_angle_vars{i}(1,14)*100; % in percent
-%         end
-
         %%% adjust relevant axes:
         axis_el_GMFAS = [-1 35 0 3];
         axis_len_GMFAS = [-1 35 0 22];
@@ -2824,39 +2829,7 @@ function [] = passiveUS(input_project, input_plot)
         
         txt_elong = 'Elongation (% of leg length)';
         txt_length = 'Length (% of leg length)';
-        
-    % old version 1 - saving normalized as separate array:
-%         % preallocate
-%         BD_norm_len_GM{BD_count} = zeros;
-%         CON_norm_len_GM{CON_count} = zeros;
-%         
-%         % GM lengths, normalized to leg length:
-%         %   1 = angle
-%         %   2 = tendon     - LENGTHS
-%         %   3 = muscle
-%         %   4 = fascicle
-%         %   5 = tendon     - ELONGATIONS
-%         %   6 = muscle
-%         %   7 = fascicle
-%         for i = 1:length(BD_count)
-%             BD_norm_len_GM{i}(:,1) = BD_angle_vars{i}(:,1);
-%             BD_norm_len_GM{i}(:,2) = (BD_angle_vars{i}(:,29)+BD_angle_vars{i}(1,13))/BD_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
-%             BD_norm_len_GM{i}(:,3) = (BD_angle_vars{i}(:,28)+BD_angle_vars{i}(1,17))/BD_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
-%             BD_norm_len_GM{i}(:,4) = BD_angle_vars{i}(:,32)/BD_angle_vars{i}(1,14); % divide by initial leg length
-%             BD_norm_len_GM{i}(:,5) = BD_angle_vars{i}(:,29)/BD_angle_vars{i}(1,14); % Divide by initial leg length
-%             BD_norm_len_GM{i}(:,6) = BD_angle_vars{i}(:,28)/BD_angle_vars{i}(1,14); % divide by initial leg length
-%             BD_norm_len_GM{i}(:,7) = (BD_angle_vars{i}(:,32)-BD_angle_vars{i}(1,32))/BD_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
-%         end
-%         for i = 1:length(CON_count)
-%             CON_norm_len_GM{i}(:,1) = CON_angle_vars{i}(:,1);
-%             CON_norm_len_GM{i}(:,2) = (CON_angle_vars{i}(:,29)+CON_angle_vars{i}(1,13))/CON_angle_vars{i}(1,14); % elong->len by initial tendon length. Divide by initial leg length.
-%             CON_norm_len_GM{i}(:,3) = (CON_angle_vars{i}(:,28)+CON_angle_vars{i}(1,17))/CON_angle_vars{i}(1,14); % elong->len by initial muscle length. divide by initial leg length
-%             CON_norm_len_GM{i}(:,4) = CON_angle_vars{i}(:,32)/CON_angle_vars{i}(1,14); % divide by initial leg length
-%             CON_norm_len_GM{i}(:,5) = CON_angle_vars{i}(:,29)/CON_angle_vars{i}(1,14); % Divide by initial leg length
-%             CON_norm_len_GM{i}(:,6) = CON_angle_vars{i}(:,28)/CON_angle_vars{i}(1,14); % divide by initial leg length
-%             CON_norm_len_GM{i}(:,7) = (CON_angle_vars{i}(:,32)-CON_angle_vars{i}(1,32))/CON_angle_vars{i}(1,14); % len->elong by initial faslen. divide by initial leg length
-%         end
-        
+
     end
     %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -2868,6 +2841,11 @@ function [] = passiveUS(input_project, input_plot)
     %%%  mean and stdav of each subject's INDIVIDUAL MAX ROM, force, elong, EMG, etc
     if input_project == 1
         %% BD study
+        
+        % prone variables
+        BD_prone_mean = mean(BD_prone);
+        CON_prone_mean = mean(CON_prone);
+        
         n_o_array_elements = length(CON_angle_vars{1,1}(1,:));
         if BD_count > 0
             % preallocate array
@@ -3705,10 +3683,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,2),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,2),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_F_mean, BD_F_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_F_mean, CON_F_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_F_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_F_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_F_mean, BD_F_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_F_mean, CON_F_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_F_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_F_mean, CON_ROM_SD, 'b.')
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
@@ -3795,20 +3773,20 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,18),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,18),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_torque_mean, BD_torque_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_torque_mean, CON_torque_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_torque_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_torque_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_torque_mean, BD_torque_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_torque_mean, CON_torque_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_torque_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_torque_mean, CON_ROM_SD, 'b.')
                 ylabel('Torque (Nm)')
                 axis(axis_torque)
                 % plot EMG
                 yyaxis right
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,3),'y','LineWidth',1) % GM
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,3),'y--','LineWidth',1) % GM
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,4),'m','LineWidth',1) % GL 
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,4),'m--','LineWidth',1) % GL
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,5),'c','LineWidth',1) % SOL
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,5),'c--','LineWidth',1) % SOL
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,3),'y','LineWidth',0.5) % GM
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,3),'y--','LineWidth',0.5) % GM
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,4),'m','LineWidth',0.5) % GL 
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,4),'m--','LineWidth',0.5) % GL
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,5),'c','LineWidth',0.5) % SOL
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,5),'c--','LineWidth',0.5) % SOL
                 ylabel(txt_emg)
                 xlabel(txt_gonio)
                 title(plottitle)
@@ -3894,10 +3872,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,12),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,12),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_L_at_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_L_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_L_at_SOL_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_L_at_SOL_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_at_SOL_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_at_SOL_mean, CON_ROM_SD, 'b.')
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -3952,10 +3930,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,21),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,21),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_strain_at_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_strain_at_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_strain_at_SOL_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_strain_at_SOL_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_at_SOL_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_at_SOL_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4028,10 +4006,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,6),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,6),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_AT_mean, BD_elong_AT_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_AT_mean, CON_elong_AT_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_AT_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_AT_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_elong_AT_mean, BD_elong_AT_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_AT_mean, CON_elong_AT_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_AT_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_AT_mean, CON_ROM_SD, 'b.')
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4077,10 +4055,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,13),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,13),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_L_at_GM_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_L_at_GM_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_L_at_GM_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_L_at_GM_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_at_GM_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_at_GM_mean, CON_ROM_SD, 'b.')
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -4135,10 +4113,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,22),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,22),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_strain_at_GM_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_strain_at_GM_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_strain_at_GM_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_strain_at_GM_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_at_GM_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_at_GM_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4211,10 +4189,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,7),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,7),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_elong_GMtend_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_elong_GMtend_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_elong_GMtend_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_elong_GMtend_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_GMtend_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_GMtend_mean, CON_ROM_SD, 'b.')
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4260,10 +4238,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,16),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,16),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_L_GMapo_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_L_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_L_GMapo_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_L_GMapo_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_GMapo_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_GMapo_mean, CON_ROM_SD, 'b.')
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -4318,10 +4296,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,25),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,25),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_strain_GMapo_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_strain_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_strain_GMapo_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_strain_GMapo_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_GMapo_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_GMapo_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4395,10 +4373,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,10),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,10),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_elong_GMapo_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_elong_GMapo_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_elong_GMapo_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_elong_GMapo_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_GMapo_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_GMapo_mean, CON_ROM_SD, 'b.')
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4444,10 +4422,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,20),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,20),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_L_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_L_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_L_msc_SOL_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_L_msc_SOL_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_msc_SOL_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_msc_SOL_mean, CON_ROM_SD, 'b.')
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -4502,10 +4480,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,27),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,27),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_strain_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_strain_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_strain_msc_SOL_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_strain_msc_SOL_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_msc_SOL_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_msc_SOL_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4578,10 +4556,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,19),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,19),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_elong_msc_SOL_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_elong_msc_SOL_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_elong_msc_SOL_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_elong_msc_SOL_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_msc_SOL_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_msc_SOL_mean, CON_ROM_SD, 'b.')
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4627,10 +4605,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,17),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,17),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_L_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_L_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_L_msc_GM_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_L_msc_GM_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_msc_GM_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_msc_GM_mean, CON_ROM_SD, 'b.')
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -4685,10 +4663,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,26),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,26),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_strain_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_strain_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_strain_msc_GM_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_strain_msc_GM_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_msc_GM_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_msc_GM_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4762,10 +4740,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,11),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,11),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_elong_msc_GM_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_elong_msc_GM_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_elong_msc_GM_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_elong_msc_GM_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_msc_GM_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_msc_GM_mean, CON_ROM_SD, 'b.')
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4810,11 +4788,14 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,36),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,36),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_length_msc_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_length_msc_GM_licht_mean, BD_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_len_GMmsc_arch)
+                herrorbar(BD_ROM_mean, BD_length_msc_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_length_msc_GM_licht_mean, BD_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_length_msc_GM_licht_mean, CON_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMmsc_Fukunaga),'ro')
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMmsc_Fukunaga),'bo')
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4829,7 +4810,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,36))
                 end
-                axis(axis_len_GMmsc_arch)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:BD_count
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMmsc_Fukunaga),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4843,7 +4829,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,36))
                 end
-                axis(axis_len_GMmsc_arch)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_count
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMmsc_Fukunaga),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4858,10 +4849,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,28),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,28),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_elong_msc_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_elong_msc_GM_licht_mean, BD_elong_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_msc_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_elong_msc_GM_licht_mean, BD_elong_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_elong_msc_GM_licht_mean, CON_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -4906,10 +4897,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,30),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,30),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_strain_msc_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_strain_msc_GM_licht_mean, BD_strain_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_msc_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_strain_msc_GM_licht_mean, BD_strain_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_strain_msc_GM_licht_mean, CON_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -4948,18 +4939,21 @@ function [] = passiveUS(input_project, input_plot)
             end
             
 
-            %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from GM arch) length vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,37),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,37),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_length_tend_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_length_tend_GM_licht_mean, BD_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_len_SEE_arch)
+                herrorbar(BD_ROM_mean, BD_length_tend_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_length_tend_GM_licht_mean, BD_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_length_tend_GM_licht_mean, CON_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_SEE_Fukunaga),'ro')
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_SEE_Fukunaga),'bo')
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4974,7 +4968,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,37))
                 end
-                axis(axis_len_SEE_arch)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:BD_count
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_SEE_Fukunaga),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4988,7 +4987,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,37))
                 end
-                axis(axis_len_SEE_arch)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_count
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_SEE_Fukunaga),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -4996,17 +5000,17 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             
-            %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from GM arch) elongation vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,29),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,29),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_elong_tend_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_elong_tend_GM_licht_mean, BD_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_tend_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_elong_tend_GM_licht_mean, BD_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_elong_tend_GM_licht_mean, CON_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -5044,17 +5048,17 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
             
-            %% GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from GM arch) strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,31),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,31),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_strain_tend_GM_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_strain_tend_GM_licht_mean, BD_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_tend_GM_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_strain_tend_GM_licht_mean, BD_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_strain_tend_GM_licht_mean, CON_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -5100,11 +5104,14 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,32),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,32),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_len_GMFAS)
+                herrorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMapo),'ro') % GMapo contains faslen
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMapo),'bo')
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -5119,7 +5126,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,32))
                 end
-                axis(axis_len_GMFAS)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:BD_count
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMapo),'o') % GMapo contains faslen
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -5133,6 +5145,11 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,32))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_count
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMapo),'o') % GMapo contains faslen
+                end
+                h = breakxaxis([-20 -5]);
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -5148,10 +5165,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,34),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,34),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_elong_GMfas_licht_mean, BD_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_elong_GMfas_licht_mean, CON_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -5196,10 +5213,10 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,35),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,35),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_strain_GMfas_licht_mean, BD_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_strain_GMfas_licht_mean, CON_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -5244,11 +5261,14 @@ function [] = passiveUS(input_project, input_plot)
                 hold on
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,33),'r','LineStyle','-','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,33),'b','LineStyle','-','LineWidth',2)
-                herrorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_ROM_SD, '*r')
-                errorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
-                herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, '*b')
-                errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
-                axis(axis_penn_GMFAS)
+                herrorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_ROM_SD, 'r.')
+                errorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, 'b.')
+                errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMFAS),'ro') % GMfas contains penn angle
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMFAS),'bo')
+                h = breakxaxis([-20 -5]);
+                %axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
@@ -5263,7 +5283,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,33))
                 end
-                axis(axis_penn_GMFAS)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:BD_count
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMFAS),'o') % GMfas contains penn angle
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
@@ -5277,7 +5302,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,33))
                 end
-                axis(axis_penn_GMFAS)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_count
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMFAS),'o') % GMfas contains penn angle
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle)
@@ -5294,10 +5324,13 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,14),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,14),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_L_MTU_mean, BD_L_MTU_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_L_MTU_mean, CON_L_MTU_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_L_MTU_mean, BD_L_MTU_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_L_MTU_mean, CON_L_MTU_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, 'b.')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_leg),'ro')
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_leg),'bo')
+                h = breakxaxis([-20 -5]);
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -5312,7 +5345,12 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:BD_count
                     plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,14))
                 end
-                axis(axis_len_MTU)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:BD_count
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_leg),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
@@ -5326,13 +5364,68 @@ function [] = passiveUS(input_project, input_plot)
                 for i = 1:CON_count
                     plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,14))
                 end
-                axis(axis_len_MTU)
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_count
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_leg),'o')
+                end
+                h = breakxaxis([-20 -5]);
+                %axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle)
                 %legend
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
+            
+            %% Full MTU: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            if BD_count > 1 && CON_count > 1 && plot_check
+                plottitle = horzcat('MTU elongation vs angle - 1');
+                figure('Name',plottitle)
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,8),'r','LineWidth',2)
+                hold on
+                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,8),'b','LineWidth',2)
+                errorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_elong_MTU_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_elong_MTU_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_ROM_SD, 'b.')
+                axis(axis_el_MTU)
+                xlabel(txt_gonio)
+                ylabel(txt_elong)
+                title(plottitle)
+                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if BD_count > 1 && plot_check
+                plottitle = horzcat('MTU elongation vs angle - 2 ind curves dancers');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:BD_count
+                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,8))
+                end
+                axis(axis_el_MTU)
+                xlabel(txt_gonio)
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            if CON_count > 1 && plot_check
+                plottitle = horzcat('MTU elongation vs angle - 3 ind curves controls');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_count
+                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,8))
+                end
+                axis(axis_el_MTU)
+                xlabel(txt_gonio)
+                ylabel(txt_elong)
+                title(plottitle)
+                %legend
+                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+            end
+            
+            %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % commenting out MTU strain plots since they simply show the Grieve calculation factor
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('MTU strain vs angle - 4 NORMALIZED');
@@ -5353,10 +5446,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,23),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,23),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_strain_MTU_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_strain_MTU_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_strain_MTU_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_strain_MTU_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_strain_MTU_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_strain_MTU_mean, CON_ROM_SD, 'b.')
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
@@ -5421,54 +5514,6 @@ function [] = passiveUS(input_project, input_plot)
                 saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
             end
                         
-            %% Full MTU: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            if BD_count > 1 && CON_count > 1 && plot_check
-                plottitle = horzcat('MTU elongation vs angle - 1');
-                figure('Name',plottitle)
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,8),'r','LineWidth',2)
-                hold on
-                plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,8),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_elong_MTU_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_elong_MTU_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_elong_MTU_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_elong_MTU_mean, CON_ROM_SD, '*b')
-                axis(axis_el_MTU)
-                xlabel(txt_gonio)
-                ylabel(txt_elong)
-                title(plottitle)
-                legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if BD_count > 1 && plot_check
-                plottitle = horzcat('MTU elongation vs angle - 2 ind curves dancers');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:BD_count
-                    plot(BD_angle_vars{1,i}(:,1),BD_angle_vars{1,i}(:,8))
-                end
-                axis(axis_el_MTU)
-                xlabel(txt_gonio)
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            if CON_count > 1 && plot_check
-                plottitle = horzcat('MTU elongation vs angle - 3 ind curves controls');
-                figure('Name',plottitle)
-                hold on
-                for i = 1:CON_count
-                    plot(CON_angle_vars{1,i}(:,1),CON_angle_vars{1,i}(:,8))
-                end
-                axis(axis_el_MTU)
-                xlabel(txt_gonio)
-                ylabel(txt_elong)
-                title(plottitle)
-                %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
-            end
-            
             
             %% GMFAS scans: Displacement vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
@@ -5478,10 +5523,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,9),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,9),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_displ_GMFAS_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_displ_GMFAS_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_displ_GMFAS_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_displ_GMFAS_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_displ_GMFAS_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_displ_GMFAS_mean, CON_ROM_SD, 'b.')
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
@@ -5564,10 +5609,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,3),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,3),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_EMG_gm_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_EMG_gm_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_EMG_gm_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_EMG_gm_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_EMG_gm_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_EMG_gm_mean, CON_ROM_SD, 'b.')
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
@@ -5612,10 +5657,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,4),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,4),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_EMG_gl_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_EMG_gl_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_EMG_gl_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_EMG_gl_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_EMG_gl_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_EMG_gl_mean, CON_ROM_SD, 'b.')
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
@@ -5660,10 +5705,10 @@ function [] = passiveUS(input_project, input_plot)
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,5),'r','LineWidth',2)
                 hold on
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,5),'b','LineWidth',2)
-                errorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_EMG_sol_SD, '*r', 'MarkerFaceColor', 'r')
-                errorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_EMG_sol_SD, '*b', 'MarkerFaceColor', 'b')
-                herrorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_ROM_SD, '*r')
-                herrorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_ROM_SD, '*b')
+                errorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_EMG_sol_SD, 'r.', 'MarkerFaceColor', 'r')
+                errorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_EMG_sol_SD, 'b.', 'MarkerFaceColor', 'b')
+                herrorbar(BD_ROM_mean, BD_EMG_sol_mean, BD_ROM_SD, 'r.')
+                herrorbar(CON_ROM_mean, CON_EMG_sol_mean, CON_ROM_SD, 'b.')
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
@@ -5714,14 +5759,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,2),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_F_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_F_mean, STR_PRE_F_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_F_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_F_mean, STR_POST_F_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_F_mean, STR_PRE_F_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_F_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_F_mean, STR_POST_F_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_F_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_F_mean, CON_PRE_F_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_F_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_F_mean, CON_POST_F_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_F_mean, CON_PRE_F_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_F_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_F_mean, CON_POST_F_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_force)
                 xlabel(txt_gonio)
@@ -5820,14 +5865,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,18),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_torque_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_torque_mean, STR_PRE_torque_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_torque_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_torque_mean, STR_POST_torque_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_torque_mean, STR_PRE_torque_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_torque_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_torque_mean, STR_POST_torque_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_torque_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_torque_mean, CON_PRE_torque_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_torque_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_torque_mean, CON_POST_torque_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_torque_mean, CON_PRE_torque_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_torque_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_torque_mean, CON_POST_torque_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_torque)
                 xlabel(txt_gonio)
@@ -5906,14 +5951,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,12),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_at_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_at_SOL_mean, STR_PRE_L_at_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_at_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_at_SOL_mean, STR_POST_L_at_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_at_SOL_mean, STR_PRE_L_at_SOL_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_at_SOL_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_at_SOL_mean, STR_POST_L_at_SOL_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_at_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_at_SOL_mean, CON_PRE_L_at_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_at_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_at_SOL_mean, CON_POST_L_at_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_at_SOL_mean, CON_PRE_L_at_SOL_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_at_SOL_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_at_SOL_mean, CON_POST_L_at_SOL_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
@@ -5992,14 +6037,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,6),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_AT_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_AT_mean, STR_PRE_elong_AT_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_AT_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_AT_mean, STR_POST_elong_AT_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_AT_mean, STR_PRE_elong_AT_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_AT_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_AT_mean, STR_POST_elong_AT_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_AT_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_AT_mean, CON_PRE_elong_AT_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_AT_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_AT_mean, CON_POST_elong_AT_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_AT_mean, CON_PRE_elong_AT_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_AT_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_AT_mean, CON_POST_elong_AT_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
@@ -6078,14 +6123,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,21),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_SOL_mean, STR_PRE_strain_at_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_at_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_at_SOL_mean, STR_POST_strain_at_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_SOL_mean, STR_PRE_strain_at_SOL_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_at_SOL_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_at_SOL_mean, STR_POST_strain_at_SOL_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_SOL_mean, CON_PRE_strain_at_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_at_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_at_SOL_mean, CON_POST_strain_at_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_SOL_mean, CON_PRE_strain_at_SOL_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_at_SOL_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_at_SOL_mean, CON_POST_strain_at_SOL_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
@@ -6164,14 +6209,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,13),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_at_GM_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_at_GM_mean, STR_PRE_L_at_GM_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_at_GM_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_at_GM_mean, STR_POST_L_at_GM_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_at_GM_mean, STR_PRE_L_at_GM_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_at_GM_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_at_GM_mean, STR_POST_L_at_GM_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_at_GM_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_at_GM_mean, CON_PRE_L_at_GM_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_at_GM_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_at_GM_mean, CON_POST_L_at_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_at_GM_mean, CON_PRE_L_at_GM_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_at_GM_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_at_GM_mean, CON_POST_L_at_GM_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
@@ -6250,14 +6295,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,7),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMtend_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMtend_mean, STR_PRE_elong_GMtend_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMtend_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMtend_mean, STR_POST_elong_GMtend_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMtend_mean, STR_PRE_elong_GMtend_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMtend_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMtend_mean, STR_POST_elong_GMtend_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMtend_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMtend_mean, CON_PRE_elong_GMtend_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMtend_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMtend_mean, CON_POST_elong_GMtend_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMtend_mean, CON_PRE_elong_GMtend_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMtend_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMtend_mean, CON_POST_elong_GMtend_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
@@ -6336,14 +6381,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,22),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_GM_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_GM_mean, STR_PRE_strain_at_GM_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_at_GM_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_at_GM_mean, STR_POST_strain_at_GM_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_at_GM_mean, STR_PRE_strain_at_GM_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_at_GM_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_at_GM_mean, STR_POST_strain_at_GM_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_GM_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_GM_mean, CON_PRE_strain_at_GM_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_at_GM_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_at_GM_mean, CON_POST_strain_at_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_at_GM_mean, CON_PRE_strain_at_GM_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_at_GM_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_at_GM_mean, CON_POST_strain_at_GM_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
@@ -6422,14 +6467,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,16),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_GMapo_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_GMapo_mean, STR_PRE_L_GMapo_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_GMapo_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_GMapo_mean, STR_POST_L_GMapo_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_GMapo_mean, STR_PRE_L_GMapo_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_GMapo_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_GMapo_mean, STR_POST_L_GMapo_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_GMapo_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_GMapo_mean, CON_PRE_L_GMapo_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_GMapo_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_GMapo_mean, CON_POST_L_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_GMapo_mean, CON_PRE_L_GMapo_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_GMapo_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_GMapo_mean, CON_POST_L_GMapo_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
@@ -6508,14 +6553,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,10),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMapo_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMapo_mean, STR_PRE_elong_GMapo_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMapo_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMapo_mean, STR_POST_elong_GMapo_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMapo_mean, STR_PRE_elong_GMapo_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMapo_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMapo_mean, STR_POST_elong_GMapo_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMapo_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMapo_mean, CON_PRE_elong_GMapo_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMapo_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMapo_mean, CON_POST_elong_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMapo_mean, CON_PRE_elong_GMapo_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMapo_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMapo_mean, CON_POST_elong_GMapo_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
@@ -6594,14 +6639,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,25),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMapo_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMapo_mean, STR_PRE_strain_GMapo_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_GMapo_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_GMapo_mean, STR_POST_strain_GMapo_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMapo_mean, STR_PRE_strain_GMapo_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_GMapo_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_GMapo_mean, STR_POST_strain_GMapo_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMapo_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMapo_mean, CON_PRE_strain_GMapo_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_GMapo_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_GMapo_mean, CON_POST_strain_GMapo_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMapo_mean, CON_PRE_strain_GMapo_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_GMapo_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_GMapo_mean, CON_POST_strain_GMapo_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
@@ -6680,14 +6725,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,20),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_L_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_L_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_SOL_mean, STR_PRE_L_msc_SOL_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_SOL_mean, STR_POST_L_msc_SOL_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_L_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_L_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_SOL_mean, CON_PRE_L_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_SOL_mean, CON_POST_L_msc_SOL_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
@@ -6766,14 +6811,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,19),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_elong_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_elong_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_SOL_mean, STR_PRE_elong_msc_SOL_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_SOL_mean, STR_POST_elong_msc_SOL_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_elong_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_elong_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_SOL_mean, CON_PRE_elong_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_SOL_mean, CON_POST_elong_msc_SOL_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
@@ -6852,14 +6897,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,27),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_strain_msc_SOL_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_strain_msc_SOL_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_SOL_mean, STR_PRE_strain_msc_SOL_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_SOL_mean, STR_POST_strain_msc_SOL_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_strain_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_strain_msc_SOL_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_SOL_mean, CON_PRE_strain_msc_SOL_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_SOL_mean, CON_POST_strain_msc_SOL_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
@@ -6938,14 +6983,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,17),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_GM_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_GM_mean, STR_PRE_L_msc_GM_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_GM_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_GM_mean, STR_POST_L_msc_GM_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_msc_GM_mean, STR_PRE_L_msc_GM_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_msc_GM_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_msc_GM_mean, STR_POST_L_msc_GM_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_GM_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_GM_mean, CON_PRE_L_msc_GM_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_GM_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_GM_mean, CON_POST_L_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_msc_GM_mean, CON_PRE_L_msc_GM_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_msc_GM_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_msc_GM_mean, CON_POST_L_msc_GM_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
@@ -7024,14 +7069,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,11),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_mean, STR_PRE_elong_msc_GM_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_mean, STR_POST_elong_msc_GM_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_mean, STR_PRE_elong_msc_GM_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_mean, STR_POST_elong_msc_GM_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_mean, CON_PRE_elong_msc_GM_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_mean, CON_POST_elong_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_mean, CON_PRE_elong_msc_GM_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_mean, CON_POST_elong_msc_GM_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
@@ -7110,14 +7155,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,26),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_mean, STR_PRE_strain_msc_GM_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_mean, STR_POST_strain_msc_GM_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_mean, STR_PRE_strain_msc_GM_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_mean, STR_POST_strain_msc_GM_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_mean, CON_PRE_strain_msc_GM_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_mean, CON_POST_strain_msc_GM_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_mean, CON_PRE_strain_msc_GM_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_mean, CON_POST_strain_msc_GM_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
@@ -7197,14 +7242,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,36),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_length_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_length_msc_GM_licht_mean, STR_PRE_length_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_msc_GM_licht_mean, STR_PRE_length_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_msc_GM_licht_mean, STR_POST_length_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_length_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_length_msc_GM_licht_mean, CON_PRE_length_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_msc_GM_licht_mean, CON_PRE_length_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
@@ -7283,14 +7328,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,28),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_licht_mean, STR_PRE_elong_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_licht_mean, STR_POST_elong_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_msc_GM_licht_mean, STR_PRE_elong_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_msc_GM_licht_mean, STR_POST_elong_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_licht_mean, CON_PRE_elong_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_msc_GM_licht_mean, CON_PRE_elong_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_msc_GM_licht_mean, CON_POST_elong_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
@@ -7369,14 +7414,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,30),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_licht_mean, STR_PRE_strain_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_licht_mean, STR_POST_strain_msc_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_msc_GM_licht_mean, STR_PRE_strain_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_msc_GM_licht_mean, STR_POST_strain_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_licht_mean, CON_PRE_strain_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_msc_GM_licht_mean, CON_PRE_strain_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_msc_GM_licht_mean, CON_POST_strain_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
@@ -7455,14 +7500,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,37),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_length_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_length_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_length_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_length_tend_GM_licht_mean, CON_PRE_length_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_tend_GM_licht_mean, CON_PRE_length_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
@@ -7541,14 +7586,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,29),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_elong_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_elong_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_elong_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_tend_GM_licht_mean, CON_PRE_elong_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_tend_GM_licht_mean, CON_POST_elong_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
@@ -7627,14 +7672,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,31),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_tend_GM_licht_mean, STR_PRE_strain_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_tend_GM_licht_mean, STR_PRE_strain_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_tend_GM_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_tend_GM_licht_mean, CON_PRE_strain_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_tend_GM_licht_mean, CON_PRE_strain_tend_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_tend_GM_licht_mean, CON_POST_strain_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
@@ -7714,14 +7759,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,32),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_length_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_length_GMfas_licht_mean, STR_PRE_length_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_GMfas_licht_mean, STR_PRE_length_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_GMfas_licht_mean, STR_POST_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_length_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_length_GMfas_licht_mean, CON_PRE_length_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_GMfas_licht_mean, CON_PRE_length_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
@@ -7800,14 +7845,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,34),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMfas_licht_mean, STR_PRE_elong_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_GMfas_licht_mean, STR_PRE_elong_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_GMfas_licht_mean, STR_POST_elong_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMfas_licht_mean, CON_PRE_elong_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_GMfas_licht_mean, CON_PRE_elong_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_GMfas_licht_mean, CON_POST_elong_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
@@ -7886,14 +7931,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,35),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMfas_licht_mean, STR_PRE_strain_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_GMfas_licht_mean, STR_PRE_strain_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_GMfas_licht_mean, STR_POST_strain_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMfas_licht_mean, CON_PRE_strain_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_GMfas_licht_mean, CON_PRE_strain_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_GMfas_licht_mean, CON_POST_strain_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
@@ -7972,14 +8017,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,33),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_pennation_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_pennation_GMfas_licht_mean, STR_PRE_pennation_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_pennation_GMfas_licht_mean, STR_PRE_pennation_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_pennation_GMfas_licht_mean, STR_POST_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_pennation_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_pennation_GMfas_licht_mean, CON_PRE_pennation_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_pennation_GMfas_licht_mean, CON_PRE_pennation_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
@@ -8060,14 +8105,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,14),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_L_MTU_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_L_MTU_mean, STR_PRE_L_MTU_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_L_MTU_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_L_MTU_mean, STR_POST_L_MTU_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_L_MTU_mean, STR_PRE_L_MTU_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_L_MTU_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_L_MTU_mean, STR_POST_L_MTU_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_L_MTU_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_L_MTU_mean, CON_PRE_L_MTU_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_L_MTU_mean, CON_PRE_L_MTU_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
@@ -8146,14 +8191,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,8),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_MTU_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_MTU_mean, STR_PRE_elong_MTU_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_elong_MTU_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_elong_MTU_mean, STR_POST_elong_MTU_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_MTU_mean, STR_PRE_elong_MTU_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_MTU_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_MTU_mean, STR_POST_elong_MTU_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_MTU_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_MTU_mean, CON_PRE_elong_MTU_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_elong_MTU_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_elong_MTU_mean, CON_POST_elong_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_MTU_mean, CON_PRE_elong_MTU_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_MTU_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_MTU_mean, CON_POST_elong_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
@@ -8234,14 +8279,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,23),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_strain_MTU_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_strain_MTU_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_MTU_mean, STR_PRE_strain_MTU_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_strain_MTU_mean, STR_POST_strain_MTU_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_strain_MTU_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_strain_MTU_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_strain_MTU_mean, CON_PRE_strain_MTU_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_strain_MTU_mean, CON_POST_strain_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
@@ -8320,14 +8365,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,9),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_displ_GMFAS_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_displ_GMFAS_mean, STR_PRE_displ_GMFAS_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_displ_GMFAS_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_displ_GMFAS_mean, STR_POST_displ_GMFAS_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_displ_GMFAS_mean, STR_PRE_displ_GMFAS_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_displ_GMFAS_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_displ_GMFAS_mean, STR_POST_displ_GMFAS_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_displ_GMFAS_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_displ_GMFAS_mean, CON_PRE_displ_GMFAS_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_displ_GMFAS_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_displ_GMFAS_mean, CON_POST_displ_GMFAS_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_displ_GMFAS_mean, CON_PRE_displ_GMFAS_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_displ_GMFAS_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_displ_GMFAS_mean, CON_POST_displ_GMFAS_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
@@ -8409,14 +8454,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,3),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gm_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gm_mean, STR_PRE_EMG_gm_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_gm_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_EMG_gm_mean, STR_POST_EMG_gm_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gm_mean, STR_PRE_EMG_gm_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_gm_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_EMG_gm_mean, STR_POST_EMG_gm_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gm_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gm_mean, CON_PRE_EMG_gm_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_EMG_gm_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gm_mean, CON_PRE_EMG_gm_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_EMG_gm_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
                 xlabel(txt_gonio)
@@ -8495,14 +8540,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,4),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gl_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gl_mean, STR_PRE_EMG_gl_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_gl_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_EMG_gl_mean, STR_POST_EMG_gl_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_gl_mean, STR_PRE_EMG_gl_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_gl_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_EMG_gl_mean, STR_POST_EMG_gl_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gl_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gl_mean, CON_PRE_EMG_gl_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_EMG_gl_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_gl_mean, CON_PRE_EMG_gl_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_EMG_gl_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
                 xlabel(txt_gonio)
@@ -8581,14 +8626,14 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_POST_angle_vars_mean(:,1), CON_POST_angle_vars_mean(:,5),'b','LineStyle','-','LineWidth',1)
                 
                 herrorbar(STR_PRE_ROM_mean, STR_PRE_EMG_sol_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_sol_mean, STR_PRE_EMG_sol_SD, 'Color', col_lightred, 'Marker', '*', 'MarkerFaceColor', col_lightred)
-                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_sol_mean, STR_POST_ROM_SD, '*r')
-                errorbar(STR_POST_ROM_mean, STR_POST_EMG_sol_mean, STR_POST_EMG_sol_SD, 'Color', 'r', 'Marker', '*', 'MarkerFaceColor', 'r')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_sol_mean, STR_PRE_EMG_sol_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_sol_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_EMG_sol_mean, STR_POST_EMG_sol_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
                 herrorbar(CON_PRE_ROM_mean, CON_PRE_EMG_sol_mean, CON_PRE_ROM_SD, '*c')
-                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_sol_mean, CON_PRE_EMG_sol_SD, 'Color', col_lightblue, 'Marker', '*', 'MarkerFaceColor', col_lightblue)
-                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_ROM_SD, '*b')
-                errorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_EMG_sol_SD, 'Color', 'b', 'Marker', '*', 'MarkerFaceColor', 'b')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_sol_mean, CON_PRE_EMG_sol_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_EMG_sol_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
                 axis(axis_EMG)
                 xlabel(txt_gonio)

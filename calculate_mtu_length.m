@@ -7,7 +7,7 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, initial_at_SOL_length, initial_at_GM_length, initial_calf_length, initial_GM_pennation, initial_GM_faslen, angle_common)
+function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, in_resting_at_SOL_length, in_resting_at_GM_length, in_standing_calf_length, in_resting_GM_pennation, in_resting_GM_faslen, angle_common, in_resting_ankle_angle)
     global at_momentarm  % subject_id
 
     
@@ -22,13 +22,15 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
 
     %%% extract initial calf length in mm
     % my initial calf length = centimeters from lateral epicondyle to calc insertion
-    resting_leg_length = str2double(initial_calf_length) * 10;
+    standing_calf_length = str2double(in_standing_calf_length) * 10;
+    resting_ankle_angle = -str2double(in_resting_ankle_angle); % this plantarflexion angle is given as positive value in datamaster
     
     %%% Grieve 1978:
     % calculate percent change in MTU length, across angle array (degrees)
     % Grieve = gastroc MTU length, from tendon to tendon
     % angle array = full ROM test (angles in degrees)
-    % my data report ankle in neutral position as 0 degrees, Grieve: ankle in neutral position = 90 degrees
+    % my data: ankle in neutral position as 0 degrees, dorsiflexed as positive
+    % Grieve: ankle in neutral position = 90 degrees, dorsiflexed as more than 90 degrees  MMM 
     a0 = -22.18468;
     a1 = 0.30141;
     a2 = -0.00061;
@@ -36,8 +38,12 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     MTU_length_Grieve_rel = (a0 + (a1*(90+angle_array)) + (a2*(90+angle_array).^2))/100;
 
     % absolute calf/MTU length (mm), across angle array
-    MTU_length_Grieve_abs = resting_leg_length * (1 + MTU_length_Grieve_rel);
-
+    MTU_length_Grieve_abs = standing_calf_length * (1 + MTU_length_Grieve_rel);
+    
+    % resting MTU length (prone position)
+    resting_leg_length_rel = (a0 + (a1*(90+resting_ankle_angle)) + (a2*(90+resting_ankle_angle).^2))/100;
+    resting_leg_length_abs = standing_calf_length * (1 + resting_leg_length_rel);
+    
     %%% Hawkins & Hull (1990)
     % "normalized muscle tendon length" = normalized to shank = lateral malleolus to lateral epicondyle
     % base equation: calf_length_array_HH = C0 + (C1*aH) + (C2*aK) + (C3*(aK^2)) + (C4*aA);
@@ -63,15 +69,20 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     MTU_length_HH_SOL_rel = C0 + (C1*aH) + (C2*aK) + (C3*(aK^2)) + (C4*aA);
     
     % correction for H&H: 
-    % we KNOW the exact initial MTU length = calc insert to lat epi = 100% length (instead of H&H which says MTU length = ~108% of lat mall to lat epi)
+    % we KNOW the exact initial MTU length = calc insert to lat epi = 100% length (instead of H&H which says MTU length = ~109% of lat mall to lat epi)
     % first data point = 0 degrees ankle = 100% length
     % extracting length change from this point (% of calf/MTU length)
-    MTU_length_HH_GM_abs = resting_leg_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
-    MTU_length_HH_SOL_abs = resting_leg_length * MTU_length_HH_SOL_rel;
+    % OLD
+    MTU_length_HH_GM_abs_old = standing_calf_length * (1+(MTU_length_HH_GM_rel - MTU_length_HH_GM_rel(1)));
+    % NEW mathematically more correct:
+    standing_leg_length_HH = standing_calf_length/MTU_length_HH_GM_rel(1);
+    MTU_length_HH_GM_abs = standing_leg_length_HH * MTU_length_HH_GM_rel;
+    
+    MTU_length_HH_SOL_abs = standing_calf_length * MTU_length_HH_SOL_rel;
     
     %%% elongation from ankle rotation and moment arm (geometry)
     % convert momentarm from m to mm (* 1000)
-    MTU_length_geometry = resting_leg_length + (at_momentarm * 1000 * sind(angle_array));
+    MTU_length_geometry = standing_calf_length + (at_momentarm * 1000 * sind(angle_array));
 
 %     %%% plot method comparison
 %     plottitle = horzcat('Comparison of MTU length models, ', subject_id);
@@ -94,7 +105,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     %%%%%%% Length of free Achilles tendon
 
     % Initial length = measured seated in Achilles machine, ankle 0 degrees, US still images of "railway" across lower leg. Length in mm.
-    AT_SOL_length = str2double(initial_at_SOL_length);
+    AT_SOL_length = str2double(in_resting_at_SOL_length);
     % reshape displacement:
     AT_SOL_displ = spline(angle_displ_SOL(:,1), angle_displ_SOL(:,2), angle_array);
     % convert to length + reshape
@@ -104,7 +115,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
     
     
     %%%%%%% Length of Achilles tendon up to GM insertion ("GM tendon")
-    AT_GM_length = str2double(initial_at_GM_length);
+    AT_GM_length = str2double(in_resting_at_GM_length);
     % reshape displacement:
     AT_GM_displ = spline(angle_displ_GMMTJ(:,1), angle_displ_GMMTJ(:,2), angle_array);
     % convert to length + reshape
@@ -139,9 +150,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         %   averaged fascicle elongation
         %   averaged fascicle strain
         
-    resting_GM_pennation = str2double(initial_GM_pennation);
-    resting_GM_faslen = str2double(initial_GM_faslen);
-    resting_GM_msc_len = resting_GM_faslen * cosd(resting_GM_pennation);
+    in_resting_GM_pennation = str2double(in_resting_GM_pennation);
+    in_resting_GM_faslen = str2double(in_resting_GM_faslen);
+    resting_GM_msc_len = in_resting_GM_faslen * cosd(in_resting_GM_pennation);
 
     if angle_GM_Fukunaga == 0
         msc_GM_elong_Fukunaga(1:length(angle_array),1) = zeros;
@@ -167,8 +178,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         
         % remainder - SEE length:
         SEE_length_Fukunaga = MTU_GM_length - msc_GM_length_Fukunaga;
-        SEE_elong_Fukunaga = SEE_length_Fukunaga - (resting_leg_length - resting_GM_msc_len);
-        SEE_strain_Fukunaga = SEE_elong_Fukunaga / (resting_leg_length - resting_GM_msc_len) * 100;
+        SEE_elong_Fukunaga = SEE_length_Fukunaga - (standing_calf_length - resting_GM_msc_len);
+        SEE_strain_Fukunaga = SEE_elong_Fukunaga / (standing_calf_length - resting_GM_msc_len) * 100;
     end
     
     
@@ -213,5 +224,19 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array] = calculate_mtu_l
         msc_GM_strain_Fukunaga ...
     	SEE_strain_Fukunaga ...
         ]; 
+    
+    resting_SEE = resting_leg_length_abs-resting_GM_msc_len;
+    resting_vars = [resting_ankle_angle 0 0 resting_leg_length_abs in_resting_GM_pennation in_resting_GM_faslen 0 0 resting_GM_msc_len resting_SEE];
+
+        col_angle_elong = 1;
+        col_AT = 2;
+        col_GMtend = 3;
+        col_leg = 4;
+        col_GMFAS = 5; % in rest: pennation angle
+        col_GMapo = 6; % in rest: faslen
+        col_GMmsc = 7;
+        col_SOLmsc = 8;
+        col_GMmsc_Fukunaga = 9;
+        col_SEE_Fukunaga = 10;
     
 end

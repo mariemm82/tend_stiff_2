@@ -3,24 +3,26 @@
 % Marie Moltubakk 4.2.2015
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function out = read_datamaster_passive(file,datamaster_columns)
+function out = read_datamaster_passive(file)
     global dm_subjectno dm_timepoint dm_side dm_trial 
     global dm_ROM_sol1_NX dm_ROM_sol1_US dm_ROM_sol1_US_frame dm_ROM_sol2_NX dm_ROM_sol2_US dm_ROM_sol2_US_frame
     global dm_ROM_gmmtj1_NX dm_ROM_gmmtj1_US dm_ROM_gmmtj1_US_frame dm_ROM_gmmtj2_NX dm_ROM_gmmtj2_US dm_ROM_gmmtj2_US_frame
     global dm_ROM_gmfas1_NX dm_ROM_gmfas1_US dm_ROM_gmfas1_US_frame dm_ROM_gmfas2_NX dm_ROM_gmfas2_US dm_ROM_gmfas2_US_frame dm_ROM_gmfas1_licht dm_ROM_gmfas2_licht
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_CPM_sol_US dm_CPM_sol_US_frame 
-    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen
+    global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen dm_ankle_angle_rest
 
     % import datamaster file
     data = fileread(file);
     datamaster = textscan(data, '%q','Delimiter','\t');
-
+    
+    dm_columns = 38; % number of data columns entered per subject % PROJECTSPECIFIC
+    
     % restructure imported data into multiple columns
     % n o lines = 1 header + 1 per subject entry
-    nolines = length(datamaster{1,1})/datamaster_columns;
+    nolines = length(datamaster{1,1})/dm_columns;
 
     for i = 2:nolines
-        delta = (i-1)*datamaster_columns;
+        delta = (i-1)*dm_columns;
         dm_subjectno{i-1,1}=datamaster{1,1}{delta+1,1};
         dm_timepoint{i-1,1}=datamaster{1,1}{delta+2,1};
         dm_side{i-1,1}=datamaster{1,1}{delta+3,1};
@@ -60,6 +62,7 @@ function out = read_datamaster_passive(file,datamaster_columns)
         dm_at_GM_length{i-1,1}=datamaster{1,1}{delta+35,1};
         dm_GMmsc_penn{i-1,1}=datamaster{1,1}{delta+36,1};
         dm_GMmsc_faslen{i-1,1}=datamaster{1,1}{delta+37,1};
+        dm_ankle_angle_rest{i-1,1}=datamaster{1,1}{delta+38,1};
     end
 
     out = nolines-1; % lines in datamaster to be analysed, minus header

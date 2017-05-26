@@ -7,7 +7,7 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, in_resting_at_SOL_length, in_resting_at_GM_length, in_standing_calf_length, in_resting_GM_pennation, in_resting_GM_faslen, angle_common, in_resting_ankle_angle)
+function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, in_resting_at_SOL_length, in_resting_at_GM_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle)
     global at_momentarm  % subject_id
 
     
@@ -22,11 +22,6 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
 
     %% LENGTH of whole MTU (ELONVATION is based on prone/resting length - further down)
 
-    %%% extract input data
-    % my initial calf length = centimeters from lateral epicondyle to calc insertion
-    standing_calf_length = str2double(in_standing_calf_length) * 10; % in millimeters
-    resting_ankle_angle = -str2double(in_resting_ankle_angle); % this plantarflexion angle is given as positive value in datamaster
-    
     %%% Grieve (1978)
     % calculate percent change in MTU length, across angle array (degrees)
     % Grieve = gastroc MTU length, from tendon to tendon
@@ -170,9 +165,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
         %   averaged fascicle elongation
         %   averaged fascicle strain
         
-    in_resting_GM_pennation = str2double(in_resting_GM_pennation);
-    in_resting_GM_faslen = str2double(in_resting_GM_faslen);
-    resting_GM_msc_len = in_resting_GM_faslen * cosd(in_resting_GM_pennation);
+    resting_GM_msc_len = resting_GM_faslen * cosd(resting_GM_pennation);
 
     if angle_GM_Fukunaga == 0 % fascicle data not existing
         msc_GM_elong_Fukunaga(1:length(angle_array),1) = zeros;
@@ -248,7 +241,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     	SEE_strain_Fukunaga ...
         ]; 
     
-    resting_vars = [resting_ankle_angle 0 0 resting_calf_length_abs in_resting_GM_pennation in_resting_GM_faslen 0 0 resting_GM_msc_len resting_SEE_len];
+    resting_vars = [resting_ankle_angle 0 0 resting_calf_length_abs resting_GM_pennation resting_GM_faslen 0 0 resting_GM_msc_len resting_SEE_len];
 
     % matching the following col references:
 %         col_angle_elong = 1;

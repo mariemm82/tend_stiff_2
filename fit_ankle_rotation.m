@@ -38,4 +38,4 @@ title(plottitle);
 grid on
 
 
-saveas(fignavn, strcat('data_output/ankle_fit_', subject_id, phasename), 'png')
+saveas(fignavn, strcat('data_plots_stiff/IND_anklerot_fit_', subject_id, phasename), 'png')

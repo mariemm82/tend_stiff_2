@@ -5,9 +5,9 @@
 % Produce a new noraxon data array
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial_name)
-    global us_zerodispframes noraxonfreq emg_bandpass emg_rms_ms mvc_window_ms convert_achilles convert_norm_ind_active
-    global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
+function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, trial_name)
+    global noraxonfreq emg_bandpass emg_rms_ms convert_achilles % us_zerodispframes mvc_window_ms convert_norm_ind_active
+    global torque_cutoff_active angle_cutoff_active % angle_cutoff velocity_cutoff torque_cutoff_bandstop  velocity_cutoff_active
     global plot_achilles plot_norm plot_emg plot_check subject_id
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
     
@@ -19,7 +19,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
    
-    %%% DATA CONVERSION EMG
+    %% DATA CONVERSION EMG
 
     % butterworth filter
     noEMGchannels = column_EMG_end - column_EMG_start + 1;
@@ -46,7 +46,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
 
-    %%% DATA CONVERSION ACHILLES
+    %% DATA CONVERSION ACHILLES
     
     % volt to torque for Achilles machine data column
     achilles_torque = noraxondata.data(:,column_achilles) * convert_achilles; 
@@ -58,7 +58,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
     
     
-    %%% DATA CONVERSION GONIOMETER
+    %% DATA CONVERSION GONIOMETER
      if strcmpi(side,'R') == 1
          % right leg towards dorsiflexion = negative
      else % left
@@ -69,20 +69,20 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
     
-    %%% DATA CONVERSION NORM
-%     global convert_norm_angle_a convert_norm_angle_b
-%     
-%     % convert angle
-%     norm_angle = (noraxondata.data(:,column_norm_angle) * convert_norm_angle_a) + convert_norm_angle_b;
-%     if min(norm_angle) < -180 % corresponding to 0 degrees
-%         norm_angle = norm_angle + 180;
-%     else % over 180
-%         norm_angle = norm_angle - 180;
-%     end
-%     
+    %% DATA CONVERSION NORM
+    global convert_norm_angle_a convert_norm_angle_b
+    
+    % convert angle
+    norm_angle = (noraxondata.data(:,column_norm_angle) * convert_norm_angle_a) + convert_norm_angle_b;
+    if min(norm_angle) < -180 % corresponding to 0 degrees
+        norm_angle = norm_angle + 180;
+    else % over 180
+        norm_angle = norm_angle - 180;
+    end
+    
 %     % filter angle
-%     [B, A] = butter(4, angle_cutoff_active, 'low');
-%     norm_angle_filtered = filtfilt(B, A, norm_angle);
+     [B, A] = butter(4, angle_cutoff_active, 'low');
+     norm_angle_filtered = filtfilt(B, A, norm_angle);
 %     
 %     % convert torque + positive towards plantar flexion for both sides
 %     if strcmpi(side,'R') == 1
@@ -117,7 +117,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
 
     
     
-    %%% CREATE NEW NORAXON ARRAY
+    %% CREATE NEW NORAXON ARRAY
     noraxon_converted = noraxondata.data;
     
     % replace all EMG columns
@@ -129,7 +129,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     noraxon_converted(:,column_achilles) = achilles_torque_filtered;
 
     % replace Norm columns
-    noraxon_converted(:,column_norm_angle) = 0; % norm_angle_filtered;
+    noraxon_converted(:,column_norm_angle) = norm_angle_filtered; % used for rotation correction
     noraxon_converted(:,column_norm_torque) = 0; %  norm_torque_filtered;
     noraxon_converted(:,column_norm_velocity) = 0; %  norm_velocity_filtered;
     noraxon_converted(:,column_norm_direction) = 0; %  norm_direction_filtered;
@@ -137,7 +137,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
     
     
-    %%% RESAMPLE
+    %% RESAMPLE
 
     % create time array with old and new timestamps and length
     timearray_orig = make_timearray(noraxonfreq, size(noraxon_converted));
@@ -153,7 +153,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
 
     
 
-    %%% CHECKPOINT PLOTS
+    %% CHECKPOINT PLOTS
 
     % EMG tibialis anterior - for tendon stiffness
     if plot_check && plot_achilles && plot_emg 
@@ -259,7 +259,11 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
 end
 
 
- 
+
+
+%% functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 function output = make_timearray(freq,frames)
     output(1:frames,1) = 0.0;
     for i = 1:frames

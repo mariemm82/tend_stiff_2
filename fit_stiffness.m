@@ -44,4 +44,4 @@ ylabel( 'Tendon force (N)' );
 title(plottitle);
 text(3.2, 400, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + 0'), 'Color', 'r')
 
-saveas(fignavn, strcat('data_output/stiff_fit_', subject_id), 'png')
+saveas(fignavn, strcat('data_plots_stiff/IND_stiff_fit_', subject_id), 'png')

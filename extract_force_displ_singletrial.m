@@ -18,7 +18,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     
     % Read stiffness trial Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
     % Produce a new noraxon data array
-    noraxon_prepped = read_noraxon_file(strcat('data/', noraxondata), usfreq, side, trial_name);
+    noraxon_prepped = read_noraxon_stiffness(strcat('data/', noraxondata), usfreq, side, trial_name);
         
     
     

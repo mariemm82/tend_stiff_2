@@ -6,11 +6,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial_name)
-    global us_zerodispframes noraxonfreq emg_bandpass emg_rms_ms mvc_window_ms convert_achilles convert_norm_ind_active
-    global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
+    global noraxonfreq emg_bandpass emg_rms_ms convert_achilles % us_zerodispframes mvc_window_ms convert_norm_ind_active
+    global torque_cutoff_active angle_cutoff_active velocity_cutoff_active % angle_cutoff velocity_cutoff torque_cutoff_bandstop 
     global plot_achilles plot_norm plot_emg plot_check subject_id
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
-    
+    global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b % convert_norm_direction_b
+
     % import noraxon data
     noraxondata = importdata(noraxonfile, '\t', 1);
 
@@ -19,7 +20,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
    
-    %%% DATA CONVERSION EMG
+    %% DATA CONVERSION EMG
 
     % butterworth filter
     noEMGchannels = column_EMG_end - column_EMG_start + 1;
@@ -46,7 +47,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
 
-    %%% DATA CONVERSION ACHILLES
+    %% DATA CONVERSION ACHILLES
     
     % volt to torque for Achilles machine data column
     achilles_torque = noraxondata.data(:,column_achilles) * convert_achilles; 
@@ -58,7 +59,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
     
     
-    %%% DATA CONVERSION GONIOMETER
+    %% DATA CONVERSION GONIOMETER
      if strcmpi(side,'R') == 1
          % right leg towards dorsiflexion = negative
      else % left
@@ -69,17 +70,21 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
 
     
-    %%% DATA CONVERSION NORM
-    
-    % retrieve conversion constants for Norm data
-    convert_norm_angle_a = convert_norm_ind_active(1); % PROJECTSPECIFIC
-    convert_norm_angle_b = convert_norm_ind_active(2); % PROJECTSPECIFIC
-    convert_norm_torque_a = convert_norm_ind_active(3); % PROJECTSPECIFIC
-    convert_norm_torque_b = convert_norm_ind_active(4); % PROJECTSPECIFIC
-    convert_norm_velocity_a = convert_norm_ind_active(5); % PROJECTSPECIFIC
-    convert_norm_velocity_b = convert_norm_ind_active(6); % PROJECTSPECIFIC
-    % TODO MMM to be replaced by call to calculate_norm_constants, once conversion testing phase is over. See how it is done in read_noraxon_passive.
+    %% DATA CONVERSION NORM
+
+    % old version 2
+%     % retrieve conversion constants for Norm data
+%     convert_norm_angle_a = convert_norm_ind_active(1); % PROJECTSPECIFIC
+%     convert_norm_angle_b = convert_norm_ind_active(2); % PROJECTSPECIFIC
+%     convert_norm_torque_a = convert_norm_ind_active(3); % PROJECTSPECIFIC
+%     convert_norm_torque_b = convert_norm_ind_active(4); % PROJECTSPECIFIC
+%     convert_norm_velocity_a = convert_norm_ind_active(5); % PROJECTSPECIFIC
+%     convert_norm_velocity_b = convert_norm_ind_active(6); % PROJECTSPECIFIC
+%     % TODO MMM to be replaced by call to calculate_norm_constants, once conversion testing phase is over. See how it is done in read_noraxon_passive.
+    % old version 1
 %    [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants('active', FP);
+
+    % current version 3:
 
     % convert angle
     norm_angle = (noraxondata.data(:,column_norm_angle) * convert_norm_angle_a) + convert_norm_angle_b;
@@ -130,18 +135,18 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     [B, A] = butter(4, velocity_cutoff_active, 'low');
     norm_velocity_filtered = filtfilt(B, A, norm_velocity);
     
-    % prepare direction
-    norm_direction_filtered(length(noraxondata.data(:,column_norm_direction))) = zeros;
+%    % prepare direction
+%    norm_direction_filtered(length(noraxondata.data(:,column_norm_direction))) = zeros;
     
     % filter direction - different from the others, because conversion -> +1/0/-1 only
-    [B, A] = butter(4, angle_cutoff_active, 'low'); % TMP confirm correct filter
+    [B, A] = butter(4, angle_cutoff_active, 'low'); % TMP TODO confirm correct filter
     norm_direction_filtered = filtfilt(B, A, noraxondata.data(:,column_norm_direction));
 
 
 
     
     
-    %%% CREATE NEW NORAXON ARRAY
+    %% CREATE NEW NORAXON ARRAY
     noraxon_converted = noraxondata.data;
     
     % replace all EMG columns
@@ -161,7 +166,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     
     
     
-    %%% RESAMPLE
+    %% RESAMPLE
 
     % create time array with old and new timestamps and length
     timearray_orig = make_timearray(noraxonfreq, size(noraxon_converted));
@@ -177,7 +182,7 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
 
     
 
-    %%% CHECKPOINT PLOTS
+    %% CHECKPOINT PLOTS
 
     % EMG tibialis anterior - for tendon stiffness
     if plot_check && plot_achilles && plot_emg 
@@ -272,9 +277,9 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
     if plot_check && plot_norm
         plottitle = horzcat('Norm torque-angle check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
-        plot(noraxon_resampled(:,column_norm_angle),noraxon_resampled(:,column_norm_torque),'k')
+        plot(noraxon_prepped(:,column_norm_angle),noraxon_prepped(:,column_norm_torque),'k')
         hold on
-        plot(noraxon_resampled(:,column_norm_angle),noraxon_resampled(:,column_norm_velocity),'r')
+        plot(noraxon_prepped(:,column_norm_angle),noraxon_prepped(:,column_norm_velocity),'r')
         set(gca,'xdir','reverse')
         xlabel('Angle (deg)'),ylabel('Torque/velocity'),title(plottitle);
         legend('torque','velocity','Location','Northwest');
@@ -282,6 +287,9 @@ function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial
 end
 
 
+
+
+%% functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function output = make_timearray(freq,frames)
     output(1:frames,1) = 0.0;

@@ -84,7 +84,7 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     
     %%% plot phases
     
-    if plot_check && plot_conversion
+    if plot_check && plot_conversion && plot_achilles
         plottitle = horzcat('Passive VELOCITY zones, ', subject_id);
         figure('Name', plottitle)
         plot(norm_velocity_filtered,'b')

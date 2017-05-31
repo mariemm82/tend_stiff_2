@@ -29,14 +29,12 @@ function noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max
 
     % output coactivation numbers to screen, as text
     if trial_name == 'MTJ1'
-        report1 = sprintf(horzcat('TA co-activation report: DF MVC = ', num2str(coact_max_torque,4), '. EMG = ', num2str(coact_max_EMG,4)));
-        disp(report1)
+        cprintf(horzcat('TA co-activation report: MVC dorsiflexion = ', num2str(coact_max_torque,4), ' Nm. EMG = ', num2str(coact_max_EMG,4),' µV.\n'));
     end
-    report2 = sprintf(horzcat(' ', trial_name, ' max TA activ. = ', num2str(max(percent_activation),3), '%% -> max torque contrib. = ', num2str(max(TA_torque),3), '.'));        
-    disp(report2)
+    cprintf(horzcat('    ', trial_name, ' TA max activ. = ', num2str(max(percent_activation),3), '%% -> max torque contrib. = ', num2str(max(TA_torque),3), ' Nm.\n'));
     
     %%% checkpoint plot
-    if plot_check && plot_achilles
+    if plot_check && plot_achilles && plot_emg
          plottitle = horzcat('Co-activation correction check for ', subject_id, ' ', trial_name);
          figure('Name',plottitle)
          plot(noraxon_prepped(:,1), noraxon_prepped(:,column_achilles),'b')

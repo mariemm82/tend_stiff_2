@@ -17,8 +17,8 @@ clear all
 %% PLOTS - determine which plots to display
 global plot_achilles plot_norm plot_emg plot_check plot_us plot_conversion subject_id
 
-plot_check = 1; % turn on/off checkpoint plots (leave only fits and stiffness)
-plot_achilles = 0; % turn on/off all troubleshoot plots
+plot_check = 1; % turn on/off checkpoint plots (leave only stiffness)
+plot_achilles = 1; % turn on/off all troubleshoot plots
 plot_norm = 0; % show torque before and after initial lowpass filter
 plot_emg = 0;  % RMS 3 EMG channels per trial
 plot_us = 0;
@@ -97,7 +97,7 @@ linestotal = read_datamaster(dm_filename,dm_columns);
 %% preallocate
     %preallocate output arrays
     all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', 'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
-        'Stiff cut F (N)', 'Stiff max F (N)', 'Stiffness 80-100 (N/mm)', 'Stiffness 90-100 (N/mm)', 'PF MVC (N)', 'AT moment arm (m)', 'Rotation correction (mm/deg)'}; % PROJECTSPECIFIC
+        'Ramp force cutoff (N)', 'Ramp force max (N)', 'Stiffness 80-100 (N/mm)', 'Stiffness 90-100 (N/mm)', 'PF MVC (N)', 'AT moment arm (m)', 'Rotation correction (mm/deg)'}; % PROJECTSPECIFIC
     all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
     all_stiff_output_txt = cell(ceil(linestotal),4);
 
@@ -120,8 +120,8 @@ for line = 1:linestotal
     
     % Produce individual conversion factors for angle
     [convert_norm_angle_a, convert_norm_angle_b] = calculate_angle_constants(angle_cutoff, horzcat('data\', dm_CPM_calc_NX{line}), dm_side{line});
-    % place individually calculated constant into array with common constants 
-
+    % using only "angle_constants" not "constants_ACTIVE" because this is for NORM data only, and tendstiff uses only passive trials from NORM
+    
     % Read co-activation noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
     % Produce a new noraxon data array
     % sending in a length corresponding to 9 seconds (delete anything after 9 sec)
@@ -161,8 +161,7 @@ for line = 1:linestotal
     else %normally
         at_rotation_const = calculate_rotation_correction(noraxon_momentarm, usdata_momentarm);
     end
-    % MMM TODO - line 125: % MMM todo - always better to choose the smaller one? if one is
-   % negative, use the other?
+    
     
     %% Calculate MVC for plantarflexion
 
@@ -180,85 +179,107 @@ for line = 1:linestotal
     %% Calculations for 3x ramp MTJ files
     
     % Allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
-    rampmax(1:6) = 100000;
-%    plot_us = 0; % TMP
+    trial_force_max(1:6) = 100000;
     if(strcmp(dm_stiff1_NX{line}, 'null'))
         time_force_displ_mtj1 = zeros(0);
     else 
-        [time_force_displ_mtj1,rampmax(1)] = extract_force_displ_singletrial(dm_stiff1_NX{line}, dm_stiff1_US{line}, dm_stiff1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ1');
+        [time_force_displ_mtj1,trial_force_max(1)] = extract_force_displ_singletrial(dm_stiff1_NX{line}, dm_stiff1_US{line}, dm_stiff1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ1');
     end
-%    plot_us = 0; % TMP
     if(strcmp(dm_stiff2_NX{line}, 'null'))
         time_force_displ_mtj2 = zeros(0);
     else
-        [time_force_displ_mtj2,rampmax(2)] = extract_force_displ_singletrial(dm_stiff2_NX{line}, dm_stiff2_US{line}, dm_stiff2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ2');
+        [time_force_displ_mtj2,trial_force_max(2)] = extract_force_displ_singletrial(dm_stiff2_NX{line}, dm_stiff2_US{line}, dm_stiff2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ2');
     end
-%    plot_us = 0; % TMP
     if(strcmp(dm_stiff3_NX{line}, 'null'))
         time_force_displ_mtj3 = zeros(0);
     else
-        [time_force_displ_mtj3,rampmax(3)] = extract_force_displ_singletrial(dm_stiff3_NX{line}, dm_stiff3_US{line}, dm_stiff3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ3');
+        [time_force_displ_mtj3,trial_force_max(3)] = extract_force_displ_singletrial(dm_stiff3_NX{line}, dm_stiff3_US{line}, dm_stiff3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, dm_side{line}, 'MTJ3');
     end
     
     
     %% Calculations for 3x ramp calcaneus scans
-%    plot_us = 0; % TMP
     if(strcmp(dm_heel1_NX{line}, 'null'))
         time_force_displ_otj1 = zeros(0);
     else
-        [time_force_displ_otj1,rampmax(4)] = extract_force_displ_singletrial(dm_heel1_NX{line}, dm_heel1_US{line}, dm_heel1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ1');
+        [time_force_displ_otj1,trial_force_max(4)] = extract_force_displ_singletrial(dm_heel1_NX{line}, dm_heel1_US{line}, dm_heel1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ1');
     end
-%    plot_us = 0; % TMP
     if(strcmp(dm_heel2_NX{line}, 'null'))
         time_force_displ_otj2 = zeros(0);
     else
-        [time_force_displ_otj2,rampmax(5)] = extract_force_displ_singletrial(dm_heel2_NX{line}, dm_heel2_US{line}, dm_heel2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ2');
+        [time_force_displ_otj2,trial_force_max(5)] = extract_force_displ_singletrial(dm_heel2_NX{line}, dm_heel2_US{line}, dm_heel2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ2');
     end
-%    plot_us = 0; % TMP
     if(strcmp(dm_heel3_NX{line}, 'null'))
         time_force_displ_otj3 = zeros(0);
     else
-        [time_force_displ_otj3,rampmax(6)] = extract_force_displ_singletrial(dm_heel3_NX{line}, dm_heel3_US{line}, dm_heel3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ3');
+        [time_force_displ_otj3,trial_force_max(6)] = extract_force_displ_singletrial(dm_heel3_NX{line}, dm_heel3_US{line}, dm_heel3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ3');
     end
     
      
     %% Final stiffness
     % Read time-force-displacement data
     % Produce stiffness equation
-	[stiff_eq,stiff_gof,stiff_frames,stiff_usedforce,stiff_maxforce] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, rampmax);
+	[stiff_eq, stiff_gof, force_elong_array, stiff_force_cutoff] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max);
     
-    
-    
+        
     %% calculate stiffness for last 10 and 20% of ind max:
-    stiff80 = calculate_stiffness(stiff_eq, stiff_usedforce, 0.8, 1.0); % last two variables are percent range, from 0.00 to 1.00
-    stiff90 = calculate_stiffness(stiff_eq, stiff_usedforce, 0.9, 1.0);
+    stiff80 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.8, 1.0); % last two variables are percent range, from 0.00 to 1.00
+    stiff90 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.9, 1.0);
     
     
     %% Strain rate % TODOLATER
     % strain_rate = calculate_strain_rate(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3);
     
     
-    %% Output final data to file
+    %% save individual data to common array + force-elong-file
 
     % add stiffness data points to xls file per subject
     if ispc
         filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '.xls');
         xlswrite(filename_output, {'Elongation (mm)','Force (N)'}, 'Final stiff', 'A1')
-        xlswrite(filename_output, stiff_frames, 'Final stiff', 'A2')
+        xlswrite(filename_output, force_elong_array, 'Final stiff', 'A2')
     else
         filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '_averaged.csv');
-        csvwrite(filename_output, stiff_frames)
+        csvwrite(filename_output, force_elong_array)
     end
     
     % add data to a common array for all subjects    
     all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
-    all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare stiff_usedforce min(rampmax) stiff80 stiff90 plantflex_max_torque at_momentarm at_rotation_const];
+    all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare stiff_force_cutoff min(trial_force_max) stiff80 stiff90 plantflex_max_torque at_momentarm at_rotation_const];
     
 end
+%% LOOP finished
 
 
+%% calculate stiffness at group common force levels
 
-%% Output key variables for all subjects to file
+% select common force
+all_stiff_col = 5; % 5 for cutoff force level, 6 for max force level
+stiff_common_force_100 = min(all_stiff_output(:,all_stiff_col)); % or y2
+
+% ... for each ... TODO MMM GOON
+stiff_coeff1 = all_stiff_output(1,1); % TMP - subj 1
+stiff_coeff2 = all_stiff_output(1,2); % TMP
+
+% calculation for a given force range
+stiff_common_force_lvl = 0.9; % %VAR
+stiff_common_force_percent = stiff_common_force_100 * stiff_common_force_lvl;
+stiff_common_x2_pos = (-stiff_coeff2 + (sqrt(stiff_coeff2^2 - (4*stiff_coeff1*-stiff_common_force_100)))) / (2 * stiff_coeff1);
+stiff_common_x1_pos = (-stiff_coeff2 + (sqrt(stiff_coeff2^2 - (4*stiff_coeff1*-stiff_common_force_percent)))) / (2 * stiff_coeff1);
+stiff_common = (stiff_common_force_100-stiff_common_force_percent) / (stiff_common_x2_pos-stiff_common_x1_pos);
+
+
+% MMM TODO GOON - add to output array
+
+% TODO - repeat for 70-100%
+
+% repeat for actual force instead of cutoff force
+
+
+%% other calculations from Melina datasheet?
+% MMM TODO GOON
+
+
+%% save array with individual data to file
 
 % write xls
 if ispc

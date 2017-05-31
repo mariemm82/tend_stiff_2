@@ -1,5 +1,5 @@
 function [fitresult, gof] = fit_ankle_rotation(angle2, displ2, phasename)
-global subject_id
+global plot_achilles subject_id
 
 %CREATEFIT(DISPL2,ANGLE2)
 %  Create a fit.
@@ -26,16 +26,16 @@ opts = fitoptions( ft );
 % Fit model to data.
 [fitresult, gof] = fit( xData, yData, ft, opts );
 
-% Plot fit with data.
-plottitle = horzcat('FIT PLOT for ankle rotation correction for ', subject_id);
-fignavn = figure( 'Name', plottitle);
-h = plot( fitresult, xData, yData );
-legend( h, horzcat('angle vs. displ ', phasename), horzcat('Linear fit: displ/deg = ', num2str(coeffvalues(fitresult))), 'Location', 'NorthEast' );
-% Label axes
-xlabel( 'Goniometer ankle angle (deg)' );
-ylabel( 'Calcaneus displacement (mm)' );
-title(plottitle);
-grid on
-
-
-saveas(fignavn, strcat('data_plots_stiff/IND_anklerot_fit_', subject_id, phasename), 'png')
+if plot_achilles
+    % Plot fit with data.
+    plottitle = horzcat('FIT PLOT for ankle rotation correction for ', subject_id);
+    fignavn = figure( 'Name', plottitle);
+    h = plot( fitresult, xData, yData );
+    legend( h, horzcat('angle vs. displ ', phasename), horzcat('Linear fit: displ/deg = ', num2str(coeffvalues(fitresult))), 'Location', 'NorthEast' );
+    % Label axes
+    xlabel( 'Goniometer ankle angle (deg)' );
+    ylabel( 'Calcaneus displacement (mm)' );
+    title(plottitle);
+    grid on
+    saveas(fignavn, strcat('data_plots_stiff/IND_anklerot_fit_', subject_id, phasename), 'png')
+end

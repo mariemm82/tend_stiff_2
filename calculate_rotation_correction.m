@@ -12,7 +12,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
 
 
 
-    global plot_conversion plot_check subject_id
+    global plot_conversion plot_check plot_achilles subject_id
     global column_gonio column_norm_angle 
     
     % extract Norm machine angle series
@@ -129,7 +129,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     
    
    % plot norm angle, gonio angle, displacement, zone lines
-   if plot_check && plot_conversion
+   if plot_check && plot_conversion && plot_achilles
        plottitle = horzcat('SYNC check ankle rotation for ', subject_id);
        fig_anklerot = figure('Name', plottitle);
        plot(noraxon_rot(1:ten_plateau_2_stop,1),norm_angle_filtered(1:ten_plateau_2_stop),'b'); % norm angle
@@ -139,7 +139,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
        ylabel('Angle (deg)')
        yyaxis right
        plot(usdata_rot(1:ten_plateau_2_stop,1),usdata_rot(1:ten_plateau_2_stop,2)); % displacement
-       ylabel('Displacement (mm)')
+       ylabel('Calc insertion displacement (mm)')
        yyaxis left
        plot([noraxon_rot(ten_plateau_1_start,1) noraxon_rot(ten_plateau_1_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(ten_plateau_1_stop,1) noraxon_rot(ten_plateau_1_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
@@ -147,15 +147,15 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
        plot([noraxon_rot(five_plateau_stop,1) noraxon_rot(five_plateau_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(ten_plateau_2_start,1) noraxon_rot(ten_plateau_2_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        xlabel('Time (s)')
-       ylabel('Data (misc)')
+       ylabel('Angle (deg)')
        title(plottitle);
-       legend('Norm angle', 'Goniometer', 'Calc insert displ', 'Phases','Location','Northeast');
+       legend('Norm angle', 'Goniometer', 'Phases','Location','Northeast');
        text(0.2, 8.2, horzcat('Displ/deg = ', num2str(at_rotation_const)), 'Color', 'k');
        saveas(fig_anklerot, strcat('data_plots_stiff/IND_ankle_rot_', subject_id), 'png')
    end
    
    % output angle conversion numbers to screen, as text
-   cprintf(horzcat('Ankle rotation: Displacement per degree of rotation = ', num2str(at_rotation_const), ' (elim ', num2str(max(coeffvals_1st(1),coeffvals_2nd(1))), ')', '.\n'));
+   cprintf('blue',horzcat('Ankle rotation: Displacement per degree of rotation = ', num2str(at_rotation_const), ' (elim ', num2str(max(coeffvals_1st(1),coeffvals_2nd(1))), ')', '.\n'));
    
     
 end

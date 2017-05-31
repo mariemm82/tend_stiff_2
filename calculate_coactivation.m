@@ -44,7 +44,7 @@ function [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_prepp
     
     
     %%% checkpoint plot
-    if plot_check && plot_achilles
+    if plot_check && plot_achilles && plot_emg
         plottitle = horzcat('Dorsiflexion MVC averaging check for ', subject_id);
         figure('Name', plottitle)
         plot(noraxon_prepped(:,1), noraxon_prepped(:,column_tibant),'r')

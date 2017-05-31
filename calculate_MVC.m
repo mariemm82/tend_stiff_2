@@ -62,8 +62,7 @@ function [plantflex_max_force,plantflex_GM_max_EMG] = calculate_MVC(noraxon_prep
     
     
    % output MVC
-   report = sprintf(horzcat('PF MVC = ', num2str(plantflex_max_force,4), ' N.'));
-   disp(report)
+   cprintf('black', horzcat('MVC plantar flexion = ', num2str(plantflex_max_force,4), ' N.\n'))
 
 end
 

@@ -20,7 +20,5 @@ function stiffness = calculate_stiffness(stiff_eq, force100, percent_start, perc
     
     stiffness = (force_stop-force_start)/(displ_stop-displ_start);
     
-    report = sprintf(horzcat(' Stiffness ', num2str(percent_start*100), '-', num2str(percent_stop*100), ' ind = ', num2str(stiffness,4), ' N/mm.'));
-    disp(report)
-        
+    cprintf('blue', horzcat(' Stiffness ', num2str(percent_start*100), '-', num2str(percent_stop*100), ' ind = ', num2str(stiffness,4), ' N/mm.\n'))
 end

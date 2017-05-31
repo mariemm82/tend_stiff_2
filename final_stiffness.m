@@ -14,7 +14,9 @@ global plot_achilles subject_id %plot_norm plot_emg plot_check
     %% calculate tendon elongation
     
     % print maximal force from each trial to the screen
-    cprintf('black', horzcat('Ramp trials, common force = ', num2str(round(min(force_max_trials))), ' N, trials = ', num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N.\n'))
+    cprintf('black', horzcat('Ramp trials, ind max force = '))
+    cprintf('*blue', horzcat(num2str(round(min(force_max_trials))), ' N'))
+    cprintf('black', horzcat(', trials = ', num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N.\n'))
 
     % find lowest common force between all 6 trials
     commonforce = min(force_max_trials);
@@ -148,7 +150,7 @@ global plot_achilles subject_id %plot_norm plot_emg plot_check
 
     % write cutoff to screen
     cprintf('black', horzcat('Max elong = ', num2str(round(max_elong,2)), ' mm @ ', num2str(force_array(loc_max_elong)), ' N, ', num2str(percent_elong*100), '%% elong -> cutoff at '))
-    cprintf('*black', horzcat(num2str(force_array(loc_elong_cut)), ' N.\n'))
+    cprintf('*blue', horzcat(num2str(force_array(loc_elong_cut)), ' N.\n'))
 
     % cut off even earlier if datamaster is set to cut at lower value
     if force_array(loc_elong_cut) > str2double(force_cutoff_manual)

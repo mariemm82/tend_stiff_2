@@ -10,7 +10,6 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
-clear all
 
 
 
@@ -18,17 +17,17 @@ clear all
 global plot_achilles plot_norm plot_emg plot_check plot_us plot_conversion subject_id
 
 plot_check = 1; % turn on/off checkpoint plots (leave only stiffness)
-plot_achilles = 1; % turn on/off all troubleshoot plots
+plot_achilles = 0; % turn on/off all troubleshoot plots
 plot_norm = 0; % show torque before and after initial lowpass filter
 plot_emg = 0;  % RMS 3 EMG channels per trial
 plot_us = 0;
-plot_conversion = 1;
+plot_conversion = 0;
 
 
 %% Set constants and globals % PROJECTSPECIFIC
 % declare for later use:
 % variables for NORM conversion factors calculated from actual data
-global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
+global convert_norm_angle_a convert_norm_angle_b % convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
     
 % sampling frequencies
 global us_zerodispframes noraxonfreq freq_default
@@ -96,8 +95,11 @@ linestotal = read_datamaster(dm_filename,dm_columns);
 
 %% preallocate
     %preallocate output arrays
-    all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', 'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
-        'Ramp force cutoff (N)', 'Ramp force max (N)', 'Stiffness 80-100 (N/mm)', 'Stiffness 90-100 (N/mm)', 'PF MVC (N)', 'AT moment arm (m)', 'Rotation correction (mm/deg)'}; % PROJECTSPECIFIC
+    all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
+        'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
+        'Ramp force cutoff (N)', 'Ramp force max (N)', 'PF MVC (N)', ...
+        'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', 'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
+         'AT moment arm (m)', 'Rotation correction (mm/deg)'}; % PROJECTSPECIFIC
     all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
     all_stiff_output_txt = cell(ceil(linestotal),4);
 
@@ -109,11 +111,6 @@ for line = 1:linestotal
 	%% subject/trial identifier
     subject_id = horzcat('subject ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
     cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
-    
-    
-%     %% calculate NORM conversion factors
-%     % retrieve conversion constants for Norm data
-%     [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'stiffness');
     
     
     %% Calculate conversion factors for tibialis anterior CO-ACTIVATION
@@ -222,8 +219,8 @@ for line = 1:linestotal
     
         
     %% calculate stiffness for last 10 and 20% of ind max:
-    stiff80 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.8, 1.0); % last two variables are percent range, from 0.00 to 1.00
-    stiff90 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.9, 1.0);
+    stiff_ind_80 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.8, 1.0, 'ind max'); % last two variables are percent range, from 0.00 to 1.00
+    stiff_ind_90 = calculate_stiffness(stiff_eq, stiff_force_cutoff, 0.9, 1.0, 'ind max');
     
     
     %% Strain rate % TODOLATER
@@ -244,7 +241,8 @@ for line = 1:linestotal
     
     % add data to a common array for all subjects    
     all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
-    all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare stiff_force_cutoff min(trial_force_max) stiff80 stiff90 plantflex_max_torque at_momentarm at_rotation_const];
+    % NaN at locations for stiffness at force levels common to all subjects
+    all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare stiff_force_cutoff min(trial_force_max) plantflex_max_torque stiff_ind_80 stiff_ind_90 NaN NaN NaN NaN at_momentarm at_rotation_const];
     
 end
 %% LOOP finished
@@ -252,27 +250,31 @@ end
 
 %% calculate stiffness at group common force levels
 
-% select common force
+% select common force (maximal force reached by all subjects)
 all_stiff_col = 5; % 5 for cutoff force level, 6 for max force level
-stiff_common_force_100 = min(all_stiff_output(:,all_stiff_col)); % or y2
+stiff_common_force = min(all_stiff_output(:,all_stiff_col));
+all_stiff_col = 6; % 5 for cutoff force level, 6 for max force level
+stiff_common_force_max = min(all_stiff_output(:,all_stiff_col));
 
-% ... for each ... TODO MMM GOON
-stiff_coeff1 = all_stiff_output(1,1); % TMP - subj 1
-stiff_coeff2 = all_stiff_output(1,2); % TMP
+for i = 1:size(all_stiff_output,1)
+    
+    % reuse last stiff_eq (cfit object)
+    stiff_eq.p1 = all_stiff_output(i,1);
+    stiff_eq.p2 = all_stiff_output(i,2);
+    
+    % calculate stiffness
+    stiff_common_80 = calculate_stiffness(stiff_eq, stiff_common_force, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); % last two = percent of submitted force - %VAR
+    stiff_common_90 = calculate_stiffness(stiff_eq, stiff_common_force, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); %VAR
+    stiff_common_80_max = calculate_stiffness(stiff_eq, stiff_common_force_max, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); % last two = percent of submitted force - %VAR
+    stiff_common_90_max = calculate_stiffness(stiff_eq, stiff_common_force_max, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); %VAR
 
-% calculation for a given force range
-stiff_common_force_lvl = 0.9; % %VAR
-stiff_common_force_percent = stiff_common_force_100 * stiff_common_force_lvl;
-stiff_common_x2_pos = (-stiff_coeff2 + (sqrt(stiff_coeff2^2 - (4*stiff_coeff1*-stiff_common_force_100)))) / (2 * stiff_coeff1);
-stiff_common_x1_pos = (-stiff_coeff2 + (sqrt(stiff_coeff2^2 - (4*stiff_coeff1*-stiff_common_force_percent)))) / (2 * stiff_coeff1);
-stiff_common = (stiff_common_force_100-stiff_common_force_percent) / (stiff_common_x2_pos-stiff_common_x1_pos);
+    % add to array across subjects
+    all_stiff_output(i,10) = stiff_common_80;
+    all_stiff_output(i,11) = stiff_common_90;
+    all_stiff_output(i,12) = stiff_common_80_max;
+    all_stiff_output(i,13) = stiff_common_90_max;
 
-
-% MMM TODO GOON - add to output array
-
-% TODO - repeat for 70-100%
-
-% repeat for actual force instead of cutoff force
+end
 
 
 %% other calculations from Melina datasheet?

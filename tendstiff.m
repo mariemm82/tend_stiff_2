@@ -12,6 +12,19 @@
 close all
 
 
+% TODO MMM GOON: 
+% Add grouping BD vs CON
+% BD file locations
+% BD files existing???
+% check predetermined cutoff fpr each subject
+
+% Melina thesis:
+% - AT/GM tendon elongation
+% - AT/GM tendon strain
+% - ---"--- young's mod
+% relative = greatest common force level = 2300 N
+
+
 
 %% PLOTS - determine which plots to display
 global plot_achilles plot_norm plot_emg plot_check plot_us plot_conversion subject_id

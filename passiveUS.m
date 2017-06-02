@@ -8707,5 +8707,5 @@ function [] = passiveUS(input_project, input_plot)
     
    
 
-    clear all
+    
 end

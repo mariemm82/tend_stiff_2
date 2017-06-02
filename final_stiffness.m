@@ -119,7 +119,7 @@ global plot_achilles subject_id %plot_norm plot_emg plot_check
         plot(plot_displ_mtj(:,3), force_array,'g.')
         xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
         legend('trial 1','trial 2','trial 3','mean','Location','Southeast');
-        saveas(gcf, strcat('data_plots_stiff/IND_stiff_MTJ_avg_', subject_id, 'png'))
+        saveas(gcf, strcat('data_plots_stiff/IND_stiff_MTJ_avg_', subject_id), 'png')
     end
 
     if plot_achilles
@@ -136,10 +136,10 @@ global plot_achilles subject_id %plot_norm plot_emg plot_check
         plot(plot_displ_otj(:,3), force_array,'g.')
         xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
         legend('trial 1','trial 2','trial 3','mean','Location','Southeast');
-        saveas(gcf, strcat('data_plots_stiff/IND_stiff_OTJ_avg_', subject_id, 'png'))
+        saveas(gcf, strcat('data_plots_stiff/IND_stiff_OTJ_avg_', subject_id), 'png')
     end
     
-    
+     
     %% cut force (method 3, June 2014)
     
     % prepare for cutoff at 90% of max elongation

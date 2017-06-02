@@ -1,5 +1,5 @@
 function [fitresult, gof] = fit_ankle_rotation(angle2, displ2, phasename)
-global plot_achilles subject_id
+global plot_norm subject_id
 
 %CREATEFIT(DISPL2,ANGLE2)
 %  Create a fit.
@@ -26,7 +26,7 @@ opts = fitoptions( ft );
 % Fit model to data.
 [fitresult, gof] = fit( xData, yData, ft, opts );
 
-if plot_achilles
+if plot_norm
     % Plot fit with data.
     plottitle = horzcat('FIT PLOT for ankle rotation correction for ', subject_id);
     fignavn = figure( 'Name', plottitle);

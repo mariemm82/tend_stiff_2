@@ -15,7 +15,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     
     % Read stiffness trial US data file, determine time stamps, set trigger frame as time = zero
     % Produce US sample frequency + new US array containing time and displacement
-    [usdata_prepped,usfreq] = read_us_file(strcat(filepath, usdata), str2double(usdata_frame), trial_name);
+    [usdata_prepped,usfreq] = read_us_file(strcat(filepath, usdata, '.txt'), str2double(usdata_frame), trial_name);
     
     % Read stiffness trial Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
     % Produce a new noraxon data array

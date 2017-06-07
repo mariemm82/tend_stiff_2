@@ -51,7 +51,7 @@ function [] = tendstiff(input_project, input_plot)
     %% Set constants and globals % PROJECTSPECIFIC
 
     % Average stiffness across X N
-    forceintervals = 50;
+    forceintervals = 50; %TMP
     
     % declare for later use:
     % variables for NORM conversion factors calculated from actual data
@@ -151,7 +151,6 @@ function [] = tendstiff(input_project, input_plot)
         if input_project == 1 % BD study
             if trial_subjectno > 100
                 filepath = 'data\BD\';
-                filepath = 'data\'; % TMP
                 subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
                 BD_count = BD_count + 1;
                 BD_no(BD_count) = str2double(dm_subjectno{line});
@@ -194,7 +193,7 @@ function [] = tendstiff(input_project, input_plot)
         % Read co-activation noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
         % sending in a length corresponding to 9 seconds (delete anything after 9 sec)
-        noraxon_coact = read_noraxon_stiffness(strcat('data/', dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
+        noraxon_coact = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
 
         % Calculate co-activation constants
         % Read complete, prepared noraxon array + number of frames to average (freq * time)
@@ -206,11 +205,11 @@ function [] = tendstiff(input_project, input_plot)
 
         % Read moment arm trial US data file, determine time stamps, set trigger frame as time = zero
         % Produce US sample frequency, create new US array containing time and displacement
-        [usdata_momentarm, usfreq_momentarm] = read_us_file(strcat('data/', dm_CPM_calc_US{line}),str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
+        [usdata_momentarm, usfreq_momentarm] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
 
         % Read moment arm noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
-        noraxon_momentarm = read_noraxon_stiffness(strcat('data/', dm_CPM_calc_NX{line}), usfreq_momentarm, dm_side{line}, 'CPM calcaneus');
+        noraxon_momentarm = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_momentarm, dm_side{line}, 'CPM calcaneus');
 
         % Read complete, prepared noraon array + prepared us array
         % Produce AT moment arm constant
@@ -236,7 +235,7 @@ function [] = tendstiff(input_project, input_plot)
         % Read MVC noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
         % sending in a length corresponding to 9 seconds (delete anything after 9 sec)
-        noraxon_MVC = read_noraxon_stiffness(strcat('data/', dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC dorsi');
+        noraxon_MVC = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC dorsi');
 
         % Calculate co-activation constants
         % Read complete, prepared noraxon array + number of frames to average (freq * time)

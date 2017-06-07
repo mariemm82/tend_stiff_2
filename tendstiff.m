@@ -42,10 +42,16 @@ function [] = tendstiff(input_project, input_plot)
     else
         plot_achilles = 0;
     end
-    plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
+    if input_plot >= 3
+        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_us = 1;
+        plot_conversion = 1;
+    else
+        plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_us = 0;
+        plot_conversion = 0;
+    end
     plot_emg = 0;  % RMS 3 EMG channels per trial
-    plot_us = 0;
-    plot_conversion = 0;
 
 
     %% Set constants and globals % PROJECTSPECIFIC
@@ -369,7 +375,7 @@ function [] = tendstiff(input_project, input_plot)
         all_stiff_output(i,15) = stiff_common_force_max;
     end
     
-    cprintf('blue*',horzcat('Stiffness: Common cutoff force = ', num2str(stiff_common_force), ' N, common max force = ', num2str(stiff_common_force_max), ' N.'))
+    cprintf('blue*',horzcat('Stiffness: Common cutoff force = ', num2str(stiff_common_force), ' N, common max force = ', num2str(round(stiff_common_force_max,0)), ' N.\n'))
 
 
 

@@ -130,17 +130,26 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
    
    % plot norm angle, gonio angle, displacement, zone lines
    if plot_check && plot_conversion && plot_achilles
+       % check for matlab version, do not use yyaxis on home computer (2015)
+       mat_version = version('-release');
+       
        plottitle = horzcat('SYNC check ankle rotation for ', subject_id);
        fig_anklerot = figure('Name', plottitle);
        plot(noraxon_rot(1:ten_plateau_2_stop,1),norm_angle_filtered(1:ten_plateau_2_stop),'b'); % norm angle
        hold on
-       yyaxis left
-       plot(noraxon_rot(1:ten_plateau_2_stop,1),noraxon_rot(1:ten_plateau_2_stop,column_gonio),'m'); % goniometer 
+       if strcmp(mat_version,'2015b') == 0
+           yyaxis left
+       end
        ylabel('Angle (deg)')
-       yyaxis right
+       plot(noraxon_rot(1:ten_plateau_2_stop,1),noraxon_rot(1:ten_plateau_2_stop,column_gonio),'m'); % goniometer 
+       if strcmp(mat_version,'2015b') == 0
+           yyaxis right
+           ylabel('Calc insertion displacement (mm)')
+       end
        plot(usdata_rot(1:ten_plateau_2_stop,1),usdata_rot(1:ten_plateau_2_stop,2)); % displacement
-       ylabel('Calc insertion displacement (mm)')
-       yyaxis left
+       if strcmp(mat_version,'2015b') == 0
+          yyaxis left
+       end
        plot([noraxon_rot(ten_plateau_1_start,1) noraxon_rot(ten_plateau_1_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(ten_plateau_1_stop,1) noraxon_rot(ten_plateau_1_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(five_plateau__start,1) noraxon_rot(five_plateau__start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');

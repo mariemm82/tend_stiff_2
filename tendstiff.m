@@ -44,13 +44,12 @@ function [] = tendstiff(input_project, input_plot)
     end
     if input_plot >= 3
         plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
-        plot_us = 1;
         plot_conversion = 1;
     else
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
-        plot_us = 0;
         plot_conversion = 0;
     end
+    plot_us = 0;
     plot_emg = 0;  % RMS 3 EMG channels per trial
 
 

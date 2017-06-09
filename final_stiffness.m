@@ -11,6 +11,14 @@ function [fitresult, gof, force_elong_array, final_cutoff_force] = final_stiffne
 
 global plot_achilles subject_id %plot_norm plot_emg plot_check
 
+
+    %% find force onset
+    % TODO MMM
+    
+    % zero offset for elongation prior to force onset
+    
+
+
     %% calculate tendon elongation
     
     % print maximal force from each trial to the screen

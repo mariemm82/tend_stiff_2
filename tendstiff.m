@@ -43,7 +43,7 @@ function [] = tendstiff(input_project, input_plot)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
         plot_conversion = 1;
     else
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
@@ -290,7 +290,7 @@ function [] = tendstiff(input_project, input_plot)
         %% Final stiffness
         % Read time-force-displacement data
         % Produce stiffness equation
-        [stiff_eq, stiff_gof, force_elong_array, stiff_force_cutoff] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max);
+        [stiff_eq, stiff_gof, force_elong_array, stiff_force_cutoff] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, at_momentarm);
 
 
         %% calculate stiffness for last 10 and 20% of ind max:
@@ -437,16 +437,20 @@ function [] = tendstiff(input_project, input_plot)
     if ispc
         filename_output = strcat('data_output/stiff_GRP_force-elong_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xls');
 
-        filename_subj_BD = cellstr(num2str(BD_no'))';
-        xlswrite(filename_output, ['Force (N)' filename_subj_BD], 'Force-elong BD', 'A1')
-        xlswrite(filename_output, BD_force, 'Force-elong BD', 'A2')
-        xlswrite(filename_output, BD_elong, 'Force-elong BD', 'B2')
-
-        filename_subj_CON = cellstr(num2str(CON_no'))';
-        xlswrite(filename_output, ['Force (N)' filename_subj_CON], 'Force-elong CON', 'A1')
-        xlswrite(filename_output, CON_force, 'Force-elong CON', 'A2')
-        xlswrite(filename_output, CON_elong, 'Force-elong CON', 'B2')
+        if BD_count > 0
+            filename_subj_BD = cellstr(num2str(BD_no'))';
+            xlswrite(filename_output, ['Force (N)' filename_subj_BD], 'Force-elong BD', 'A1')
+            xlswrite(filename_output, BD_force, 'Force-elong BD', 'A2')
+            xlswrite(filename_output, BD_elong, 'Force-elong BD', 'B2')
+        end
+        if CON_count > 0
+            filename_subj_CON = cellstr(num2str(CON_no'))';
+            xlswrite(filename_output, ['Force (N)' filename_subj_CON], 'Force-elong CON', 'A1')
+            xlswrite(filename_output, CON_force, 'Force-elong CON', 'A2')
+            xlswrite(filename_output, CON_elong, 'Force-elong CON', 'B2')
+        end
     else
+        
         % csvwrite
     end
     

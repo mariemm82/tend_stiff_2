@@ -204,6 +204,8 @@ if plot_achilles
     for i = 1:length(MTJ_trials)
         if length(MTJ_trials{i}) > 1
             plot(displ_MTJ(:,i), force_array,'.')
+        else
+            plot([0 0],[0 0])
         end
     end
     % visual

@@ -29,7 +29,7 @@ loc_displ = 3;
 %   and neural drive of human skeletal muscle following resistance training. J Appl Physiol 93: 1318–1326, 2002.)
 
 % onset as % of max force
-threshold_percent = 0.005; %VAR 0.5 percent (0.00-1.00) of highest common force during ramps
+threshold_percent = 0.01; %VAR 0.5 percent (0.00-1.00) of highest common force during ramps MMM TODO check BD 102 GM, one trial cut too early with 0.005 --> changed to 0.01
 %threshold_fixed = 7.5/at_momentarm; %VAR threshold in Nm, converted to N
 threshold_add = threshold_percent * min(force_max_trials);
 
@@ -60,19 +60,27 @@ if plot_conversion
     hold on
     % MTJ
     for i = 1:length(MTJ_trials)
-        plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force))
+        if length(MTJ_trials{i}) > 1
+            plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force))
+        end
     end
     % OTJ
     for i = 1:length(OTJ_trials)
-        plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force))
+        if length(OTJ_trials{i}) > 1
+            plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force))
+        end
     end
     % onset x2
     set(gca,'ColorOrderIndex',1)
     for i = 1:length(MTJ_trials)
-        plot([MTJ_trials{i}(loc_MTJ_onset(i),loc_time) MTJ_trials{i}(loc_MTJ_onset(i),loc_time)], [threshold_add*5 -20])
+        if length(MTJ_trials{i}) > 1
+            plot([MTJ_trials{i}(loc_MTJ_onset(i),loc_time) MTJ_trials{i}(loc_MTJ_onset(i),loc_time)], [threshold_add*5 -20])
+        end
     end
     for i = 1:length(OTJ_trials)
-        plot([OTJ_trials{i}(loc_OTJ_onset(i),loc_time) OTJ_trials{i}(loc_OTJ_onset(i),loc_time)], [threshold_add*5 -20])
+        if length(OTJ_trials{i}) > 1
+            plot([OTJ_trials{i}(loc_OTJ_onset(i),loc_time) OTJ_trials{i}(loc_OTJ_onset(i),loc_time)], [threshold_add*5 -20])
+        end
     end
     % visual
     xlabel('Time (s)')
@@ -152,8 +160,8 @@ for i = 1:length(OTJ_trials)
 end
 
 % average displacement trials, calculate elongation
-displ_mtj_mean = mean(displ_MTJ,2);
-displ_otj_mean = mean(displ_OTJ,2);
+displ_mtj_mean = nanmean(displ_MTJ,2);
+displ_otj_mean = nanmean(displ_OTJ,2);
 % manually correct first datapoint (extrapolated by spline, since force is cut above zero N)
 displ_mtj_mean(1) = 0;
 displ_otj_mean(1) = 0;
@@ -166,23 +174,41 @@ if plot_achilles
     hold on
     % 3 MTJ after cutoff, all datapoints
     for i = 1:length(MTJ_trials)
-        plot(MTJ_trials{i}(:,loc_displ),MTJ_trials{i}(:,loc_force))
+        if length(MTJ_trials{i}) > 1
+            plot(MTJ_trials{i}(:,loc_displ),MTJ_trials{i}(:,loc_force))
+        else
+            plot([0 0],[0 0])
+        end
     end
     % mean MTJ
     plot(displ_mtj_mean, force_array, 'k','LineWidth',2)
     % 3 original MTJ before cutoff
     set(gca,'ColorOrderIndex',1)
-    plot(time_force_displ_mtj1(:,3),time_force_displ_mtj1(:,2),':','LineWidth',0.3)
-    plot(time_force_displ_mtj2(:,3),time_force_displ_mtj2(:,2),':','LineWidth',0.3)
-    plot(time_force_displ_mtj3(:,3),time_force_displ_mtj3(:,2),':','LineWidth',0.3)
+    if length(MTJ_trials{1}) > 1
+        plot(time_force_displ_mtj1(:,3),time_force_displ_mtj1(:,2),':','LineWidth',0.3)
+    else
+            plot([0 0],[0 0],':')
+    end
+    if length(MTJ_trials{2}) > 1
+        plot(time_force_displ_mtj2(:,3),time_force_displ_mtj2(:,2),':','LineWidth',0.3)
+    else
+            plot([0 0],[0 0],':')
+    end
+    if length(MTJ_trials{3}) > 1
+        plot(time_force_displ_mtj3(:,3),time_force_displ_mtj3(:,2),':','LineWidth',0.3)
+    else
+            plot([0 0],[0 0],':')
+    end
     % 3 MTJ - dots at force intervals
     set(gca,'ColorOrderIndex',1)
     for i = 1:length(MTJ_trials)
-        plot(displ_MTJ(:,i), force_array,'.')
+        if length(MTJ_trials{i}) > 1
+            plot(displ_MTJ(:,i), force_array,'.')
+        end
     end
     % visual
     xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
-    legend('trial 1 w/onset','trial 2 w/onset','trial 3w/onset','mean','trial 1 raw','Location','Northwest');
+    legend('trial 1 w/onset','trial 2 w/onset','trial 3 w/onset','mean','trial 1 raw','Location','Northwest');
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_MTJ_avg_', subject_id), 'png')
 end
 
@@ -193,23 +219,43 @@ if plot_achilles
     hold on
     % 3 OTJ after cutoff, all datapoints
     for i = 1:length(OTJ_trials)
-        plot(OTJ_trials{i}(:,loc_displ),OTJ_trials{i}(:,loc_force))
+        if length(OTJ_trials{i}) > 1
+            plot(OTJ_trials{i}(:,loc_displ),OTJ_trials{i}(:,loc_force))
+        else
+            plot([0 0],[0 0])
+        end
     end
     % mean OTJ
     plot(displ_otj_mean, force_array, 'k','LineWidth',2)
     % 3 original OTJ before cutoff
     set(gca,'ColorOrderIndex',1)
-    plot(time_force_displ_otj1(:,3),time_force_displ_otj1(:,2),':','LineWidth',0.3)
-    plot(time_force_displ_otj2(:,3),time_force_displ_otj2(:,2),':','LineWidth',0.3)
-    plot(time_force_displ_otj3(:,3),time_force_displ_otj3(:,2),':','LineWidth',0.3)
+    if length(OTJ_trials{1}) > 1
+        plot(time_force_displ_otj1(:,3),time_force_displ_otj1(:,2),':','LineWidth',0.3)
+    else
+            plot([0 0],[0 0],':')
+    end
+    if length(OTJ_trials{2}) > 1
+        plot(time_force_displ_otj2(:,3),time_force_displ_otj2(:,2),':','LineWidth',0.3)
+    else
+            plot([0 0],[0 0],':')
+    end
+    if length(OTJ_trials{3}) > 1
+        plot(time_force_displ_otj3(:,3),time_force_displ_otj3(:,2),':','LineWidth',0.3) 
+    else
+            plot([0 0],[0 0],':')
+    end
     % 3 OTJ - dots at force intervals
     set(gca,'ColorOrderIndex',1)
     for i = 1:length(OTJ_trials)
-        plot(displ_OTJ(:,i), force_array,'.')
+        if length(OTJ_trials{i}) > 1
+            plot(displ_OTJ(:,i), force_array,'.')
+        else
+            plot([0 0],[0 0])
+        end
     end
     % visual
     xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
-    legend('trial 1 w/onset','trial 2 w/onset','trial 3w/onset','mean','trial 1 raw','Location','Northwest');
+    legend('trial 1 w/onset','trial 2 w/onset','trial 3 w/onset','mean','trial 1 raw','Location','Northwest');
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_OTJ_avg_', subject_id), 'png')
 end
 
@@ -227,28 +273,32 @@ force_dev = cell(1,6);
 timeintervals = 0.05;
 
 for i = 1:length(MTJ_trials)
-    time_array{i} = (0:timeintervals:MTJ_trials{i}(end,loc_time))';
-    force_splined{i} = spline(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),time_array{i});
-    force_dev{i} = [NaN; diff(force_splined{i})/timeintervals];
+    if length(MTJ_trials{i}) > 1
+        time_array{i} = (0:timeintervals:MTJ_trials{i}(end,loc_time))';
+        force_splined{i} = spline(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),time_array{i});
+        force_dev{i} = [NaN; diff(force_splined{i})/timeintervals];
+    end
 end
 
 for i = 1:length(OTJ_trials)
-    time_array{i+length(MTJ_trials)} = (0:timeintervals:OTJ_trials{i}(end,loc_time))';
-    force_splined{i+length(MTJ_trials)} = spline(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force),time_array{i+length(MTJ_trials)});
-    force_dev{i+length(MTJ_trials)} = [NaN; diff(force_splined{i+length(MTJ_trials)})/timeintervals];
+    if length(OTJ_trials{i}) > 1
+        time_array{i+length(MTJ_trials)} = (0:timeintervals:OTJ_trials{i}(end,loc_time))';
+        force_splined{i+length(MTJ_trials)} = spline(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force),time_array{i+length(MTJ_trials)});
+        force_dev{i+length(MTJ_trials)} = [NaN; diff(force_splined{i+length(MTJ_trials)})/timeintervals];
+    end
 end
 
 if plot_conversion
     plottitle = horzcat('Rate of force development, 6 trials, ', subject_id);
     figure('Name',plottitle)
     hold on
-    %%yyaxis left
+    %yyaxis left
     for i = 1:length(time_array)
         plot(time_array{i},force_splined{i})
     end
     ylabel('Force (N)')
     set(gca,'ColorOrderIndex',1)
-    %%yyaxis right
+    %yyaxis right
     for i = 1:length(time_array)
         plot(time_array{i},force_dev{i},'--')
     end

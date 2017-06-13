@@ -17,7 +17,8 @@
     % TODO MMM: 
     % CON 5 SOL - stiff coeff negative
     % BD files existing???
-    % 50 or 100N force intervals?
+    % 50 or 100N force intervals? - some averaging when selecting elong @ force
+    % do not force stiff through 0,0?
     % check predetermined cutoff for each subject (3 trials sent O%J)
     % common stiffness = greatest common force level = 2300 N ?
     % GM vs SOL trials - same force levels for stiffness, different F/E figures?
@@ -43,7 +44,7 @@ function [] = tendstiff(input_project, input_plot)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
         plot_conversion = 1;
     else
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
@@ -463,20 +464,20 @@ function [] = tendstiff(input_project, input_plot)
         figure('Name',plottitle)
         hold on
         if BD_count > 0
-            h1 = plot(BD_elong_mean, BD_force, 'r', 'LineWidth',2);
+            bd1 = plot(BD_elong_mean, BD_force, 'r', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'BD avg';
         end
         if CON_count > 0
-            h2 = plot(CON_elong_mean, CON_force, 'b', 'LineWidth',2);
+            con1 = plot(CON_elong_mean, CON_force, 'b', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'CON avg';
         end
         if BD_count > 0
-            h3 = plot(BD_elong_mean+BD_elong_SD, BD_force, 'r--', 'LineWidth',0.5);
+            bd2 = plot(BD_elong_mean+BD_elong_SD, BD_force, 'r--', 'LineWidth',0.5);
             plot(BD_elong_mean-BD_elong_SD, BD_force, 'r--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'BD SD';
         end
         if CON_count > 0
-            h5 = plot(CON_elong_mean+CON_elong_SD, CON_force, 'b--', 'LineWidth',0.5);
+            con2 = plot(CON_elong_mean+CON_elong_SD, CON_force, 'b--', 'LineWidth',0.5);
             plot(CON_elong_mean-CON_elong_SD, CON_force, 'b--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'CON SD';
         end
@@ -484,7 +485,13 @@ function [] = tendstiff(input_project, input_plot)
         xlabel('Tendon elongation (mm)')
         ylabel('Force (N)')
         title(plottitle)
-        legend([h1 h2 h3 h5],fig_f_e_legend, 'Location','Northwest')
+        if CON_count > 0 && BD_count > 0
+            legend([bd1 con1 bd2 con2],fig_f_e_legend, 'Location','Northwest')
+        elseif BD_count > 0
+            legend([bd1 bd2],fig_f_e_legend, 'Location','Northwest')
+        else
+            legend([con1 con2],fig_f_e_legend, 'Location','Northwest')
+        end
         saveas(gcf, horzcat('data_plots_stiff/GRP_BD ',plottitle,'.jpg'))
     end
             

@@ -12,8 +12,21 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
 
 
 
-    global plot_conversion plot_check plot_achilles subject_id
+    global plot_norm plot_check plot_achilles subject_id
     global column_gonio column_norm_angle 
+    
+    
+    
+    
+    % secondary zero offset for GONIOMETER data (primary offset during data collection, only before 1st of 3 trials)
+    %     this is normally done right after read_noraxon_stiffness, in
+    %     extract_force_displ_singletrial - but for noraxon_CPM trials,
+    %     extr_f_displ is not used --> running here instead 
+    gonio_offset = mean(noraxon_rot(1:3,column_gonio)) - mean(noraxon_rot(1:3,column_norm_angle));
+    noraxon_rot(:,column_gonio) = noraxon_rot(:,column_gonio) - gonio_offset;
+    
+    
+    
     
     % extract Norm machine angle series
     norm_angle_filtered = noraxon_rot(:,column_norm_angle);
@@ -35,11 +48,11 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     ten_plateau_1_stop = find(norm_angle_filtered(ten_plateau_1_start:end)<=peak_df,1,'first');
     ten_plateau_1_stop = ten_plateau_1_start + ten_plateau_1_stop - 1;
     
-    five_plateau__start = find(norm_angle_filtered(ten_plateau_1_stop:end)<=peak_pf,1,'first');
-    five_plateau__start = five_plateau__start + ten_plateau_1_stop - 1;
+    five_plateau_start = find(norm_angle_filtered(ten_plateau_1_stop:end)<=peak_pf,1,'first');
+    five_plateau_start = five_plateau_start + ten_plateau_1_stop - 1;
     
-    five_plateau_stop = find(norm_angle_filtered(five_plateau__start:end)>=peak_pf,1,'first');
-    five_plateau_stop = five_plateau_stop + five_plateau__start - 1;
+    five_plateau_stop = find(norm_angle_filtered(five_plateau_start:end)>=peak_pf,1,'first');
+    five_plateau_stop = five_plateau_stop + five_plateau_start - 1;
     
     ten_plateau_2_start = find(norm_angle_filtered(five_plateau_stop:end)>=peak_df,1,'first');
     ten_plateau_2_start = ten_plateau_2_start + five_plateau_stop - 1;
@@ -52,14 +65,14 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     angle0 = noraxon_rot(angle_goingup:ten_plateau_1_start,column_gonio);
 
     % extract data from movement phase DORSIFLEXION (used only for plot)
-    displ1 = usdata_rot(ten_plateau_1_stop:five_plateau__start,2);
-    angle1 = noraxon_rot(ten_plateau_1_stop:five_plateau__start,column_gonio);
+    displ1 = usdata_rot(ten_plateau_1_stop:five_plateau_start,2);
+    angle1 = noraxon_rot(ten_plateau_1_stop:five_plateau_start,column_gonio);
     
     % extract data from movement phase PLANTARFLEXION
     displ2 = usdata_rot(five_plateau_stop:ten_plateau_2_start,2);
     angle2 = noraxon_rot(five_plateau_stop:ten_plateau_2_start,column_gonio);
     
-   if plot_check && plot_conversion
+   if plot_check && plot_norm
         plottitle = horzcat('Ankle rotation correction check 2 for ', subject_id);
         figure('Name',plottitle);
         plot(angle0, displ0, 'g.'); % plantar direction first phase
@@ -129,7 +142,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     
    
    % plot norm angle, gonio angle, displacement, zone lines
-   if plot_check && plot_conversion && plot_achilles
+   if plot_check && plot_achilles
        % check for matlab version, do not use yyaxis on home computer (2015)
        mat_version = version('-release');
        
@@ -137,24 +150,29 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
        fig_anklerot = figure('Name', plottitle);
        plot(noraxon_rot(1:ten_plateau_2_stop,1),norm_angle_filtered(1:ten_plateau_2_stop),'b'); % norm angle
        hold on
+       % left axis
        if strcmp(mat_version,'2015b') == 0
            yyaxis left
        end
        ylabel('Angle (deg)')
        plot(noraxon_rot(1:ten_plateau_2_stop,1),noraxon_rot(1:ten_plateau_2_stop,column_gonio),'m'); % goniometer 
+       % right axis if possible
        if strcmp(mat_version,'2015b') == 0
            yyaxis right
            ylabel('Calc insertion displacement (mm)')
+           set(gca,'YDir','Reverse')
        end
        plot(usdata_rot(1:ten_plateau_2_stop,1),usdata_rot(1:ten_plateau_2_stop,2)); % displacement
+       % left axis
        if strcmp(mat_version,'2015b') == 0
           yyaxis left
        end
        plot([noraxon_rot(ten_plateau_1_start,1) noraxon_rot(ten_plateau_1_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(ten_plateau_1_stop,1) noraxon_rot(ten_plateau_1_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
-       plot([noraxon_rot(five_plateau__start,1) noraxon_rot(five_plateau__start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
+       plot([noraxon_rot(five_plateau_start,1) noraxon_rot(five_plateau_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(five_plateau_stop,1) noraxon_rot(five_plateau_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
        plot([noraxon_rot(ten_plateau_2_start,1) noraxon_rot(ten_plateau_2_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
+       
        xlabel('Time (s)')
        ylabel('Angle (deg)')
        title(plottitle);

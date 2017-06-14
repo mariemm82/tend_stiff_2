@@ -25,6 +25,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     
     % secondary zero offset for GONIOMETER data (primary offset during data collection, only before 1st of 3 trials)
     gonio_offset = mean(noraxon_prepped(1:3,column_gonio));
+    % expexting that gonio should be zero at onset of singletrials
     noraxon_prepped(:,column_gonio) = noraxon_prepped(:,column_gonio) - gonio_offset;
     
     

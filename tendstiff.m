@@ -16,11 +16,16 @@
 
     % TODO MMM: 
     % CON 5 SOL - stiff coeff negative
-    % BD files existing???
     % 50 or 100N force intervals? - some averaging when selecting elong @ force
-    % do not force stiff through 0,0?
+    % do not require stiff fit through 0,0?
+
+    % cutoff force per RFD?
+    
+    % OLD STIFF METHOD
     % check predetermined cutoff for each subject (3 trials sent O%J)
     % common stiffness = greatest common force level = 2300 N ?
+    
+    % FINAL PLOTS
     % GM vs SOL trials - same force levels for stiffness, different F/E figures?
     
     
@@ -44,11 +49,11 @@ function [] = tendstiff(input_project, input_plot)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
         plot_conversion = 1;
-    else
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
+    else
         plot_conversion = 0;
+        plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
     end
     plot_us = 0;
     plot_emg = 0;  % RMS 3 EMG channels per trial
@@ -211,12 +216,14 @@ function [] = tendstiff(input_project, input_plot)
 
         % Read moment arm trial US data file, determine time stamps, set trigger frame as time = zero
         % Produce US sample frequency, create new US array containing time and displacement
-        [usdata_momentarm, usfreq_momentarm] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
+        [usdata_CPM, usfreq_CPM] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
 
         % Read moment arm noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
-        noraxon_momentarm = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_momentarm, dm_side{line}, 'CPM calcaneus');
+        noraxon_CPM = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_CPM, dm_side{line}, 'CPM calcaneus');
 
+        % above variables are no longer used for momentarm, but are (re-)used for ankle rot
+        
         % Read complete, prepared noraon array + prepared us array
         % Produce AT moment arm constant
         at_momentarm = calculate_momentarm(0,0, dm_leg_length{line});
@@ -229,10 +236,10 @@ function [] = tendstiff(input_project, input_plot)
 
         % Read complete, prepared noraxon array + prepared us array
         % Produce ankle rotation constant, mm/degree
-        if strcmp(subject_id,'subject 4 R PRE SOL') %very special case for this trial...
+        if strcmp(subject_id,'Control 4 R PRE SOL') %very special case for this trial...
             at_rotation_const = -0.14;
         else %normally
-            at_rotation_const = calculate_rotation_correction(noraxon_momentarm, usdata_momentarm);
+            at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
         end
 
 

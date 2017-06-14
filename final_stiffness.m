@@ -29,7 +29,7 @@ loc_displ = 3;
 %   and neural drive of human skeletal muscle following resistance training. J Appl Physiol 93: 1318–1326, 2002.)
 
 % onset as % of max force
-threshold_percent = 0.01; %VAR 0.5 percent (0.00-1.00) of highest common force during ramps MMM TODO check BD 102 GM, one trial cut too early with 0.005 --> changed to 0.01
+threshold_percent = 0.01; %VAR 1 percent (0.00-1.00) of highest common force during ramps
 %threshold_fixed = 7.5/at_momentarm; %VAR threshold in Nm, converted to N
 threshold_add = threshold_percent * min(force_max_trials);
 
@@ -308,26 +308,14 @@ if plot_conversion
     plot([0 max(cell2mat(cellfun(@size,time_array,'uni',false))) * timeintervals],[100 100],'k')
     ylabel('Force (N) / force development (N/s)')
     xlabel('Time (s)')
-    axis([-Inf Inf -100 commonforce*1.05])
+    axis([-Inf Inf -100 commonforce])
     title(plottitle)
     saveas(gcf, strcat('data_plots_stiff/IND_RFD_', subject_id), 'png')
 end
 
 
     
-% MMM TODO GOON: RTD calculation for cutoff?
-% The best way I think is slope of the force – time curve from onset to +50ms or +100 ms.
-% It is important to have a strict criteria for onset. 
-% Peak RFD i.e. the steepest point to point slope of the curve is often reported but depends extremely much on filtering and is less reproducible...and valid I think..
-%  
-% See eg. Enclosed BM et al p. 987 second paragraph. 
-% Also enclosed Aagaard et al 2002 with similar description. 
-% I think in both these papers it is done as mentioned above + 0-30ms, 0-peak MVC, and peak... 
-% also areas under the curve are calculated (‘contractile impulse’). But keep it simple I would suggest...
-
-% MMM goon - define cutoff
-
-% MMM goon - for subjects where one trial is discarded
+% MMM TODO: RTD calculation for cutoff?
 
 
 
@@ -355,7 +343,10 @@ end
 final_cutoff_force = force_array(loc_elong_cut);
 
 
+
+
 %% curve fitting for stiffness
+% MMM TODO - require going through 0,0?
 [fitresult, gof] = fit_stiffness(tend_elong, force_array, loc_elong_cut, displ_mtj_mean, displ_otj_mean);
 
 % write stiffness coefficients to screen

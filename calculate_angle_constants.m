@@ -10,7 +10,7 @@
 
 
 function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants(freq_cutoff, inputfile, side)
-    global plot_check plot_conversion plot_achilles subject_id 
+    global plot_norm subject_id 
     global column_norm_angle
     global norm_volt_per_degree % norm_volt_per_nm norm_volt_per_velocity norm_mv2nm_a norm_mv2nm_b
         
@@ -106,7 +106,7 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants(
     
     %%% plot phases
     
-    if plot_check && plot_conversion && plot_achilles
+    if plot_norm
         plottitle = horzcat('CPM ANGLE zone check, ', subject_id);
         figure('Name', plottitle)
         plot(norm_angle_filtered,'b')

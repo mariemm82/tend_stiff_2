@@ -1,0 +1,5 @@
+11_POST_stiff_calc_2L_trial1 to 4:
+These files represnt 4 scans on GM
+
+11_POST_stiff_calc_2L-1_trial1 to 3:
+These files represent 3 scans on CALC

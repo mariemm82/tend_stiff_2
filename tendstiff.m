@@ -15,6 +15,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % TODO MMM: 
+    
+    % filter for T.A. EMG spikes?
+    
+    
     % CON 5 SOL - stiff coeff negative
     % 50 or 100N force intervals? - some averaging when selecting elong @ force
     % do not require stiff fit through 0,0?

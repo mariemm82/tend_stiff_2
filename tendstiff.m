@@ -18,10 +18,7 @@
     
     % filter for T.A. EMG spikes?
     
-    
     % CON 5 SOL - stiff coeff negative
-    % 50 or 100N force intervals? - some averaging when selecting elong @ force
-    % do not require stiff fit through 0,0?
 
     % cutoff force per RFD?
     
@@ -54,7 +51,7 @@ function [] = tendstiff(input_project, input_plot)
     end
     if input_plot >= 3
         plot_conversion = 1;
-        plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
     else
         plot_conversion = 0;
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
@@ -66,7 +63,7 @@ function [] = tendstiff(input_project, input_plot)
     %% Set constants and globals % PROJECTSPECIFIC
 
     % Average stiffness across X N
-    forceintervals = 50; %TMP
+    forceintervals = 50; %VAR
     
     % declare for later use:
     % variables for NORM conversion factors calculated from actual data
@@ -252,7 +249,7 @@ function [] = tendstiff(input_project, input_plot)
         % Read MVC noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
         % sending in a length corresponding to 9 seconds (delete anything after 9 sec)
-        noraxon_MVC = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC dorsi');
+        noraxon_MVC = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantar flex');
 
         % Calculate co-activation constants
         % Read complete, prepared noraxon array + number of frames to average (freq * time)

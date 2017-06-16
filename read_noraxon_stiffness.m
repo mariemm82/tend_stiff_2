@@ -8,7 +8,7 @@
 function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, trial_name)
     global noraxonfreq emg_bandpass emg_rms_ms convert_achilles % us_zerodispframes mvc_window_ms convert_norm_ind_active
     global torque_cutoff_active angle_cutoff_active % angle_cutoff velocity_cutoff torque_cutoff_bandstop  velocity_cutoff_active
-    global plot_achilles plot_norm plot_emg plot_check subject_id
+    global plot_emg plot_check subject_id % plot_achilles plot_norm 
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
     
     % import noraxon data
@@ -28,6 +28,39 @@ function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, 
     for i = column_EMG_start:column_EMG_end
        EMGfiltered(:, i-column_EMG_start+1) = filtfilt(B, A, noraxondata.data(:,i));
     end
+% 
+%     % testing filters and power spectrum:
+%     
+%     EMG1_raw = noraxondata.data(:,column_l_tibant);
+%     EMG1_raw = noraxondata.data(15000:18500,column_l_tibant);
+%     emg_bandpass = [20/(noraxonfreq/2) 500/(noraxonfreq/2)];
+%     [B, A] = butter(4, emg_bandpass);
+%     EMG2_filt = filtfilt(B, A, EMG1_raw);
+%     emg_bandstop = [50/(noraxonfreq/2) 75/(noraxonfreq/2)];
+%     [B, A] = butter(4, emg_bandstop, 'stop');
+%     EMG6_filt = filtfilt(B, A, EMG2_filt);
+%     figure
+%     hold on
+%     plot(EMG1_raw,':')
+%     plot(EMG6_filt)
+% 
+% figure
+% hold on
+%     EMG_FFT = fft(EMG1_raw,21000);
+%     Pyy = EMG_FFT.*conj(EMG_FFT)/21000;
+% f = 1000/21000*(0:10500);
+% plot(f,Pyy(1:10501))
+% %     EMG_FFT2 = fft(EMG6_filt,21000);
+% %     Pyy = EMG_FFT2.*conj(EMG_FFT2)/21000;
+% % f = 1000/21000*(0:10500);
+% % plot(f,Pyy(1:10501))
+% title('Power spectral density')
+% xlabel('Frequency (Hz)')
+% 
+% 
+%     EMGfiltered(:,column_l_tibant-1) = EMG6_filt;
+
+
 
     % RMS
     % for the very first and last frames (time = emg_rms_ms/2), RMS is
@@ -156,7 +189,7 @@ function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, 
     %% CHECKPOINT PLOTS
 
     % EMG tibialis anterior - for tendon stiffness
-    if plot_check && plot_achilles && plot_emg 
+    if plot_check && plot_emg 
         plottitle = horzcat('EMG check, TA, ', subject_id, ' ', trial_name);
         if strcmpi(side,'R') == 1
             plot_raw = noraxondata.data(:,column_r_tibant);
@@ -179,7 +212,7 @@ function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, 
     
     
     % EMG gastroc med - EMG quality check
-    if plot_check && plot_norm && plot_emg 
+    if plot_check && plot_emg 
         plottitle = horzcat('EMG check, GM, ', subject_id, ' ', trial_name);
         if strcmpi(side,'R') == 1
             plot_raw = noraxondata.data(:,column_r_gm);
@@ -200,7 +233,7 @@ function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, 
     end
     
     % EMG triceps surae - for norm strength etc
-    if plot_check && plot_norm && plot_emg 
+    if plot_check && plot_emg 
         plottitle = horzcat('EMG check, triceps surae, ', subject_id, ' ', trial_name);
         if strcmpi(side,'R') == 1
             plot_GM = noraxon_prepped(:,column_r_gm); 
@@ -220,42 +253,7 @@ function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, 
         legend('GM','GL','SOL');
     end
 
-%     % Achilles torque
-%      if plot_check && plot_achilles
-%          plottitle = horzcat('Achilles torque check for ', subject_id, ' ', trial_name);
-%          figure('Name',plottitle)
-%          plot(noraxondata.data(:,1),achilles_torque,'r')
-%          hold on
-%          plot(noraxondata.data(:,1),achilles_torque_filtered,'b')
-%          plot(noraxon_prepped(:,1),noraxon_prepped(:,column_achilles),'-ks','MarkerSize',2)
-%          xlabel('Time (s)'),ylabel('Achilles torque (Nm)'),title(plottitle);
-%          legend('raw torque','filt torque','filt+resamp torque','Location','Southeast');
-%      end
 
-    % Norm torque, raw and resampled
-%     if plot_check && plot_norm
-%         plottitle = horzcat('Norm torque check for ', subject_id, ' ', trial_name);
-%         figure('Name',plottitle)
-%         plot(noraxondata.data(:,1),norm_torque,'r')
-%         hold on
-%         plot(noraxondata.data(:,1),norm_torque_filtered,'b')
-%         plot(noraxon_prepped(:,1),noraxon_prepped(:,column_norm_torque),'-ks','MarkerSize',2)
-%         xlabel('Time (s)'),ylabel('Norm torque (Nm)'),title(plottitle);
-%         legend('raw torque','filt torque','filt+resamp torque','Location','Southeast');
-%     end
-    
-% % read_noraxon_stiffness never called for NORM data, just for MVC in Achilles?
-%     % plot final data
-%     if plot_check && plot_norm
-%         plottitle = horzcat('Norm torque-angle check for ', subject_id, ' ', trial_name);
-%         figure('Name',plottitle)
-%         plot(noraxon_prepped(:,column_norm_angle),noraxon_prepped(:,column_norm_torque),'k')
-%         hold on
-%         plot(noraxon_prepped(:,column_norm_angle),noraxon_prepped(:,column_norm_velocity),'r')
-%         set(gca,'xdir','reverse')
-%         xlabel('Angle (deg)'),ylabel('Torque/velocity'),title(plottitle);
-%         legend('torque','velocity','Location','Northwest');
-%     end
 end
 
 

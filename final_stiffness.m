@@ -7,9 +7,9 @@
 
 
 
-function [fitresult, gof, force_elong_array, final_cutoff_force] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, at_momentarm) %new2014-04-14
+function [fitresult, gof, force_elong_array, final_cutoff_force] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, ~) %new2014-04-14
 
-global plot_achilles subject_id plot_conversion % plot_check %plot_norm plot_emg
+global plot_achilles subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
 %% convert input data to cells
@@ -34,7 +34,8 @@ loc_displ = 3;
 %threshold_percent = 0.005; %VAR percent (0.00-1.00) of highest common force during ramps  --- BD 102 (?) too early cut
 
 % version 3: increase above SD of the first frames
-baseline_frames = 6; %VAR X first frames used to define baseline
+baseline_frames = 10; %VAR X first frames used to define baseline
+baseline_SD_multiplier = 2; %VAR onset is when force level increases to 3*SD above baseline force
 % remainder is performed inside loop below
 
 % preallocate
@@ -46,18 +47,30 @@ loc_OTJ_onset(1:3) = NaN;
 % locate onset - output variable is the first frame to KEEP
 for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
-        baseline_mean = mean(MTJ_trials{i}(1:baseline_frames,loc_force));
-        baseline_SD = std(MTJ_trials{i}(1:baseline_frames,loc_force));
-        threshold_MTJ(i) = mean(MTJ_trials{i}(1:baseline_frames,loc_force)) + 2*baseline_SD;
-        loc_MTJ_onset(i) = find(MTJ_trials{i}(:,loc_force) >= threshold_MTJ(i), 1, 'first');
+        % in baseline determination zone, if force goes up by an average of 2 N from point to point - baseline is onset
+        if mean(diff(MTJ_trials{i}(1:baseline_frames,loc_force))) > 2 %VAR
+            cprintf('red', horzcat('WARNING: MTJ', num2str(i), 'Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame =', num2str(MTJ_trials{i}(1,loc_force)), ' N.\n'))
+            loc_MTJ_onset(i) = 1;
+            threshold_MTJ(i) = MTJ_trials{i}(loc_MTJ_onset(i),loc_force);
+        else
+            baseline_SD = std(MTJ_trials{i}(1:baseline_frames,loc_force));
+            threshold_MTJ(i) = mean(MTJ_trials{i}(1:baseline_frames,loc_force)) + baseline_SD_multiplier*baseline_SD;
+            loc_MTJ_onset(i) = 1 + find(MTJ_trials{i}(2:end,loc_force) >= threshold_MTJ(i), 1, 'first'); % don't check first frame - often contaminated by noise
+        end
     end
 end
 for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
-        baseline_mean = mean(OTJ_trials{i}(1:baseline_frames,loc_force));
-        baseline_SD = std(OTJ_trials{i}(1:baseline_frames,loc_force));
-        threshold_OTJ(i) = mean(OTJ_trials{i}(1:baseline_frames,loc_force)) + 2*baseline_SD;
-        loc_OTJ_onset(i) = find(OTJ_trials{i}(:,loc_force) >= threshold_OTJ(i), 1, 'first');
+        % in baseline determination zone, if force goes up by an average of 2 N from point to point - baseline is onset
+        if mean(diff(OTJ_trials{i}(1:baseline_frames,loc_force))) > 2 %VAR
+            cprintf('red', horzcat('WARNING: OTJ', num2str(i), 'Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame =', num2str(OTJ_trials{i}(1,loc_force)), ' N.\n'))
+            loc_OTJ_onset(i) = 1;
+            threshold_OTJ(i) = OTJ_trials{i}(loc_OTJ_onset(i),loc_force);
+        else
+            baseline_SD = std(OTJ_trials{i}(1:baseline_frames,loc_force));
+            threshold_OTJ(i) = mean(OTJ_trials{i}(1:baseline_frames,loc_force)) + baseline_SD_multiplier*baseline_SD;
+            loc_OTJ_onset(i) = 1 + find(OTJ_trials{i}(2:end,loc_force) >= threshold_OTJ(i), 1, 'first'); % don't check first frame - often contaminated by noise
+        end
     end
 end
 
@@ -69,13 +82,13 @@ if plot_achilles
     % MTJ
     for i = 1:length(MTJ_trials)
         if length(MTJ_trials{i}) > 1
-            plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force))
+            plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),'.')
         end
     end
     % OTJ
     for i = 1:length(OTJ_trials)
         if length(OTJ_trials{i}) > 1
-            plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force))
+            plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force),'.')
         end
     end
     % onset x2
@@ -95,7 +108,12 @@ if plot_achilles
     ylabel('Force (N)')
     title(plottitle)
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_onset_', subject_id), 'png')
-    axis([0 0.2+MTJ_trials{1}(max([loc_MTJ_onset loc_OTJ_onset]),loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
+    [latestonset,loc_latestonset] = (max([loc_MTJ_onset loc_OTJ_onset]));
+    if loc_latestonset > 3
+        axis([0 0.2+OTJ_trials{loc_latestonset-3}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
+    else
+        axis([0 0.2+MTJ_trials{loc_latestonset}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
+    end
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_onset_', subject_id, '_ZOOM'), 'png')
 end
 
@@ -103,32 +121,46 @@ end
 %% cut arrays at onset, and offset time+displacement accordingly
 for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
-        % offset displacement and time
-        MTJ_trials{i}(:,loc_displ) = MTJ_trials{i}(:,loc_displ) - mean(MTJ_trials{i}(loc_MTJ_onset(i)-2:loc_MTJ_onset(i),loc_displ)); % average 3 points until and including onset
-        MTJ_trials{i}(:,loc_time) = MTJ_trials{i}(:,loc_time) - MTJ_trials{i}(loc_MTJ_onset(i),loc_time);
-        % delete before onset
-        MTJ_trials{i}(1:loc_MTJ_onset(i)-1,:) = [];
-        % warning if first force is larger than ... 20 N?
+        if loc_MTJ_onset(i) == 1
+            % do nothing
+        elseif loc_MTJ_onset(i) == 2
+            MTJ_trials{i}(:,loc_displ) = MTJ_trials{i}(:,loc_displ) - mean(MTJ_trials{i}(1:loc_MTJ_onset(i),loc_displ)); % average 2 points until and including onset
+            MTJ_trials{i}(:,loc_time) = MTJ_trials{i}(:,loc_time) - MTJ_trials{i}(loc_MTJ_onset(i),loc_time);
+            % delete before onset
+            MTJ_trials{i}(1:loc_MTJ_onset(i)-1,:) = [];
+        else % USUALLY
+            MTJ_trials{i}(:,loc_displ) = MTJ_trials{i}(:,loc_displ) - mean(MTJ_trials{i}(loc_MTJ_onset(i)-2:loc_MTJ_onset(i),loc_displ)); % average 3 points until and including onset
+            MTJ_trials{i}(:,loc_time) = MTJ_trials{i}(:,loc_time) - MTJ_trials{i}(loc_MTJ_onset(i),loc_time);
+            % delete before onset
+            MTJ_trials{i}(1:loc_MTJ_onset(i)-1,:) = [];
+        end
+        % warning if first force is larger than ... 20 N? TODO, delete this warning?
         if MTJ_trials{i}(1,loc_force) > 20
-            cprintf('red', horzcat('WARNING: Cutoff creates force onset > threshold of 20 N: ', num2str(round(MTJ_trials{i}(1,loc_force),1)), '\n'))
+            cprintf('red', horzcat('WARNING: Force onset > threshold of 20 N for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),3)), 'N\n'))
         end
     end
 end
 for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
-        % offset displacement and time
-        OTJ_trials{i}(:,loc_displ) = OTJ_trials{i}(:,loc_displ) - mean(OTJ_trials{i}(loc_OTJ_onset(i)-2:loc_OTJ_onset(i),loc_displ));
-        OTJ_trials{i}(:,loc_time) = OTJ_trials{i}(:,loc_time) - OTJ_trials{i}(loc_OTJ_onset(i),loc_time);
-        % delete before onset
-        OTJ_trials{i}(1:loc_OTJ_onset(i)-1,:) = [];
+        if loc_OTJ_onset(i) == 1
+            % do nothing
+        elseif loc_OTJ_onset(i) == 2
+            OTJ_trials{i}(:,loc_displ) = OTJ_trials{i}(:,loc_displ) - mean(OTJ_trials{i}(1:loc_OTJ_onset(i),loc_displ)); % average 2 points until and including onset
+            OTJ_trials{i}(:,loc_time) = OTJ_trials{i}(:,loc_time) - OTJ_trials{i}(loc_OTJ_onset(i),loc_time);
+            % delete before onset
+            OTJ_trials{i}(1:loc_OTJ_onset(i)-1,:) = [];
+        else % USUALLY
+            OTJ_trials{i}(:,loc_displ) = OTJ_trials{i}(:,loc_displ) - mean(OTJ_trials{i}(loc_OTJ_onset(i)-2:loc_OTJ_onset(i),loc_displ)); % average 3 points until and including onset
+            OTJ_trials{i}(:,loc_time) = OTJ_trials{i}(:,loc_time) - OTJ_trials{i}(loc_OTJ_onset(i),loc_time);
+            % delete before onset
+            OTJ_trials{i}(1:loc_OTJ_onset(i)-1,:) = [];
+        end
         % warning if first force is larger than ... 20 N?
         if OTJ_trials{i}(1,loc_force) > 20
-            cprintf('red', horzcat('WARNING: Cutoff creates force onset > threshold of 20 N: ', num2str(round(OTJ_trials{i}(1,loc_force),1)), '\n'))
+            cprintf('red', horzcat('WARNING: Force onset > threshold of 20 N for OTJ', num2str(i), ': ', num2str(round(OTJ_trials{i}(1,loc_force),3)), 'N\n'))
         end
     end
 end
-
-
 
 
 %% find common force level, create common array
@@ -143,7 +175,6 @@ commonforce = min(force_max_trials);
 
 % create array of force values to use for averaging
 force_array = (0:forceintervals:commonforce)';
-
 
 
 %% calculate tendon elongation
@@ -163,6 +194,9 @@ for i = 1:length(MTJ_trials)
         MTJ_trials{i}(loc_del_mtj+keep_datapoints:end,:) = [];
         % spline to get displacement values at common force levels
         displ_MTJ(:,i) = pchip(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array); % ALT: interp1(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array,'linear'); % ALT: spline(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array);
+        if abs(displ_MTJ(1,i)) > 0.05 % delete first value of spline function creates a point way off (will not be used anyway)
+            displ_MTJ(1,i) = NaN;
+        end
     end
 end
 
@@ -174,14 +208,19 @@ for i = 1:length(OTJ_trials)
         OTJ_trials{i}(loc_del_OTJ+keep_datapoints:end,:) = [];
         % spline to get displacement values at common force levels
         displ_OTJ(:,i) = pchip(OTJ_trials{i}(:,loc_force),OTJ_trials{i}(:,loc_displ),force_array);
+        if abs(displ_OTJ(1,i)) > 0.05
+            displ_OTJ(1,i) = NaN;
+        end
     end
 end
 
 % average displacement trials, calculate elongation
-displ_mtj_mean = mean(displ_MTJ,2); % nanmean to average 2 values if 3rd is NaN
-displ_otj_mean = mean(displ_OTJ,2);
+displ_mtj_mean = nanmean(displ_MTJ,2); % nanmean to average 2 values if 3rd is NaN
+displ_otj_mean = nanmean(displ_OTJ,2);
+% displ_mtj_mean(1) = NaN;
+% displ_otj_mean(1) = NaN;
 tend_elong = displ_mtj_mean - displ_otj_mean;
-tend_elong(1) = NaN;
+tend_elong(1) = NaN; % do not include point in stiffness fit
 
 if plot_achilles
     % MTJ force-disp x 3
@@ -278,87 +317,202 @@ if plot_achilles
 end
 
 
+%% cut force (method 4, June 2017: RTD) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%% cut force (method 4, June 2017: RTD)
+%% calculate rate of force development
 
 % preallocate
 RFD_MTJ_raw = cell(1,3);
 RFD_OTJ_raw = cell(1,3);
-RFD_MTJ_filt = cell(1,3);
-RFD_OTJ_filt = cell(1,3);
+RFD_MTJ_smooth = cell(1,3);
+RFD_OTJ_smooth = cell(1,3);
 freq_MTJ(1:3) = NaN;
 freq_OTJ(1:3) = NaN;
 
 % create running average filter with x points:
 filter_points = 5; %VAR
-filter_ravg = 1/filter_points * ones(filter_points,1);
-%RFD_window = 0.02; %VAR 0.02s = 20ms. the 20-millisecond sampling window has been shown to be the most reliable (39). https://www.scienceforsport.com/rate-of-force-development-rfd-2/#how-to-calculate-the-rate-of-force-development
+filter_run_avg = 1/filter_points * ones(filter_points,1);
 
 % calculate and smooth RFD
 for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
-%        time_array{i} = (0:timeintervals:MTJ_trials{i}(end,loc_time))';
-%        force_splined{i} = pchip(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),time_array{i});
-%        RFD{i} = [NaN; diff(force_splined{i})/timeintervals];
         RFD_MTJ_raw{i} = diff(MTJ_trials{i}(:,loc_force))./diff(MTJ_trials{i}(:,loc_time));
-        RFD_MTJ_filt{i} = filtfilt(filter_ravg, 1, RFD_MTJ_raw{i});
+        RFD_MTJ_smooth{i} = filtfilt(filter_run_avg, 1, RFD_MTJ_raw{i});
         freq_MTJ(i) = 1/mean(diff(MTJ_trials{i}(:,loc_time)));
     end
 end
-
 for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
         RFD_OTJ_raw{i} = diff(OTJ_trials{i}(:,loc_force))./diff(OTJ_trials{i}(:,loc_time));
-        RFD_OTJ_filt{i} = filtfilt(filter_ravg, 1, RFD_OTJ_raw{i});
+        RFD_OTJ_smooth{i} = filtfilt(filter_run_avg, 1, RFD_OTJ_raw{i});
         freq_OTJ(i) = 1/mean(diff(OTJ_trials{i}(:,loc_time)));
     end
 end
-
 % RFD raw and filt are one frame shorter than MTJ_trials etc, because of
 % differentiation.
 
-if plot_achilles
-    plottitle = horzcat('Rate of force development, 6 trials, ', subject_id);
-    figure('Name',plottitle)
-    hold on
-    %yyaxis left
-    for i = 1:length(MTJ_trials)
-        plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force))
-    end % TODO - if length < 1
-    for i = 1:length(OTJ_trials)
-        plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force))
+% if plot_achilles
+% %    % check for matlab version, do not use yyaxis on home computer (2015)
+% %    mat_version = version('-release');
+%     plottitle = horzcat('Rate of force development, 6 trials, ', subject_id);
+%     figure('Name',plottitle)
+%     hold on
+% %     % left axis
+% %     if strcmp(mat_version,'2015b') == 0
+% %         yyaxis left
+% %     end
+%     for i = 1:length(MTJ_trials)
+%         if length(MTJ_trials{i}) > 1
+%             plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),'-')
+%         else
+%         end
+%     end
+%     for i = 1:length(OTJ_trials)
+%         if length(OTJ_trials{i}) > 1
+%             plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force),'-')
+%         else
+%         end
+%     end
+%     ylabel('Force (N)')
+%     set(gca,'ColorOrderIndex',1)
+% %     % right axis if possible
+% %     if strcmp(mat_version,'2015b') == 0
+% %         yyaxis right
+% %         ylabel('Rate of force development (N/s)')
+% %     end
+%     for i = 1:length(MTJ_trials)
+%         if length(MTJ_trials{i}) > 1
+%             plot(MTJ_trials{i}(2:end,loc_time),RFD_MTJ_smooth{i},':')
+%         else
+%         end
+%     end
+%     for i = 1:length(OTJ_trials)
+%         if length(OTJ_trials{i}) > 1
+%             plot(OTJ_trials{i}(2:end,loc_time),RFD_OTJ_smooth{i},':')
+%         else
+%         end
+%     end
+%     % horizontal lines @ various RFD levels
+%     plot([0 4],[200 200],'k-')
+%     plot([0 4],[100 100],'k-') %old instead of Inf: max(cell2mat(cellfun(@size,time_array,'uni',false))) * timeintervals
+%     % visual
+%     xlabel('Time (s)')
+%     axis([-Inf Inf -100 commonforce])
+%     title(plottitle)
+%     saveas(gcf, strcat('data_plots_stiff/IND_RFD_', subject_id), 'png')
+% end
+
+
+%% calculations of cutoff based on RFD
+
+RFD_MTJ_smooth_SD(1:3) = NaN;
+loc_startforce_MTJ(1:3) = NaN;
+loc_halfforce_MTJ(1:3) = NaN;
+RFD_OTJ_smooth_SD(1:3) = NaN;
+loc_startforce_OTJ(1:3) = NaN;
+loc_halfforce_OTJ(1:3) = NaN;
+startforce = 0.1; %VAR 10% of common force
+halfforce = 0.5; %VAR 50% of common force
+
+for i = 1:length(RFD_MTJ_smooth)
+    if length(RFD_MTJ_smooth{i}) > 1
+        loc_startforce_MTJ(i) = find(MTJ_trials{i}(:,loc_force) >= (commonforce*startforce), 1, 'first');
+        loc_halfforce_MTJ(i) = find(MTJ_trials{i}(:,loc_force) >= (commonforce*halfforce), 1, 'first');
+        RFD_MTJ_smooth_SD(i) = std(RFD_MTJ_smooth{i}(loc_startforce_MTJ(i):loc_halfforce_MTJ(i)));
     end
-    ylabel('Force (N)')
-    set(gca,'ColorOrderIndex',1)
-    %yyaxis right TODO
-    for i = 1:length(MTJ_trials)
-        plot(MTJ_trials{i}(2:end,loc_time),RFD_MTJ_filt{i},':')
+end
+for i = 1:length(RFD_OTJ_smooth)
+    if length(RFD_OTJ_smooth{i}) > 1
+        loc_startforce_OTJ(i) = find(OTJ_trials{i}(:,loc_force) >= (commonforce*startforce), 1, 'first');
+        loc_halfforce_OTJ(i) = find(OTJ_trials{i}(:,loc_force) >= (commonforce*halfforce), 1, 'first');
+        RFD_OTJ_smooth_SD(i) = std(RFD_OTJ_smooth{i}(loc_startforce_OTJ(i):loc_halfforce_OTJ(i)));
     end
-    for i = 1:length(OTJ_trials)
-        plot(OTJ_trials{i}(2:end,loc_time),RFD_OTJ_filt{i},':')
-    end
-    % horizontal lines @ various force levels
-    plot([0 4],[0 0],'k')
-    plot([0 4],[100 100],'k') %old instead of Inf: max(cell2mat(cellfun(@size,time_array,'uni',false))) * timeintervals
-    ylabel('Force (N) / force development (N/s)')
-    xlabel('Time (s)')
-    axis([-Inf Inf -100 commonforce])
-    title(plottitle)
-    saveas(gcf, strcat('data_plots_stiff/IND_RFD_', subject_id), 'png')
 end
 
+if plot_achilles
+    plottitle = horzcat('RFD and SD check, MTJ trials, ', subject_id);
+    figure('Name',plottitle)
+    hold on
+    % force
+    for i=1:3
+        if length(MTJ_trials{i}) > 1
+            plot(MTJ_trials{i}(:,loc_time),MTJ_trials{i}(:,loc_force),':')
+        end
+    end
+    l1 = plot(0, 0,':');
+    set(gca,'ColorOrderIndex',1)
+    % RFD
+    for i=1:3
+        if length(MTJ_trials{i}) > 1
+            plot(MTJ_trials{i}(2:end,loc_time),RFD_MTJ_smooth{i},'--','Linewidth',2)
+        end
+    end
+    l2 = plot(0,0,'.--');
+    % force levels
+    [loc_latest_halfforce,loc_latest_trial] = max(loc_halfforce_MTJ);
+    l3 = plot([0 MTJ_trials{loc_latest_trial}(loc_latest_halfforce,loc_time)],[(commonforce*startforce) (commonforce*startforce)],'k'); % horizontal line from zero to latest timepoint of halfforce
+    plot([0 MTJ_trials{loc_latest_trial}(loc_latest_halfforce,loc_time)],[(commonforce*halfforce) (commonforce*halfforce)],'k');
+    % SDs
+    set(gca,'ColorOrderIndex',1)
+    for i=1:3
+        if length(MTJ_trials{i}) > 1
+            plot([MTJ_trials{i}(loc_startforce_MTJ(i),loc_time) MTJ_trials{i}(loc_halfforce_MTJ(i),loc_time)],[RFD_MTJ_smooth_SD(i) RFD_MTJ_smooth_SD(i)],'Linewidth',2)
+        end
+    end
+    l4 = plot(0,0,'-','Linewidth',2);
+    % visual
+    legend([l1 l2 l3 l4], 'Force', 'RFD', 'Region 10-50% force', 'SD of RFD in region', 'Location','Northwest')
+    title(plottitle)
+    saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_MTJ_', subject_id), 'png')
+end
 
-    
+if plot_achilles
+    plottitle = horzcat('RFD and SD check, OTJ trials, ', subject_id);
+    figure('Name',plottitle)
+    hold on
+    % force
+    for i=1:3
+        if length(OTJ_trials{i}) > 1
+            plot(OTJ_trials{i}(:,loc_time),OTJ_trials{i}(:,loc_force),':')
+        end
+    end
+    l1 = plot(0, 0,':');
+    set(gca,'ColorOrderIndex',1)
+    % RFD
+    for i=1:3
+        if length(OTJ_trials{i}) > 1
+            plot(OTJ_trials{i}(2:end,loc_time),RFD_OTJ_smooth{i},'--','Linewidth',2)
+        end
+    end
+    l2 = plot(0,0,'.--');
+    % force levels
+    [loc_latest_halfforce,loc_latest_trial] = max(loc_halfforce_OTJ);
+    l3 = plot([0 OTJ_trials{loc_latest_trial}(loc_latest_halfforce,loc_time)],[(commonforce*startforce) (commonforce*startforce)],'k'); % horizontal line from zero to latest timepoint of halfforce
+    plot([0 OTJ_trials{loc_latest_trial}(loc_latest_halfforce,loc_time)],[(commonforce*halfforce) (commonforce*halfforce)],'k');
+    % SDs
+    set(gca,'ColorOrderIndex',1)
+    for i=1:3
+        if length(OTJ_trials{i}) > 1
+            plot([OTJ_trials{i}(loc_startforce_OTJ(i),loc_time) OTJ_trials{i}(loc_halfforce_OTJ(i),loc_time)],[RFD_OTJ_smooth_SD(i) RFD_OTJ_smooth_SD(i)],'Linewidth',2)
+        end
+    end
+    l4 = plot(0,0,'-','Linewidth',2);
+    % visual
+    legend([l1 l2 l3 l4], 'Force', 'RFD', 'Region 10-50% force', 'SD of RFD in region', 'Location','Northwest')
+    title(plottitle)
+    saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_OTJ_', subject_id), 'png')
+end
+
 % MMM TODO: RTD calculation for cutoff?
 % GOON:
-% SD smoothed curve, of range from zero to commonforce
+
 % where does smoothed curve change too much
 
 
 
 
-%% cut force (method 3, June 2014: 90% of max elongation)
+%% cut force (method 3, June 2014: 90% of max elongation) %%%%%%%%%%%%%%%%%%%%%%%%%
 
 % prepare for cutoff at 90% of max elongation
 percent_elong = 0.90; %VAR
@@ -383,7 +537,7 @@ final_cutoff_force = force_array(loc_elong_cut);
 
 
 %% curve fitting for stiffness
-% MMM TODO - require going through 0,0?
+% MMM TODO - lines 18+19, require going through 0,0?
 [fitresult, gof] = fit_stiffness(tend_elong, force_array, loc_elong_cut, displ_mtj_mean, displ_otj_mean);
 
 % write stiffness coefficients to screen

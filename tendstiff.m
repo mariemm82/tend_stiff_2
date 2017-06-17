@@ -17,17 +17,17 @@
     % TODO MMM: 
     
     % filter for T.A. EMG spikes?
+    % fit not through zero - OK?
+    % SOL vs GM - different figures, but should they have same force levels?
+    % rule for discard/cutoff by RFD
     
+    % IND DATA
+    % last files from Melina
     % CON 5 SOL - stiff coeff negative
-
-    % cutoff force per RFD?
-    
-    % OLD STIFF METHOD
-    % check predetermined cutoff for each subject (3 trials sent O%J)
-    % common stiffness = greatest common force level = 2300 N ?
     
     % FINAL PLOTS
-    % GM vs SOL trials - same force levels for stiffness, different F/E figures?
+    % ok to run GM and SOL separately? no need to consider location when plotting?
+
     
     
     
@@ -364,9 +364,10 @@ function [] = tendstiff(input_project, input_plot)
     stiff_common_force_max = min(all_stiff_output(:,all_stiff_col));
 
     for i = 1:size(all_stiff_output,1)
-        % reuse last stiff_eq (cfit object)
-        stiff_eq.p1 = all_stiff_output(i,1);
-        stiff_eq.p2 = all_stiff_output(i,2);
+        % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
+        stiff_eq.p1 = all_stiff_output(i,1); % a 
+        stiff_eq.p2 = all_stiff_output(i,2); % b
+        stiff_eq.p3 = all_stiff_output(i,3); % c
 
         % calculate stiffness
         stiff_common_80 = calculate_stiffness(stiff_eq, stiff_common_force, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); % last two = percent of submitted force - %VAR

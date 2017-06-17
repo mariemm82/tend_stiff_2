@@ -20,7 +20,21 @@ loc_force = 2;
 loc_displ = 3;
 
 
-%% find force onset
+%% find common FORCE level, create common force array
+
+% print maximal force from each trial to the screen
+cprintf('black', horzcat('Ramp trials, ind max force = '))
+cprintf('*blue', horzcat(num2str(round(min(force_max_trials))), ' N'))
+cprintf('black', horzcat(', trials = ', num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N.\n'))
+
+% find lowest common force between all 6 trials
+commonforce = min(force_max_trials);
+
+% create array of force values to use for averaging
+force_array = (0:forceintervals:commonforce)';
+
+
+%% find FORCE onset
 % define onset of contraction
 
 % version 1: fixed threshold
@@ -118,7 +132,7 @@ if plot_achilles
 end
 
 
-%% cut arrays at onset, and offset time+displacement accordingly
+%% CUT CELLS at onset, and offset time+displacement accordingly
 for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
         if loc_MTJ_onset(i) == 1
@@ -135,8 +149,8 @@ for i = 1:length(MTJ_trials)
             MTJ_trials{i}(1:loc_MTJ_onset(i)-1,:) = [];
         end
         % warning if first force is larger than ... 20 N? TODO, delete this warning?
-        if MTJ_trials{i}(1,loc_force) > 20
-            cprintf('red', horzcat('WARNING: Force onset > threshold of 20 N for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),3)), 'N\n'))
+        if MTJ_trials{i}(1,loc_force) > 20 %VAR
+            cprintf('red', horzcat('WARNING: High force onset for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),3)), 'N\n'))
         end
     end
 end
@@ -156,45 +170,30 @@ for i = 1:length(OTJ_trials)
             OTJ_trials{i}(1:loc_OTJ_onset(i)-1,:) = [];
         end
         % warning if first force is larger than ... 20 N?
-        if OTJ_trials{i}(1,loc_force) > 20
-            cprintf('red', horzcat('WARNING: Force onset > threshold of 20 N for OTJ', num2str(i), ': ', num2str(round(OTJ_trials{i}(1,loc_force),3)), 'N\n'))
+        if OTJ_trials{i}(1,loc_force) > 20 %VAR
+            cprintf('red', horzcat('WARNING: High force onset for OTJ', num2str(i), ': ', num2str(round(OTJ_trials{i}(1,loc_force),3)), 'N\n'))
         end
     end
 end
 
 
-%% find common force level, create common array
-
-% print maximal force from each trial to the screen
-cprintf('black', horzcat('Ramp trials, ind max force = '))
-cprintf('*blue', horzcat(num2str(round(min(force_max_trials))), ' N'))
-cprintf('black', horzcat(', trials = ', num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N.\n'))
-
-% find lowest common force between all 6 trials
-commonforce = min(force_max_trials);
-
-% create array of force values to use for averaging
-force_array = (0:forceintervals:commonforce)';
 
 
-%% calculate tendon elongation
+%% calculate tendon ELONGATION
 
 % preallocate
 displ_MTJ(1:length(force_array),1:length(MTJ_trials)) = NaN;
 displ_OTJ(1:length(force_array),1:length(OTJ_trials)) = NaN;
 
-% keeping 10 data points after commonforce, in order to do proper interpolation around the size of commonforce
-keep_datapoints = 10; %VAR -- MMM TODO - some adjustment to this?
-
 for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
-        % detect position of max common force in array
-        loc_del_mtj = find(MTJ_trials{i}(:,loc_force) > force_array(end), 1, 'first');
-        % delete array contents after commonforce
-        MTJ_trials{i}(loc_del_mtj+keep_datapoints:end,:) = [];
+        % detect position of max force in array
+        [~,loc_del_mtj] = max(MTJ_trials{i}(:,loc_force));
+        % delete array contents after max force
+        MTJ_trials{i}(loc_del_mtj:end,:) = [];
         % spline to get displacement values at common force levels
         displ_MTJ(:,i) = pchip(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array); % ALT: interp1(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array,'linear'); % ALT: spline(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array);
-        if abs(displ_MTJ(1,i)) > 0.05 % delete first value of spline function creates a point way off (will not be used anyway)
+        if abs(displ_MTJ(1,i)) > 0.05 % delete first value if spline function creates a point way off (will not be used anyway)
             displ_MTJ(1,i) = NaN;
         end
     end
@@ -202,10 +201,10 @@ end
 
 for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
-        % detect position of max common force in array
-        loc_del_OTJ = find(OTJ_trials{i}(:,loc_force) > force_array(end), 1, 'first');
-        % delete array contents after commonforce
-        OTJ_trials{i}(loc_del_OTJ+keep_datapoints:end,:) = [];
+        % detect position of max force in array
+        [~,loc_del_otj] = max(OTJ_trials{i}(:,loc_force));
+        % delete array contents after max force
+        OTJ_trials{i}(loc_del_otj:end,:) = [];
         % spline to get displacement values at common force levels
         displ_OTJ(:,i) = pchip(OTJ_trials{i}(:,loc_force),OTJ_trials{i}(:,loc_displ),force_array);
         if abs(displ_OTJ(1,i)) > 0.05
@@ -217,8 +216,6 @@ end
 % average displacement trials, calculate elongation
 displ_mtj_mean = nanmean(displ_MTJ,2); % nanmean to average 2 values if 3rd is NaN
 displ_otj_mean = nanmean(displ_OTJ,2);
-% displ_mtj_mean(1) = NaN;
-% displ_otj_mean(1) = NaN;
 tend_elong = displ_mtj_mean - displ_otj_mean;
 tend_elong(1) = NaN; % do not include point in stiffness fit
 
@@ -317,10 +314,7 @@ if plot_achilles
 end
 
 
-%% cut force (method 4, June 2017: RTD) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%% calculate rate of force development
+%% calculate rate of force development (RFD) - cutoff method 4, June 2017 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % preallocate
 RFD_MTJ_raw = cell(1,3);
@@ -415,6 +409,7 @@ loc_halfforce_OTJ(1:3) = NaN;
 startforce = 0.1; %VAR 10% of common force
 halfforce = 0.5; %VAR 50% of common force
 
+% calculate SD of RFD in stable region of force development
 for i = 1:length(RFD_MTJ_smooth)
     if length(RFD_MTJ_smooth{i}) > 1
         loc_startforce_MTJ(i) = find(MTJ_trials{i}(:,loc_force) >= (commonforce*startforce), 1, 'first');
@@ -429,6 +424,8 @@ for i = 1:length(RFD_OTJ_smooth)
         RFD_OTJ_smooth_SD(i) = std(RFD_OTJ_smooth{i}(loc_startforce_OTJ(i):loc_halfforce_OTJ(i)));
     end
 end
+
+cprintf('black', horzcat('SD for RFD =  ', num2str(round(RFD_MTJ_smooth_SD)), '  N/s for MTJ  -  ', num2str(round(RFD_OTJ_smooth_SD)), '  N/s for OTJ.\n'))
 
 if plot_achilles
     plottitle = horzcat('RFD and SD check, MTJ trials, ', subject_id);
@@ -504,46 +501,66 @@ if plot_achilles
     saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_OTJ_', subject_id), 'png')
 end
 
-% MMM TODO: RTD calculation for cutoff?
-% GOON:
+% find cutoff point if RFD drops with X SD ---  MMM TODO
 
-% where does smoothed curve change too much
+% if RFD_MTJ_smooth_SD(1:3) goes lower than x times RFD_OTJ_smooth_SD(i)
+% cut MTJ_trials{i}(:,loc_force)
+% OR apply 90% elong
+
+% lowest point of 6 individual trials - or after averaging F-elong?
 
 
 
 
-%% cut force (method 3, June 2014: 90% of max elongation) %%%%%%%%%%%%%%%%%%%%%%%%%
+%% calculate 90% of max elongation - cutoff method 3, June 2014 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% prepare for cutoff at 90% of max elongation
+% find 90% of max elongation
 percent_elong = 0.90; %VAR
 [max_elong,loc_max_elong] = max(tend_elong);
 keep_elong = percent_elong * max_elong;
-loc_elong_cut = find(tend_elong>keep_elong,1,'first') - 1; % finds the first value larger than 90% limit - we will use the largest BEFORE 90% limit
+loc_cutoff_elong = find(tend_elong>keep_elong,1,'first') - 1; % finds the first value larger than 90% limit - we will use the largest BEFORE 90% limit
+
+
+
+
+%% choose cutoff method %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% todo: compare 
+% loc_cutoff_elong
+% vs
+% loc_cutoff_RFD
+% vs
+% loc from manual cutoff
+% use lowest incident
+% print chosen method + values to screen
+loc_cutoff_chosen = loc_cutoff_elong;
+
+
+% cut off even earlier if datamaster is set to cut at lower value
+if force_array(loc_cutoff_chosen) > str2double(force_cutoff_manual)
+    cprintf('red',horzcat('Force cutoff is lowered manually (datamaster), to ', force_cutoff_manual, ' N.\n'));
+    loc_cutoff_chosen = find(force_array>str2double(force_cutoff_manual),1,'first') - 1;
+end
 
 % write cutoff to screen
 cprintf('black', horzcat('Max elong = ', num2str(round(max_elong,2)), ' mm @ ', num2str(force_array(loc_max_elong)), ' N, ', num2str(percent_elong*100), '%% elong -> cutoff at '))
-cprintf('*blue', horzcat(num2str(force_array(loc_elong_cut)), ' N.\n'))
-
-% cut off even earlier if datamaster is set to cut at lower value
-if force_array(loc_elong_cut) > str2double(force_cutoff_manual)
-    cprintf('red',horzcat('Force cutoff is lowered manually (datamaster), to ', force_cutoff_manual, ' N.\n'));
-    loc_elong_cut = find(force_array>str2double(force_cutoff_manual),1,'first') - 1;
-end
+cprintf('*blue', horzcat(num2str(force_array(loc_cutoff_chosen)), ' N.\n'))
 
 % save the applied max force level, for output to file
-final_cutoff_force = force_array(loc_elong_cut);
+final_cutoff_force = force_array(loc_cutoff_chosen);
+
+% create force-elongation array for later use
+force_elong_array = [tend_elong(1:loc_cutoff_chosen) force_array(1:loc_cutoff_chosen)];
 
 
 
+%% curve fitting for stiffness %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% curve fitting for stiffness
-% MMM TODO - lines 18+19, require going through 0,0?
-[fitresult, gof] = fit_stiffness(tend_elong, force_array, loc_elong_cut, displ_mtj_mean, displ_otj_mean);
+% currently stiff fit not through zero, but saving plots also through zero
+[fitresult, gof] = fit_stiffness(tend_elong, force_array, loc_cutoff_chosen, displ_mtj_mean, displ_otj_mean);
 
 % write stiffness coefficients to screen
 cprintf('*blue', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
 
-% create stiffness data array for later use
-force_elong_array = [tend_elong(1:loc_elong_cut) force_array(1:loc_elong_cut)];
 
 end

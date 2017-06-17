@@ -461,6 +461,7 @@ if plot_achilles
     % visual
     legend([l1 l2 l3 l4], 'Force', 'RFD', 'Region 10-50% force', 'SD of RFD in region', 'Location','Northwest')
     title(plottitle)
+    axis([-Inf Inf -100 Inf])
     saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_MTJ_', subject_id), 'png')
 end
 

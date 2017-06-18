@@ -41,7 +41,7 @@ ylabel( 'Tendon force (N)' );
 title(plottitle);
 text(3.5, 800, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
 
-saveas(fignavn, strcat('data_plots_stiff/IND_stiff_fit_zero_', subject_id), 'png')
+saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_zero'), 'png')
 
 
 %% version 2, NOT through zero
@@ -67,4 +67,4 @@ ylabel( 'Tendon force (N)' );
 title(plottitle);
 text(3.5, 800, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
 
-saveas(fignavn, strcat('data_plots_stiff/IND_stiff_fit_free_', subject_id), 'png')
+saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_free'), 'png')

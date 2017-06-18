@@ -121,14 +121,14 @@ if plot_achilles
     xlabel('Time (s)')
     ylabel('Force (N)')
     title(plottitle)
-    saveas(gcf, strcat('data_plots_stiff/IND_stiff_onset_', subject_id), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_force_onset_', subject_id), 'png')
     [latestonset,loc_latestonset] = (max([loc_MTJ_onset loc_OTJ_onset]));
     if loc_latestonset > 3
         axis([0 0.2+OTJ_trials{loc_latestonset-3}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
     else
         axis([0 0.2+MTJ_trials{loc_latestonset}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
     end
-    saveas(gcf, strcat('data_plots_stiff/IND_stiff_onset_', subject_id, '_ZOOM'), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_force_onset_', subject_id, '_ZOOM'), 'png')
 end
 
 
@@ -189,12 +189,15 @@ for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
         % detect position of max force in array
         [~,loc_del_mtj] = max(MTJ_trials{i}(:,loc_force));
-        % delete array contents after max force
-        MTJ_trials{i}(loc_del_mtj:end,:) = [];
+        % delete array contents AFTER (+1) max force
+        MTJ_trials{i}(loc_del_mtj+1:end,:) = [];
         % spline to get displacement values at common force levels
         displ_MTJ(:,i) = pchip(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array); % ALT: interp1(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array,'linear'); % ALT: spline(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array);
         if abs(displ_MTJ(1,i)) > 0.05 % delete first value if spline function creates a point way off (will not be used anyway)
             displ_MTJ(1,i) = NaN;
+        end
+        if abs(displ_MTJ(end,i)) > 50
+            displ_MTJ(end,i) = NaN;
         end
     end
 end
@@ -203,12 +206,15 @@ for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
         % detect position of max force in array
         [~,loc_del_otj] = max(OTJ_trials{i}(:,loc_force));
-        % delete array contents after max force
-        OTJ_trials{i}(loc_del_otj:end,:) = [];
+        % delete array contents  AFTER (+1) max force
+        OTJ_trials{i}(loc_del_otj+1:end,:) = [];
         % spline to get displacement values at common force levels
         displ_OTJ(:,i) = pchip(OTJ_trials{i}(:,loc_force),OTJ_trials{i}(:,loc_displ),force_array);
         if abs(displ_OTJ(1,i)) > 0.05
             displ_OTJ(1,i) = NaN;
+        end
+        if abs(displ_OTJ(end,i)) > 50
+            displ_OTJ(end,i) = NaN;
         end
     end
 end
@@ -263,7 +269,7 @@ if plot_achilles
     % visual
     xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
     legend('trial 1 w/onset','trial 2 w/onset','trial 3 w/onset','mean','trial 1 raw','Location','Northwest');
-    saveas(gcf, strcat('data_plots_stiff/IND_stiff_MTJ_avg_', subject_id), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_stiff_avg_MTJ_', subject_id), 'png')
 end
 
 if plot_achilles
@@ -310,7 +316,7 @@ if plot_achilles
     % visual
     xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
     legend('trial 1 w/onset','trial 2 w/onset','trial 3 w/onset','mean','trial 1 raw','Location','Northwest');
-    saveas(gcf, strcat('data_plots_stiff/IND_stiff_OTJ_avg_', subject_id), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_stiff_avg_OTJ_', subject_id), 'png')
 end
 
 
@@ -462,7 +468,7 @@ if plot_achilles
     legend([l1 l2 l3 l4], 'Force', 'RFD', 'Region 10-50% force', 'SD of RFD in region', 'Location','Northwest')
     title(plottitle)
     axis([-Inf Inf -100 Inf])
-    saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_MTJ_', subject_id), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_RFD_SD_', subject_id, ' MTJ'), 'png')
 end
 
 if plot_achilles
@@ -499,7 +505,7 @@ if plot_achilles
     % visual
     legend([l1 l2 l3 l4], 'Force', 'RFD', 'Region 10-50% force', 'SD of RFD in region', 'Location','Northwest')
     title(plottitle)
-    saveas(gcf, strcat('data_plots_stiff/IND_onset_determ_OTJ_', subject_id), 'png')
+    saveas(gcf, strcat('data_plots_stiff/IND_RFD_SD_', subject_id, ' OTJ'), 'png')
 end
 
 % find cutoff point if RFD drops with X SD ---  MMM TODO

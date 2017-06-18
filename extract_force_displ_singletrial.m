@@ -40,9 +40,6 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     tendon_force_avg = mean(tendon_force(1:5)); % avg of first 5 frames. Previously: 1/20th sec (0,05 s) 
     tendon_force_offset = tendon_force - tendon_force_avg;
     
-    % output raw max force from trial
-    maxforce = max(tendon_force_offset);
-    
     
     
     %%% Force cutting method 2, april 2004
@@ -203,4 +200,8 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     time_force_displ_array(:,1) = usdata_prepped(1:len_array,1); % time array
     time_force_displ_array(:,2) = tendon_force_offset(1:len_array); % force array
     time_force_displ_array(:,3) = usdata_corrected(1:len_array,2); % displacement array
+    
+    % output raw max force from trial
+    maxforce = max(tendon_force_offset(1:len_array));
+
 end

@@ -1,4 +1,4 @@
-function [fitresult, gof] = fit_stiffness(elongation, force, loc_elong_cut, displ_MTJ, displ_OTJ)
+function [fitresult, gof] = fit_stiffness(elongation, force, loc_cut, displ_MTJ, displ_OTJ)
 global subject_id
 
 %CREATEFIT(NMZ_DISP,NMZ_FORCE)
@@ -10,7 +10,7 @@ global subject_id
 
 
 %% Fit: 'Stiffness fit'.
-[xData, yData] = prepareCurveData( elongation(1:loc_elong_cut), force(1:loc_elong_cut) );
+[xData, yData] = prepareCurveData( elongation(1:loc_cut), force(1:loc_cut) );
 
 % Set up fittype and options.
 ft = fittype( 'poly2' );
@@ -33,13 +33,15 @@ hold on
 h = plot(fitresult0, xData, yData);
 plot(displ_MTJ,force,'g.','DisplayName','MTJ displacement')
 plot(displ_OTJ,force,'g.','DisplayName','OTJ displacement')
-plot(elongation(loc_elong_cut+1:end),force(loc_elong_cut+1:end),'y.','DisplayName','Elongation in cut off range')
+plot(elongation(loc_cut+1:end),force(loc_cut+1:end),'y.','DisplayName','Elongation in cut off range')
 legend( h, 'Force-elongation', 'Stiffness fit', 'Location', 'SouthEast' );
 % Label axes
 xlabel( 'Tendon elongation (mm)' );
 ylabel( 'Tendon force (N)' );
 title(plottitle);
-text(3.5, 800, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
+loc_text_x = max(displ_MTJ)*0.6;
+loc_text_y = force(end)*0.25;
+text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
 
 saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_zero'), 'png')
 
@@ -59,12 +61,14 @@ hold on
 h = plot(fitresult, xData, yData);
 plot(displ_MTJ,force,'g.','DisplayName','MTJ displacement')
 plot(displ_OTJ,force,'g.','DisplayName','OTJ displacement')
-plot(elongation(loc_elong_cut+1:end),force(loc_elong_cut+1:end),'y.','DisplayName','Elongation in cut off range')
+plot(elongation(loc_cut+1:end),force(loc_cut+1:end),'y.','DisplayName','Elongation in cut off range')
 legend( h, 'Force-elongation', 'Stiffness fit', 'Location', 'SouthEast' );
 % Label axes
 xlabel( 'Tendon elongation (mm)' );
 ylabel( 'Tendon force (N)' );
 title(plottitle);
-text(3.5, 800, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
+loc_text_x = max(displ_MTJ)*0.6;
+loc_text_y = force(end)*0.25;
+text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
 
 saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_free'), 'png')

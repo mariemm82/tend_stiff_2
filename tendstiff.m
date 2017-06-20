@@ -15,9 +15,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % TODO MMM: 
-    % stiff fit mean curve?
-    % same force 9 trials --> stiff fit
-    % filter for T.A. EMG spikes?
+    % 
+    % TODO on line 341: % TODO MMM AT components are over-written
+    % same force 9 trials --> stiff fit (by datamaster cutoff)
     
     % check ind data
     %  --- discard curving wrong way?
@@ -338,7 +338,7 @@ function [] = tendstiff(input_project, input_plot)
         % add all individual variables to a common array for all subjects    
         all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
         % NaN at locations for stiffness at force levels common to all subjects
-        all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare force_elong_array(end,2) min(trial_force_max) plantflex_max_torque stiff_ind_80 stiff_ind_90 NaN NaN NaN NaN at_momentarm at_rotation_const NaN NaN];
+        all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare force_elong_array(end,2) min(trial_force_max) plantflex_max_torque stiff_ind_80 stiff_ind_90 NaN NaN NaN NaN at_momentarm at_rotation_const NaN NaN]; % TODO MMM AT components are over-written
 
         % add force-elongation arrays to xls file per subject
         if ispc

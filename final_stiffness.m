@@ -68,7 +68,7 @@ for i = 1:length(MTJ_trials)
     if length(MTJ_trials{i}) > 1
         % in baseline determination zone, if force goes up by an average of 2 N from point to point - baseline is onset
         if mean(diff(MTJ_trials{i}(1:baseline_frames,loc_force))) > 2 %VAR
-            cprintf('red', horzcat('WARNING: MTJ', num2str(i), 'Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame =', num2str(MTJ_trials{i}(1,loc_force)), ' N.\n'))
+            cprintf('red', horzcat('WARNING: MTJ', num2str(i), ': Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame = ', num2str(MTJ_trials{i}(1,loc_force)), ' N.\n'))
             loc_MTJ_onset(i) = 1;
             threshold_MTJ(i) = MTJ_trials{i}(loc_MTJ_onset(i),loc_force);
         else
@@ -82,7 +82,7 @@ for i = 1:length(OTJ_trials)
     if length(OTJ_trials{i}) > 1
         % in baseline determination zone, if force goes up by an average of 2 N from point to point - baseline is onset
         if mean(diff(OTJ_trials{i}(1:baseline_frames,loc_force))) > 2 %VAR
-            cprintf('red', horzcat('WARNING: OTJ', num2str(i), 'Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame =', num2str(OTJ_trials{i}(1,loc_force)), ' N.\n'))
+            cprintf('red', horzcat('WARNING: OTJ', num2str(i), ': Force increasing during baseline, by avg of 2 N/frame. Set baseline = first frame =', num2str(OTJ_trials{i}(1,loc_force)), ' N.\n'))
             loc_OTJ_onset(i) = 1;
             threshold_OTJ(i) = OTJ_trials{i}(loc_OTJ_onset(i),loc_force);
         else
@@ -155,7 +155,7 @@ for i = 1:length(MTJ_trials)
         end
         % warning if first force is larger than ... 20 N? TODO, delete this warning?
         if MTJ_trials{i}(1,loc_force) > 20 %VAR
-            cprintf('red', horzcat('WARNING: High force onset for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),3)), 'N\n'))
+            cprintf('red', horzcat('WARNING: High force onset for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),1)), ' N\n'))
         end
     end
 end

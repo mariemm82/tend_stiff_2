@@ -7,7 +7,7 @@
 
 
 
-function [fitresult, gof, force_elong_array, final_cutoff_force] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, ~) %new2014-04-14
+function [fitresult, gof, force_elong_array] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, ~) %new2014-04-14
 
 global plot_achilles subject_id % plot_conversion plot_check %plot_norm plot_emg
 
@@ -35,7 +35,7 @@ force_array_cut = (0:forceintervals:(commonforce*force_cutoff))';
 
 % print maximal force from each trial to the screen
 cprintf('*black', horzcat('Ramps, trial max force: '))
-cprintf('black', horzcat(num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N. 90%% of common force: '))
+cprintf('black', horzcat(num2str(round(force_max_trials(1))), ' - ', num2str(round(force_max_trials(2))), ' - ', num2str(round(force_max_trials(3))), ' - ', num2str(round(force_max_trials(4))), ' - ', num2str(round(force_max_trials(5))), ' - ', num2str(round(force_max_trials(6))), ' N.\n 90%% of common force: '))
 cprintf('*blue', horzcat(num2str(force_array_cut(end)), ' N\n'))
 
 
@@ -564,7 +564,7 @@ else % no manual cutoff, use only method 5 above (90% of common force)
 end
 
 % save the applied max force level, for output to file
-final_cutoff_force = force_array_cut(loc_cutoff_chosen);
+%final_cutoff_force = force_array_cut(loc_cutoff_chosen);
 
 % create force-elongation array for later use
 force_elong_array = [tend_elong(1:loc_cutoff_chosen) force_array_full(1:loc_cutoff_chosen)];

@@ -172,28 +172,28 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
 
     
     
-    % output raw force-displacement columns to Excel
-    if ispc
-        warning('off', 'MATLAB:xlswrite:AddSheet');
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),{'Time' 'Displ orig' 'Gonio' 'Displ corr' 'Torque orig' 'Torque coact' 'Force'}, trial_name,'A1')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,1), trial_name,'A2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),usdata_prepped(:,2), trial_name,'B2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,column_gonio), trial_name,'C2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),usdata_corrected(:,2), trial_name,'D2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,column_achilles), trial_name,'E2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped_coact(:,column_achilles), trial_name,'F2')
-        xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),tendon_force_offset, trial_name,'G2')
-    else
-        %output_csv_head = {'Time' 'Torque orig' 'Torque coact' 'Force' 'Displ orig' 'Gonio' 'Displ corr'};
-        output_csv(:,1) = noraxon_prepped(:,1);
-        output_csv(:,2) = usdata_prepped(:,2);
-        output_csv(:,3) = noraxon_prepped(:,column_gonio);
-        output_csv(:,4) = usdata_corrected(:,2);
-        output_csv(:,5) = noraxon_prepped(:,column_achilles);
-        output_csv(:,6) = noraxon_prepped_coact(:,column_achilles);
-        output_csv(:,7) = tendon_force_offset;
-        csvwrite(strcat('data_output/stiff_forceoutput_', subject_id, '_', trial_name, '.csv'),output_csv)
-    end
+%     % output raw force-displacement columns to Excel
+%     if ispc
+%         warning('off', 'MATLAB:xlswrite:AddSheet');
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),{'Time' 'Displ orig' 'Gonio' 'Displ corr' 'Torque orig' 'Torque coact' 'Force'}, trial_name,'A1')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,1), trial_name,'A2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),usdata_prepped(:,2), trial_name,'B2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,column_gonio), trial_name,'C2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),usdata_corrected(:,2), trial_name,'D2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped(:,column_achilles), trial_name,'E2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),noraxon_prepped_coact(:,column_achilles), trial_name,'F2')
+%         xlswrite(strcat('data_output/stiff_forceoutput_', subject_id, '.xls'),tendon_force_offset, trial_name,'G2')
+%     else
+%         %output_csv_head = {'Time' 'Torque orig' 'Torque coact' 'Force' 'Displ orig' 'Gonio' 'Displ corr'};
+%         output_csv(:,1) = noraxon_prepped(:,1);
+%         output_csv(:,2) = usdata_prepped(:,2);
+%         output_csv(:,3) = noraxon_prepped(:,column_gonio);
+%         output_csv(:,4) = usdata_corrected(:,2);
+%         output_csv(:,5) = noraxon_prepped(:,column_achilles);
+%         output_csv(:,6) = noraxon_prepped_coact(:,column_achilles);
+%         output_csv(:,7) = tendon_force_offset;
+%         csvwrite(strcat('data_output/stiff_forceoutput_', subject_id, '_', trial_name, '.csv'),output_csv)
+%     end
         
     % Create outout array: time, force, displacement
     len_array = min(length(tendon_force_offset),length(usdata_prepped));

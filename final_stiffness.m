@@ -224,11 +224,19 @@ for i = 1:length(OTJ_trials)
     end
 end
 
-% average displacement trials, calculate elongation
+
+% average displacement trials
 displ_mtj_mean = nanmean(displ_MTJ,2); % nanmean to average 2 values if 3rd is NaN
 displ_otj_mean = nanmean(displ_OTJ,2);
+
+% tweak for special trials
+if strcmp(subject_id, 'Control 13 L PRE GM')
+    displ_mtj_mean(1) = 0;
+end
+
+% calculate elongation
 tend_elong = displ_mtj_mean - displ_otj_mean;
-tend_elong(1) = NaN; % do not include point in stiffness fit
+% tend_elong(1) = NaN; % do not include point in stiffness fit
 
 if plot_achilles
     % MTJ force-disp x 3

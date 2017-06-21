@@ -14,14 +14,6 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % TODO MMM: 
-    
-    % check ind data
-    %  --- discard curving wrong way?
-    %  --- use only window of force-elong for fit?
-    
-    
-    
     
 function [] = tendstiff(input_project, input_plot)
     close all
@@ -337,15 +329,15 @@ function [] = tendstiff(input_project, input_plot)
         % NaN at locations for stiffness at force levels common to all subjects
         all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare force_elong_array(end,2) min(trial_force_max) plantflex_max_torque stiff_ind_80 stiff_ind_90 NaN NaN NaN NaN at_momentarm at_rotation_const NaN NaN];
 
-        % add force-elongation arrays to xls file per subject
-        if ispc
-            filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '.xls');
-            xlswrite(filename_output, {'Elongation (mm)','Force (N)'}, 'Final stiff', 'A1')
-            xlswrite(filename_output, force_elong_array, 'Final stiff', 'A2')
-        else
-            filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '_averaged.csv');
-            csvwrite(filename_output, force_elong_array)
-        end
+%         % add force-elongation arrays to xls file per subject
+%         if ispc
+%             filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '.xls');
+%             xlswrite(filename_output, {'Elongation (mm)','Force (N)'}, 'Final stiff', 'A1')
+%             xlswrite(filename_output, force_elong_array, 'Final stiff', 'A2')
+%         else
+%             filename_output = strcat('data_output/stiff_forceoutput_', subject_id, '_averaged.csv');
+%             csvwrite(filename_output, force_elong_array)
+%         end
         
         
         
@@ -398,18 +390,24 @@ function [] = tendstiff(input_project, input_plot)
     stiff_common_force = min(all_stiff_output(:,all_stiff_col));
     all_stiff_col = 6; % 5 for cutoff force level, 6 for max force level
     stiff_common_force_max = min(all_stiff_output(:,all_stiff_col));
+    
+    % create stiffness equation as cfit
+    f = fittype('a*x^2+b*x+c');
+    a = 0; % temporary values, will be filled/replaced inside for loop
+    b = 0;
+    c = 0;
+    stiff_eq_group = cfit(f, a, b, c);
 
     for i = 1:size(all_stiff_output,1)
-        % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
-        stiff_eq.p1 = all_stiff_output(i,1); % a 
-        stiff_eq.p2 = all_stiff_output(i,2); % b
-        stiff_eq.p3 = all_stiff_output(i,3); % c
+        stiff_eq_group.a = all_stiff_output(i,1); % a 
+        stiff_eq_group.b = all_stiff_output(i,2); % b
+        stiff_eq_group.c = all_stiff_output(i,3); % c
 
         % calculate stiffness
-        stiff_common_80 = calculate_stiffness(stiff_eq, stiff_common_force, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); % last two = percent of submitted force - %VAR
-        stiff_common_90 = calculate_stiffness(stiff_eq, stiff_common_force, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); %VAR
-        stiff_common_80_max = calculate_stiffness(stiff_eq, stiff_common_force_max, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); % last two = percent of submitted force - %VAR
-        stiff_common_90_max = calculate_stiffness(stiff_eq, stiff_common_force_max, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); %VAR
+        stiff_common_80 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); % last two = percent of submitted force - %VAR
+        stiff_common_90 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); %VAR
+        stiff_common_80_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); % last two = percent of submitted force - %VAR
+        stiff_common_90_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); %VAR
 
         % add to array across subjects
         all_stiff_output(i,10) = stiff_common_80;
@@ -443,11 +441,20 @@ function [] = tendstiff(input_project, input_plot)
     
     fit_elong_guess = 4; %VAR guessing approximate elongation (X value) for 2nd order stiffness fit Y values
     
-    if plot_check && BD_SOL_count > 1
+    allgroups_force_common = min( [min(stiffness_SOL_BD(:,5)) min(stiffness_GM_BD(:,5)) min(stiffness_SOL_CON(:,5)) min(stiffness_GM_CON(:,5))] );
+    
+    % create stiffness equation as cfit
+    f = fittype('a*x^2+b*x+c');
+    a = 0; % temporary values, will be filled/replaced inside for loop
+    b = 0;
+    c = 0;
+    stiff_eq_group2 = cfit(f, a, b, c);
+    
+    if plot_check && BD_SOL_count > 0
         % prepare data
-        BD_SOL_force_common = min(stiffness_SOL_BD(:,5));
+        BD_SOL_force_common = allgroups_force_common; % min(stiffness_SOL_BD(:,5));
         BD_SOL_force_array = (0:forceintervals:BD_SOL_force_common)';
-        BD_SOL_elong_array(1:length(BD_SOL_force_array),1:BD_SOL_count) = NaN;
+        BD_SOL_elong_fit(1:length(BD_SOL_force_array),1:BD_SOL_count) = NaN;
         BD_SOL_elongmax_mean = mean(stiffness_SOL_BD(:,4));
         BD_SOL_elongmax_SD = std(stiffness_SOL_BD(:,4));
         BD_SOL_forcemax_mean = mean(stiffness_SOL_BD(:,5));
@@ -458,17 +465,16 @@ function [] = tendstiff(input_project, input_plot)
         hold on
         % individual data
         for i = 1:BD_SOL_count
-            % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
-            stiff_eq.p1 = stiffness_SOL_BD(i,1); % a 
-            stiff_eq.p2 = stiffness_SOL_BD(i,2); % b
-            stiff_eq.p3 = stiffness_SOL_BD(i,3); % c
+            stiff_eq_group2.a = stiffness_SOL_BD(i,1); % a 
+            stiff_eq_group2.b = stiffness_SOL_BD(i,2); % b
+            stiff_eq_group2.c = stiffness_SOL_BD(i,3); % c
             xlim([0,stiffness_SOL_BD(i,4)]);
-            plot(stiff_eq)
-            BD_SOL_elong_array(:,i) = solve_sec_poly(stiffness_SOL_BD(i,1), stiffness_SOL_BD(i,2), stiffness_SOL_BD(i,3), 0, BD_SOL_force_common, forceintervals, fit_elong_guess);
+            plot(stiff_eq_group2)
+            BD_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_SOL_BD(i,1), stiffness_SOL_BD(i,2), stiffness_SOL_BD(i,3), 0, BD_SOL_force_common, forceintervals, fit_elong_guess);
         end
         % mean data
-        BD_SOL_elong_array_mean = mean(BD_SOL_elong_array,2); % TODO: nanmean or normal mean?
-        h1 = plot(BD_SOL_elong_array_mean,BD_SOL_force_array,'k','Linewidth',2); % average curve
+        BD_SOL_elong_fit_mean = nanmean(BD_SOL_elong_fit,2); % nanmean if fits through zero, mean if firt not through zero (4 places in total)
+        h1 = plot(BD_SOL_elong_fit_mean,BD_SOL_force_array,'k','Linewidth',2); % average curve
         h2 = errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ko')
         % visual
@@ -480,11 +486,11 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_freeAT.jpg'))
     end
     
-    if plot_check && BD_GM_count > 1
+    if plot_check && BD_GM_count > 0
         % prepare data
-        BD_GM_force_common = min(stiffness_GM_BD(:,5));
+        BD_GM_force_common = allgroups_force_common; % min(stiffness_GM_BD(:,5));
         BD_GM_force_array = (0:forceintervals:BD_GM_force_common)';
-        BD_GM_elong_array(1:length(BD_GM_force_array),1:BD_GM_count) = NaN;
+        BD_GM_elong_fit(1:length(BD_GM_force_array),1:BD_GM_count) = NaN;
         BD_GM_elongmax_mean = mean(stiffness_GM_BD(:,4));
         BD_GM_elongmax_SD = std(stiffness_GM_BD(:,4));
         BD_GM_forcemax_mean = mean(stiffness_GM_BD(:,5));
@@ -495,17 +501,16 @@ function [] = tendstiff(input_project, input_plot)
         hold on
         % individual data
         for i = 1:BD_GM_count
-            % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
-            stiff_eq.p1 = stiffness_GM_BD(i,1); % a 
-            stiff_eq.p2 = stiffness_GM_BD(i,2); % b
-            stiff_eq.p3 = stiffness_GM_BD(i,3); % c
+            stiff_eq_group2.a = stiffness_GM_BD(i,1); % a 
+            stiff_eq_group2.b = stiffness_GM_BD(i,2); % b
+            stiff_eq_group2.c = stiffness_GM_BD(i,3); % c
             xlim([0,stiffness_GM_BD(i,4)]);
-            plot(stiff_eq)
-            BD_GM_elong_array(:,i) = solve_sec_poly(stiffness_GM_BD(i,1), stiffness_GM_BD(i,2), stiffness_GM_BD(i,3), 0, BD_GM_force_common, forceintervals, fit_elong_guess);
+            plot(stiff_eq_group2)
+            BD_GM_elong_fit(:,i) = solve_sec_poly(stiffness_GM_BD(i,1), stiffness_GM_BD(i,2), stiffness_GM_BD(i,3), 0, BD_GM_force_common, forceintervals, fit_elong_guess);
         end
         % mean data
-        BD_GM_elong_array_mean = mean(BD_GM_elong_array,2); % TODO: nanmean or normal mean?
-        h1 = plot(BD_GM_elong_array_mean,BD_GM_force_array,'k','Linewidth',2); % average curve
+        BD_GM_elong_fit_mean = nanmean(BD_GM_elong_fit,2);
+        h1 = plot(BD_GM_elong_fit_mean,BD_GM_force_array,'k','Linewidth',2); % average curve
         h2 = errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ko')
         % visual
@@ -517,11 +522,11 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_entireAT.jpg'))
     end
     
-    if plot_check && CON_SOL_count > 1
+    if plot_check && CON_SOL_count > 0
         % prepare data
-        CON_SOL_force_common = min(stiffness_SOL_CON(:,5));
+        CON_SOL_force_common = allgroups_force_common; % min(stiffness_SOL_CON(:,5));
         CON_SOL_force_array = (0:forceintervals:CON_SOL_force_common)';
-        CON_SOL_elong_array(1:length(CON_SOL_force_array),1:CON_SOL_count) = NaN;
+        CON_SOL_elong_fit(1:length(CON_SOL_force_array),1:CON_SOL_count) = NaN;
         CON_SOL_elongmax_mean = mean(stiffness_SOL_CON(:,4));
         CON_SOL_elongmax_SD = std(stiffness_SOL_CON(:,4));
         CON_SOL_forcemax_mean = mean(stiffness_SOL_CON(:,5));
@@ -532,17 +537,16 @@ function [] = tendstiff(input_project, input_plot)
         hold on
         % individual data
         for i = 1:CON_SOL_count
-            % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
-            stiff_eq.p1 = stiffness_SOL_CON(i,1); % a 
-            stiff_eq.p2 = stiffness_SOL_CON(i,2); % b
-            stiff_eq.p3 = stiffness_SOL_CON(i,3); % c
+            stiff_eq_group2.a = stiffness_SOL_CON(i,1); % a 
+            stiff_eq_group2.b = stiffness_SOL_CON(i,2); % b
+            stiff_eq_group2.c = stiffness_SOL_CON(i,3); % c
             xlim([0,stiffness_SOL_CON(i,4)]);
-            plot(stiff_eq)
-            CON_SOL_elong_array(:,i) = solve_sec_poly(stiffness_SOL_CON(i,1), stiffness_SOL_CON(i,2), stiffness_SOL_CON(i,3), 0, CON_SOL_force_common, forceintervals, fit_elong_guess);
+            plot(stiff_eq_group2)
+            CON_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_SOL_CON(i,1), stiffness_SOL_CON(i,2), stiffness_SOL_CON(i,3), 0, CON_SOL_force_common, forceintervals, fit_elong_guess);
         end
         % mean data
-        CON_SOL_elong_array_mean = mean(CON_SOL_elong_array,2); % TODO: nanmean or normal mean?
-        h1 = plot(CON_SOL_elong_array_mean,CON_SOL_force_array,'k','Linewidth',2); % average curve
+        CON_SOL_elong_fit_mean = nanmean(CON_SOL_elong_fit,2);
+        h1 = plot(CON_SOL_elong_fit_mean,CON_SOL_force_array,'k','Linewidth',2); % average curve
         h2 = errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'ko')
         % visual
@@ -554,11 +558,11 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_freeAT.jpg'))
     end
     
-    if plot_check && CON_GM_count > 1
+    if plot_check && CON_GM_count > 0
         % prepare data
-        CON_GM_force_common = min(stiffness_GM_CON(:,5));
+        CON_GM_force_common = allgroups_force_common; % min(stiffness_GM_CON(:,5));
         CON_GM_force_array = (0:forceintervals:CON_GM_force_common)';
-        CON_GM_elong_array(1:length(CON_GM_force_array),1:CON_GM_count) = NaN;
+        CON_GM_elong_fit(1:length(CON_GM_force_array),1:CON_GM_count) = NaN;
         CON_GM_elongmax_mean = mean(stiffness_GM_CON(:,4));
         CON_GM_elongmax_SD = std(stiffness_GM_CON(:,4));
         CON_GM_forcemax_mean = mean(stiffness_GM_CON(:,5));
@@ -569,17 +573,16 @@ function [] = tendstiff(input_project, input_plot)
         hold on
         % individual data
         for i = 1:CON_GM_count
-            % reuse last stiff_eq (cfit object) - y = ax^2 + bx + c
-            stiff_eq.p1 = stiffness_GM_CON(i,1); % a 
-            stiff_eq.p2 = stiffness_GM_CON(i,2); % b
-            stiff_eq.p3 = stiffness_GM_CON(i,3); % c
+            stiff_eq_group2.a = stiffness_GM_CON(i,1); % a 
+            stiff_eq_group2.b = stiffness_GM_CON(i,2); % b
+            stiff_eq_group2.c = stiffness_GM_CON(i,3); % c
             xlim([0,stiffness_GM_CON(i,4)]);
-            plot(stiff_eq)
-            CON_GM_elong_array(:,i) = solve_sec_poly(stiffness_GM_CON(i,1), stiffness_GM_CON(i,2), stiffness_GM_CON(i,3), 0, CON_GM_force_common, forceintervals, fit_elong_guess);
+            plot(stiff_eq_group2)
+            CON_GM_elong_fit(:,i) = solve_sec_poly(stiffness_GM_CON(i,1), stiffness_GM_CON(i,2), stiffness_GM_CON(i,3), 0, CON_GM_force_common, forceintervals, fit_elong_guess);
         end
         % mean data
-        CON_GM_elong_array_mean = mean(CON_GM_elong_array,2); % TODO: nanmean or normal mean?
-        h1 = plot(CON_GM_elong_array_mean,CON_GM_force_array,'k','Linewidth',2); % average curve
+        CON_GM_elong_fit_mean = nanmean(CON_GM_elong_fit,2);
+        h1 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'k','Linewidth',2); % average curve
         h2 = errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'ko')
         % visual
@@ -591,7 +594,73 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_entireAT.jpg'))
     end
     
+    if plot_check && BD_GM_count > 0 && BD_SOL_count > 0 && CON_GM_count > 0 && CON_SOL_count > 0 
+        plottitle = horzcat('Mean stiffness curves');
+        figure('Name',plottitle)
+        hold on
+        % mean data
+        h1 = plot(BD_SOL_elong_fit_mean,BD_SOL_force_array,'r','Linewidth',2);
+        h2 = plot(BD_GM_elong_fit_mean,BD_GM_force_array,'r--','Linewidth',2);
+        h3 = plot(CON_SOL_elong_fit_mean,CON_SOL_force_array,'b','Linewidth',2);
+        h4 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'b--','Linewidth',2);
+        % error bars
+        errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ro')
+        errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ro')
+        errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'bo')
+        errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'bo')
+        % visual
+        axis([0 22 0 3600])
+        xlabel('Tendon elongation (mm)')
+        ylabel('Force (N)')
+        title(plottitle)
+        legend([h1 h2 h3 h4], 'BD free AT', 'BD entire AT', 'CON free AT', 'CON entire AT', 'Location','Southeast')
+        saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_all.jpg'))
+                
+        plottitle = horzcat('Free AT, mean stiffness curves');
+        figure('Name',plottitle)
+        hold on
+        % mean data
+        h1 = plot(BD_SOL_elong_fit_mean,BD_SOL_force_array,'r','Linewidth',2);
+        h3 = plot(CON_SOL_elong_fit_mean,CON_SOL_force_array,'b','Linewidth',2);
+        % error bars
+        errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ro')
+        errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'bo')
+        % visual
+        axis([0 12 0 3600])
+        xlabel('Tendon elongation (mm)')
+        ylabel('Force (N)')
+        title(plottitle)
+        legend([h1 h3], 'BD free AT', 'CON free AT', 'Location','Southeast')
+        saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_freeAT.jpg'))
+                
+        plottitle = horzcat('Entire AT, mean stiffness curves');
+        figure('Name',plottitle)
+        hold on
+        % mean data
+        h2 = plot(BD_GM_elong_fit_mean,BD_GM_force_array,'r--','Linewidth',2);
+        h4 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'b--','Linewidth',2);
+        % error bars
+        errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ro')
+        errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'bo')
+        % visual
+        axis([0 22 0 3600])
+        xlabel('Tendon elongation (mm)')
+        ylabel('Force (N)')
+        title(plottitle)
+        legend([h2 h4], 'BD entire AT', 'CON entire AT', 'Location','Southeast')
+        saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_entireAT.jpg'))
+        
+    end
     
+      
     
     %% IND + GRP: extract common force-elong, calculate group means
     % output = 
@@ -630,39 +699,39 @@ function [] = tendstiff(input_project, input_plot)
     % collect elong up to common force
     if BD_SOL_count > 0
         BD_SOL_force = force_elong_SOL_BD{1,1}(1:len,2);
-        BD_SOL_elong_max(1:len,1:BD_SOL_count) = NaN;
+        BD_SOL_elong_data(1:len,1:BD_SOL_count) = NaN;
         for i = 1:length(force_elong_SOL_BD)
-            BD_SOL_elong_max(:,i) = force_elong_SOL_BD{1,i}(1:len,1);
+            BD_SOL_elong_data(:,i) = force_elong_SOL_BD{1,i}(1:len,1);
         end
-        BD_SOL_elong_mean = nanmean(BD_SOL_elong_max,2);
-        BD_SOL_elong_SD = nanstd(BD_SOL_elong_max,0,2);
+        BD_SOL_elong_data_mean = nanmean(BD_SOL_elong_data,2);
+        BD_SOL_elong_data_SD = nanstd(BD_SOL_elong_data,0,2);
     end
     if BD_GM_count > 0
         BD_GM_force = force_elong_GM_BD{1,1}(1:len,2);
-        BD_GM_elong(1:len,1:BD_GM_count) = NaN;
+        BD_GM_elong_data(1:len,1:BD_GM_count) = NaN;
         for i = 1:length(force_elong_GM_BD)
-            BD_GM_elong(:,i) = force_elong_GM_BD{1,i}(1:len,1);
+            BD_GM_elong_data(:,i) = force_elong_GM_BD{1,i}(1:len,1);
         end
-        BD_GM_elong_mean = nanmean(BD_GM_elong,2);
-        BD_GM_elong_SD = nanstd(BD_GM_elong,0,2);
+        BD_GM_elong_data_mean = nanmean(BD_GM_elong_data,2);
+        BD_GM_elong_data_SD = nanstd(BD_GM_elong_data,0,2);
     end
     if CON_SOL_count > 0
         CON_SOL_force = force_elong_SOL_CON{1,1}(1:len,2);
-        CON_SOL_elong(1:len,1:CON_SOL_count) = NaN;
+        CON_SOL_elong_data(1:len,1:CON_SOL_count) = NaN;
         for i = 1:length(force_elong_SOL_CON)
-            CON_SOL_elong(:,i) = force_elong_SOL_CON{1,i}(1:len,1);
+            CON_SOL_elong_data(:,i) = force_elong_SOL_CON{1,i}(1:len,1);
         end
-        CON_SOL_elong_mean = nanmean(CON_SOL_elong,2);
-        CON_SOL_elong_SD = nanstd(CON_SOL_elong,0,2);
+        CON_SOL_elong_data_mean = nanmean(CON_SOL_elong_data,2);
+        CON_SOL_elong_data_SD = nanstd(CON_SOL_elong_data,0,2);
     end
     if CON_GM_count > 0
         CON_GM_force = force_elong_GM_CON{1,1}(1:len,2);
-        CON_GM_elong(1:len,1:CON_GM_count) = NaN;
+        CON_GM_elong_data(1:len,1:CON_GM_count) = NaN;
         for i = 1:length(force_elong_GM_CON)
-            CON_GM_elong(:,i) = force_elong_GM_CON{1,i}(1:len,1);
+            CON_GM_elong_data(:,i) = force_elong_GM_CON{1,i}(1:len,1);
         end
-        CON_GM_elong_mean = nanmean(CON_GM_elong,2);
-        CON_GM_elong_SD = nanstd(CON_GM_elong,0,2);
+        CON_GM_elong_data_mean = nanmean(CON_GM_elong_data,2);
+        CON_GM_elong_data_SD = nanstd(CON_GM_elong_data,0,2);
     end
     
     
@@ -672,27 +741,39 @@ function [] = tendstiff(input_project, input_plot)
         filename_output = strcat('data_output/stiff_GRP_force-elong_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xls');
         if BD_SOL_count > 0
             filename_subj_BD_SOL = cellstr(num2str(BD_SOL_no'))';
-            xlswrite(filename_output, ['Force (N)' filename_subj_BD_SOL], 'Force-elong BD SOL', 'A1')
-            xlswrite(filename_output, BD_SOL_force, 'Force-elong BD SOL', 'A2')
-            xlswrite(filename_output, BD_SOL_elong_max, 'Force-elong BD SOL', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_BD_SOL], 'Force-el data BD SOL', 'A1')
+            xlswrite(filename_output, BD_SOL_force, 'Force-el data BD SOL', 'A2')
+            xlswrite(filename_output, BD_SOL_elong_data, 'Force-el data BD SOL', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_BD_SOL], 'Force-el fit BD SOL', 'A1')
+            xlswrite(filename_output, BD_SOL_force, 'Force-el fit BD SOL', 'A2')
+            xlswrite(filename_output, BD_SOL_elong_fit, 'Force-el fit BD SOL', 'B2')
         end
         if CON_SOL_count > 0
             filename_subj_CON_SOL = cellstr(num2str(CON_SOL_no'))';
-            xlswrite(filename_output, ['Force (N)' filename_subj_CON_SOL], 'Force-elong CON SOL', 'A1')
-            xlswrite(filename_output, CON_SOL_force, 'Force-elong CON SOL', 'A2')
-            xlswrite(filename_output, CON_SOL_elong, 'Force-elong CON SOL', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_CON_SOL], 'Force-el data CON SOL', 'A1')
+            xlswrite(filename_output, CON_SOL_force, 'Force-el data CON SOL', 'A2')
+            xlswrite(filename_output, CON_SOL_elong_data, 'Force-el data CON SOL', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_CON_SOL], 'Force-el fit CON SOL', 'A1')
+            xlswrite(filename_output, CON_SOL_force, 'Force-el fit CON SOL', 'A2')
+            xlswrite(filename_output, CON_SOL_elong_fit, 'Force-el fit CON SOL', 'B2')
         end
         if BD_GM_count > 0
             filename_subj_BD_GM = cellstr(num2str(BD_GM_no'))';
-            xlswrite(filename_output, ['Force (N)' filename_subj_BD_GM], 'Force-elong BD GM', 'A1')
-            xlswrite(filename_output, BD_GM_force, 'Force-elong BD GM', 'A2')
-            xlswrite(filename_output, BD_GM_elong, 'Force-elong BD GM', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_BD_GM], 'Force-el data BD GM', 'A1')
+            xlswrite(filename_output, BD_GM_force, 'Force-el data BD GM', 'A2')
+            xlswrite(filename_output, BD_GM_elong_data, 'Force-el data BD GM', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_BD_GM], 'Force-el fit BD GM', 'A1')
+            xlswrite(filename_output, BD_GM_force, 'Force-el fit BD GM', 'A2')
+            xlswrite(filename_output, BD_GM_elong_fit, 'Force-el fit BD GM', 'B2')
         end
         if CON_GM_count > 0
             filename_subj_CON_GM = cellstr(num2str(CON_GM_no'))';
-            xlswrite(filename_output, ['Force (N)' filename_subj_CON_GM], 'Force-elong CON GM', 'A1')
-            xlswrite(filename_output, CON_GM_force, 'Force-elong CON GM', 'A2')
-            xlswrite(filename_output, CON_GM_elong, 'Force-elong CON GM', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_CON_GM], 'Force-el data CON GM', 'A1')
+            xlswrite(filename_output, CON_GM_force, 'Force-el data CON GM', 'A2')
+            xlswrite(filename_output, CON_GM_elong_data, 'Force-el data CON GM', 'B2')
+            xlswrite(filename_output, ['Force (N)' filename_subj_CON_GM], 'Force-el fit CON GM', 'A1')
+            xlswrite(filename_output, CON_GM_force, 'Force-el fit CON GM', 'A2')
+            xlswrite(filename_output, CON_GM_elong_fit, 'Force-el fit CON GM', 'B2')
         end
     else
         % csvwrite
@@ -704,25 +785,25 @@ function [] = tendstiff(input_project, input_plot)
     % Free AT (SOL):
     if plot_check && (BD_SOL_count > 0 || CON_SOL_count > 0)
         fig_f_e_legend = [];
-        plottitle = horzcat('Free AT, force-elongation (common force)');
+        plottitle = horzcat('Free AT, force-elongation (data, no fit)');
         figure('Name',plottitle)
         hold on
         if BD_SOL_count > 0
-            bd1 = plot(BD_SOL_elong_mean, BD_SOL_force, 'r', 'LineWidth',2);
+            bd1 = plot(BD_SOL_elong_data_mean, BD_SOL_force, 'r', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'BD avg';
         end
         if CON_SOL_count > 0
-            con1 = plot(CON_SOL_elong_mean, CON_SOL_force, 'b', 'LineWidth',2);
+            con1 = plot(CON_SOL_elong_data_mean, CON_SOL_force, 'b', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'CON avg';
         end
         if BD_SOL_count > 0
-            bd2 = plot(BD_SOL_elong_mean+BD_SOL_elong_SD, BD_SOL_force, 'r--', 'LineWidth',0.5);
-            plot(BD_SOL_elong_mean-BD_SOL_elong_SD, BD_SOL_force, 'r--', 'LineWidth',0.5);
+            bd2 = plot(BD_SOL_elong_data_mean+BD_SOL_elong_data_SD, BD_SOL_force, 'r--', 'LineWidth',0.5);
+            plot(BD_SOL_elong_data_mean-BD_SOL_elong_data_SD, BD_SOL_force, 'r--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'BD SD';
         end
         if CON_SOL_count > 0
-            con2 = plot(CON_SOL_elong_mean+CON_SOL_elong_SD, CON_SOL_force, 'b--', 'LineWidth',0.5);
-            plot(CON_SOL_elong_mean-CON_SOL_elong_SD, CON_SOL_force, 'b--', 'LineWidth',0.5);
+            con2 = plot(CON_SOL_elong_data_mean+CON_SOL_elong_data_SD, CON_SOL_force, 'b--', 'LineWidth',0.5);
+            plot(CON_SOL_elong_data_mean-CON_SOL_elong_data_SD, CON_SOL_force, 'b--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'CON SD';
         end
         %axis(axis_force)
@@ -744,25 +825,25 @@ function [] = tendstiff(input_project, input_plot)
     % Entire AT (GM):
     if plot_check && (BD_GM_count > 0 || CON_GM_count > 0)
         fig_f_e_legend = [];
-        plottitle = horzcat('Entire AT, force-elongation (common force)');
+        plottitle = horzcat('Entire AT, force-elongation (data, no fit)');
         figure('Name',plottitle)
         hold on
         if BD_GM_count > 0
-            bd1 = plot(BD_GM_elong_mean, BD_GM_force, 'r', 'LineWidth',2);
+            bd1 = plot(BD_GM_elong_data_mean, BD_GM_force, 'r', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'BD avg';
         end
         if CON_GM_count > 0
-            con1 = plot(CON_GM_elong_mean, CON_GM_force, 'b', 'LineWidth',2);
+            con1 = plot(CON_GM_elong_data_mean, CON_GM_force, 'b', 'LineWidth',2);
             fig_f_e_legend{end+1} = 'CON avg';
         end
         if BD_GM_count > 0
-            bd2 = plot(BD_GM_elong_mean+BD_GM_elong_SD, BD_GM_force, 'r--', 'LineWidth',0.5);
-            plot(BD_GM_elong_mean-BD_GM_elong_SD, BD_GM_force, 'r--', 'LineWidth',0.5);
+            bd2 = plot(BD_GM_elong_data_mean+BD_GM_elong_data_SD, BD_GM_force, 'r--', 'LineWidth',0.5);
+            plot(BD_GM_elong_data_mean-BD_GM_elong_data_SD, BD_GM_force, 'r--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'BD SD';
         end
         if CON_GM_count > 0
-            con2 = plot(CON_GM_elong_mean+CON_GM_elong_SD, CON_GM_force, 'b--', 'LineWidth',0.5);
-            plot(CON_GM_elong_mean-CON_GM_elong_SD, CON_GM_force, 'b--', 'LineWidth',0.5);
+            con2 = plot(CON_GM_elong_data_mean+CON_GM_elong_data_SD, CON_GM_force, 'b--', 'LineWidth',0.5);
+            plot(CON_GM_elong_data_mean-CON_GM_elong_data_SD, CON_GM_force, 'b--', 'LineWidth',0.5);
             fig_f_e_legend{end+1} = 'CON SD';
         end
         %axis(axis_force)

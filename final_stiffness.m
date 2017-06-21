@@ -95,7 +95,7 @@ end
 
 % plot onset checkpoints
 if plot_achilles
-    plottitle = horzcat('Force onset check, ', subject_id);
+    plottitle = horzcat('Force onset check, 6 trials, ', subject_id);
     figure('Name',plottitle)
     hold on
     % MTJ
@@ -153,7 +153,7 @@ for i = 1:length(MTJ_trials)
             % delete before onset
             MTJ_trials{i}(1:loc_MTJ_onset(i)-1,:) = [];
         end
-        % warning if first force is larger than ... 20 N? TODO, delete this warning?
+        % warning if first force is larger than ... 20 N? MMM TODO, delete this warning?
         if MTJ_trials{i}(1,loc_force) > 20 %VAR
             cprintf('red', horzcat('WARNING: High force onset for MTJ', num2str(i), ': ', num2str(round(MTJ_trials{i}(1,loc_force),1)), ' N\n'))
         end
@@ -232,7 +232,7 @@ tend_elong(1) = NaN; % do not include point in stiffness fit
 
 if plot_achilles
     % MTJ force-disp x 3
-    plottitle = horzcat('MTJ stiffness check for ', subject_id);
+    plottitle = horzcat('MTJ displacement check, 3 single trials, ', subject_id);
     figure('Name',plottitle)
     hold on
     % 3 MTJ trials, after onset, to trial max force
@@ -280,7 +280,7 @@ end
 
 if plot_achilles
     % OTJ force-disp x 3
-    plottitle = horzcat('OTJ stiffness check for ', subject_id);
+    plottitle = horzcat('OTJ displacement check, 3 single trials, ', subject_id);
     figure('Name',plottitle)
     hold on
     % 3 OTJ trials, after onset, to trial max force

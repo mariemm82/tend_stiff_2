@@ -478,7 +478,7 @@ function [] = tendstiff(input_project, input_plot)
         h2 = errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ko')
         % visual
-        axis([0 14 -100 4000])
+        axis([0 14 -100 3600])
         xlabel('Tendon elongation (mm)')
         ylabel('Force (N)')
         title(plottitle)
@@ -514,7 +514,7 @@ function [] = tendstiff(input_project, input_plot)
         h2 = errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ko')
         % visual
-        axis([0 24 -100 4000])
+        axis([0 24 -100 3600])
         xlabel('Tendon elongation (mm)')
         ylabel('Force (N)')
         title(plottitle)
@@ -550,7 +550,7 @@ function [] = tendstiff(input_project, input_plot)
         h2 = errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'ko')
         % visual
-        axis([0 14 -100 4000])
+        axis([0 14 -100 3600])
         xlabel('Tendon elongation (mm)')
         ylabel('Force (N)')
         title(plottitle)
@@ -586,7 +586,7 @@ function [] = tendstiff(input_project, input_plot)
         h2 = errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
         herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'ko')
         % visual
-        axis([0 24 -100 4000])
+        axis([0 24 -100 3600])
         xlabel('Tendon elongation (mm)')
         ylabel('Force (N)')
         title(plottitle)

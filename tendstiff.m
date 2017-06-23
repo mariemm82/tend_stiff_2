@@ -442,7 +442,7 @@ function [] = tendstiff(input_project, input_plot)
     fit_elong_guess = 4; %VAR guessing approximate elongation (X value) for 2nd order stiffness fit Y values
     
     allgroups_force_common = min( [min(stiffness_SOL_BD(:,5)) min(stiffness_GM_BD(:,5)) min(stiffness_SOL_CON(:,5)) min(stiffness_GM_CON(:,5))] );
-    allgroups_force_common = stiff_common_force_max; % TMP MMM
+    %allgroups_force_common = stiff_common_force_max; % TMP MMM
     
     % create stiffness equation as cfit
     f = fittype('a*x^2+b*x+c');

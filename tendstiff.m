@@ -442,6 +442,7 @@ function [] = tendstiff(input_project, input_plot)
     fit_elong_guess = 4; %VAR guessing approximate elongation (X value) for 2nd order stiffness fit Y values
     
     allgroups_force_common = min( [min(stiffness_SOL_BD(:,5)) min(stiffness_GM_BD(:,5)) min(stiffness_SOL_CON(:,5)) min(stiffness_GM_CON(:,5))] );
+    allgroups_force_common = stiff_common_force_max; % TMP MMM
     
     % create stiffness equation as cfit
     f = fittype('a*x^2+b*x+c');
@@ -450,7 +451,7 @@ function [] = tendstiff(input_project, input_plot)
     c = 0;
     stiff_eq_group2 = cfit(f, a, b, c);
     
-    if plot_check && BD_SOL_count > 0
+    if BD_SOL_count > 0
         % prepare data
         BD_SOL_force_common = allgroups_force_common; % min(stiffness_SOL_BD(:,5));
         BD_SOL_force_array = (0:forceintervals:BD_SOL_force_common)';
@@ -475,8 +476,8 @@ function [] = tendstiff(input_project, input_plot)
         % mean data
         BD_SOL_elong_fit_mean = nanmean(BD_SOL_elong_fit,2); % nanmean if fits through zero, mean if firt not through zero (4 places in total)
         h1 = plot(BD_SOL_elong_fit_mean,BD_SOL_force_array,'k','Linewidth',2); % average curve
-        h2 = errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
-        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ko')
+        h2 = errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'k.')
         % visual
         axis([0 14 -100 3600])
         xlabel('Tendon elongation (mm)')
@@ -486,7 +487,7 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_freeAT.jpg'))
     end
     
-    if plot_check && BD_GM_count > 0
+    if BD_GM_count > 0
         % prepare data
         BD_GM_force_common = allgroups_force_common; % min(stiffness_GM_BD(:,5));
         BD_GM_force_array = (0:forceintervals:BD_GM_force_common)';
@@ -511,8 +512,8 @@ function [] = tendstiff(input_project, input_plot)
         % mean data
         BD_GM_elong_fit_mean = nanmean(BD_GM_elong_fit,2);
         h1 = plot(BD_GM_elong_fit_mean,BD_GM_force_array,'k','Linewidth',2); % average curve
-        h2 = errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
-        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ko')
+        h2 = errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'k.')
         % visual
         axis([0 24 -100 3600])
         xlabel('Tendon elongation (mm)')
@@ -522,7 +523,7 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_entireAT.jpg'))
     end
     
-    if plot_check && CON_SOL_count > 0
+    if CON_SOL_count > 0
         % prepare data
         CON_SOL_force_common = allgroups_force_common; % min(stiffness_SOL_CON(:,5));
         CON_SOL_force_array = (0:forceintervals:CON_SOL_force_common)';
@@ -547,8 +548,8 @@ function [] = tendstiff(input_project, input_plot)
         % mean data
         CON_SOL_elong_fit_mean = nanmean(CON_SOL_elong_fit,2);
         h1 = plot(CON_SOL_elong_fit_mean,CON_SOL_force_array,'k','Linewidth',2); % average curve
-        h2 = errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
-        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'ko')
+        h2 = errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'k.')
         % visual
         axis([0 14 -100 3600])
         xlabel('Tendon elongation (mm)')
@@ -558,7 +559,7 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_freeAT.jpg'))
     end
     
-    if plot_check && CON_GM_count > 0
+    if CON_GM_count > 0
         % prepare data
         CON_GM_force_common = allgroups_force_common; % min(stiffness_GM_CON(:,5));
         CON_GM_force_array = (0:forceintervals:CON_GM_force_common)';
@@ -583,8 +584,8 @@ function [] = tendstiff(input_project, input_plot)
         % mean data
         CON_GM_elong_fit_mean = nanmean(CON_GM_elong_fit,2);
         h1 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'k','Linewidth',2); % average curve
-        h2 = errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',6); % avg of ind max force/elong
-        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'ko')
+        h2 = errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
+        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'k.')
         % visual
         axis([0 24 -100 3600])
         xlabel('Tendon elongation (mm)')
@@ -594,7 +595,7 @@ function [] = tendstiff(input_project, input_plot)
         saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_entireAT.jpg'))
     end
     
-    if plot_check && BD_GM_count > 0 && BD_SOL_count > 0 && CON_GM_count > 0 && CON_SOL_count > 0 
+    if BD_GM_count > 0 && BD_SOL_count > 0 && CON_GM_count > 0 && CON_SOL_count > 0 
         plottitle = horzcat('Mean stiffness curves');
         figure('Name',plottitle)
         hold on
@@ -605,13 +606,13 @@ function [] = tendstiff(input_project, input_plot)
         h4 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'b--','Linewidth',2);
         % error bars
         errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ro')
+        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'r.')
         errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ro')
+        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'r.')
         errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'bo')
+        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'b.')
         errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'bo')
+        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'b.')
         % visual
         axis([0 22 0 3600])
         xlabel('Tendon elongation (mm)')
@@ -628,9 +629,9 @@ function [] = tendstiff(input_project, input_plot)
         h3 = plot(CON_SOL_elong_fit_mean,CON_SOL_force_array,'b','Linewidth',2);
         % error bars
         errorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'ro')
+        herrorbar(BD_SOL_elongmax_mean,BD_SOL_forcemax_mean,BD_SOL_elongmax_SD, 'r.')
         errorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'bo')
+        herrorbar(CON_SOL_elongmax_mean,CON_SOL_forcemax_mean,CON_SOL_elongmax_SD, 'b.')
         % visual
         axis([0 12 0 3600])
         xlabel('Tendon elongation (mm)')
@@ -647,9 +648,9 @@ function [] = tendstiff(input_project, input_plot)
         h4 = plot(CON_GM_elong_fit_mean,CON_GM_force_array,'b--','Linewidth',2);
         % error bars
         errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ro', 'MarkerFaceColor', 'r', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'ro')
+        herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'r.')
         errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
-        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'bo')
+        herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'b.')
         % visual
         axis([0 22 0 3600])
         xlabel('Tendon elongation (mm)')
@@ -783,7 +784,7 @@ function [] = tendstiff(input_project, input_plot)
     %% GRP: plot force-elong per subject + mean (GM and SOL separately)
     
     % Free AT (SOL):
-    if plot_check && (BD_SOL_count > 0 || CON_SOL_count > 0)
+    if (BD_SOL_count > 0 || CON_SOL_count > 0)
         fig_f_e_legend = [];
         plottitle = horzcat('Free AT, force-elongation (data, no fit)');
         figure('Name',plottitle)
@@ -823,7 +824,7 @@ function [] = tendstiff(input_project, input_plot)
     
     
     % Entire AT (GM):
-    if plot_check && (BD_GM_count > 0 || CON_GM_count > 0)
+    if (BD_GM_count > 0 || CON_GM_count > 0)
         fig_f_e_legend = [];
         plottitle = horzcat('Entire AT, force-elongation (data, no fit)');
         figure('Name',plottitle)

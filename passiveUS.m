@@ -25,7 +25,7 @@
 function [] = passiveUS(input_project, input_plot)
     close all
     
-    toggle_normalization = 0; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/elong
+    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/elong
 
     
     
@@ -462,6 +462,13 @@ function [] = passiveUS(input_project, input_plot)
         
         
         
+        %% calculate NORM conversion factors
+        % retrieve conversion constants for Norm data
+        [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'passive');
+        %%
+        
+        
+        
         %% calculate MVC from EMG data
 
         % prepare column placement
@@ -501,20 +508,13 @@ function [] = passiveUS(input_project, input_plot)
         %%
 
 
-        
-        %% calculate NORM conversion factors
-        % retrieve conversion constants for Norm data
-        [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'passive');
-        %%
-
-
 
         %% calculate ACHILLES TENDON MOMENT ARM
         at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
         %%
         
         
-
+            
         %% calculations for 2x SOL trials
         
         % extract force, gonio, angle, displacement for EACH TRIAL
@@ -788,11 +788,17 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND Lichtwark GM fascicle vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                yyaxis left
+                mat_version = version('-release');
+                % left axis
+                if strcmp(mat_version,'2015b') == 0
+                    yyaxis left
+                end
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'b','LineWidth',2) % fascicle length
                 plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_length prone_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','b', 'MarkerEdgeColor','b') % fas len at rest/prone
                 ylabel(txt_length)
-                yyaxis right
+                if strcmp(mat_version,'2015b') == 0
+                    yyaxis right
+                end
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),'r','LineWidth',2) % pennation angle
                 plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_penn prone_GMfas_penn], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','r', 'MarkerEdgeColor','r') % penn angle at rest/prone
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),':r','LineWidth',1) % fascicle strain
@@ -959,40 +965,38 @@ function [] = passiveUS(input_project, input_plot)
         
         %% NORMALIZE Lichtwark/Fukunaga length/elongation to initial leg length (BD study) %%%%%%%%%%%%%%%%%%
         if input_project == 1 && toggle_normalization == 1
-            %%% Normalization of MTU, GMmsc and SEE elongation/length:
-            
+            %%% Normalization of MTU, GMmsc, SEE * elongation, length:
             % in MTU arrays, replace absolute values with normalization to MTU length/elongation
-            % using MTU length while resting in prone position: MTU_prone_vars(col_leg)
+            % currently normalizing to MTU length while resting in prone position
+            %    resting MTU length is found in variable:
+            MTU_length_rest = MTU_prone_vars(col_leg);
             
-            % save orig MTU length before overriding with normalized
-            MTU_elong_leg = MTU_elong_array(:,col_leg);
-            
-            % ELONGATION - in percent of resting/prone MTU length or elong?
-            %%% MTU elongation (mm) / resting/prone MTU length (mm) - in %
-            MTU_elong_array(:,col_leg) = MTU_elong_leg/MTU_prone_vars(col_leg)*100;
+            % ELONGATION
             %%% Version 1: GMmsc/SEE elongation (mm) / resting/prone MTU length (mm) - in %
-%            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_prone_vars(col_leg)*100;
-%            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_prone_vars(col_leg)*100;
+%            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
+%            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
             %%% Version 2: GMmsc/SEE elongation (mm) / MTU ELONGATION (mm) - in %
-            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_leg*100;
-            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_leg*100;
+            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+            %%% MTU elongation (mm) / resting/prone MTU length (mm) - in %
+            MTU_elong_array(:,col_leg) = MTU_elong_array(:,col_leg)/MTU_length_rest*100;
             
             % LENGTH - in percent of resting/prone MTU length
-            MTU_length_array(:,col_leg) = MTU_length_array(:,col_leg)/MTU_prone_vars(col_leg)*100;
-            MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/MTU_prone_vars(col_leg)*100;
-            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/MTU_prone_vars(col_leg)*100;
+            MTU_length_array(:,col_leg) = MTU_length_array(:,col_leg)/MTU_length_rest*100;
+            MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
+            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
             
             %%% Normalization of fascicle length/elongation to resting/prone MTU length:
             %   data_GMFAS_licht_GM
             %   data_GMFAS_licht_SOL
             % containing:
-            %   averaged angle (currently calculated from gonio)
-            %   averaged fasicle length
-            %   averaged pennation angle
-            %   averaged fascicle elongation
-            %   averaged fascicle strain
-            data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_prone_vars(col_leg)*100;
-            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_prone_vars(col_leg)*100;
+            %    1 averaged angle (currently calculated from gonio)
+            %    2 averaged fasicle length
+            %    3 averaged pennation angle
+            %    4 averaged fascicle elongation
+            %    5 averaged fascicle strain
+            data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_length_rest*100;
+            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_length_rest*100;
         end
         %%
         
@@ -1513,12 +1517,6 @@ function [] = passiveUS(input_project, input_plot)
         out_licht_faslen_SOL_submax_2 = NaN;
         out_licht_pennation_SOL_submax_2 = NaN;
         
-        % normalize faslen array to initial leg length --- BD study
-        if input_project == 1 && toggle_normalization == 1
-            % in MTU_ arrays, replace absolute values with normalization to initial leg length:
-            data_GMFAS_licht_GM(:,col_licht_faslen) = data_GMFAS_licht_GM(:,col_licht_faslen)/MTU_prone_vars(col_leg)*100; % in percent of initial leg length
-            data_GMFAS_licht_GM(:,col_licht_fas_elong) = data_GMFAS_licht_GM(:,col_licht_fas_elong)/MTU_prone_vars(col_leg)*100; % in percent of initial leg length
-        end
         
         if data_GMFAS_licht_GM == 0
             % no licht data existing
@@ -2436,6 +2434,8 @@ function [] = passiveUS(input_project, input_plot)
         
     end
     %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    save all_data_passive
+    
     
     
     %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2801,14 +2801,18 @@ function [] = passiveUS(input_project, input_plot)
     if input_project == 1 && toggle_normalization == 1
 
         %%% adjust relevant axes:
-        axis_el_GMFAS = [-1 35 0 3];
+        % TODO MMM
+        axis_el_GMFAS = [-1 35 0 5];
         axis_len_GMFAS = [-1 35 0 22];
         
-        axis_el_GMmsc_arch = [-1 35 0 Inf]; % TODO MMM
+        axis_el_GMmsc_arch = [-1 35 0 90];
         axis_len_GMmsc_arch = [-1 35 0 Inf];
 
         axis_el_SEE_arch = [-1 35 0 Inf];
         axis_len_SEE_arch = [-1 35 0 Inf];
+        
+        axis_el_MTU = [-1 35 0 20];
+        % axis_len_MTU TODO MMM
         
         % strain - not affected by normalization
         
@@ -3752,11 +3756,16 @@ function [] = passiveUS(input_project, input_plot)
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             if BD_count > 1 && CON_count > 1 && plot_check
+                % check for matlab version, do not use yyaxis on home computer (2015)
+                mat_version = version('-release');
                 plottitle = horzcat('torque vs angle - 1');
                 figure('Name',plottitle)
-                yyaxis left
-                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,18),'r','LineWidth',2)
                 hold on
+                % left axis
+                if strcmp(mat_version,'2015b') == 0
+                    yyaxis left
+                end
+                plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,18),'r','LineWidth',2)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,18),'b','LineWidth',2)
                 errorbar(BD_ROM_mean, BD_torque_mean, BD_torque_SD, 'r.', 'MarkerFaceColor', 'r')
                 errorbar(CON_ROM_mean, CON_torque_mean, CON_torque_SD, 'b.', 'MarkerFaceColor', 'b')
@@ -3765,7 +3774,9 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel('Torque (Nm)')
                 axis(axis_torque)
                 % plot EMG
-                yyaxis right
+                if strcmp(mat_version,'2015b') == 0
+                    yyaxis right
+                end
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,3),'y','LineWidth',0.5) % GM
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,3),'y--','LineWidth',0.5) % GM
                 plot(BD_angle_vars_mean(:,1), BD_angle_vars_mean(:,4),'m','LineWidth',0.5) % GL 

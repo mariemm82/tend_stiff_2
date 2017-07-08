@@ -3,6 +3,10 @@
 % Marie Moltubakk 18.5.2013
 % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
 % Produce a new noraxon data array
+
+% used by passive analyses for MVC trials
+% used by stiffness analyses for MVC, CPM, coact...
+% used by stiffness through extract_force_displ_singletrial.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_prepped = read_noraxon_stiffness(noraxonfile, finalfreq, side, trial_name)

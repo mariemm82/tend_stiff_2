@@ -1,8 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% read_noraxon_file
+% read noraxon data file
 % Marie Moltubakk 18.5.2013
 % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
 % Produce a new noraxon data array
+
+% 2017 - used only by old normconversion
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_prepped = read_noraxon_file(noraxonfile, finalfreq, side, trial_name)

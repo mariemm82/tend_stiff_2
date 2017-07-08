@@ -1,11 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%	
-% read_noraxon_file
+% read noraxon data file
 % Marie Moltubakk 18.5.2013 EDIT NOV 2014 FOR CONVERSION
 % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
 % Produce a new noraxon data array
+
+% 2017 - not used
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, trial_name)
+function noraxon_resampled = read_noraxon_conversion(noraxonfile, finalfreq, side, trial_name)
     global us_zerodispframes noraxonfreq emg_bandpass emg_rms_ms mvc_window_ms torque_cutoff angle_cutoff convert_achilles convert_norm
     global plot_achilles plot_norm plot_emg plot_check subject_id
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles

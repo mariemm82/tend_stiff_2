@@ -1,10 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%	
-% read_noraxon_file
+% read noraxon data file
 % Marie Moltubakk 18.5.2013
 % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
 % Produce a new noraxon data array
-
 % version 21.1.2015, adapted to use individually calculated norm conversion factors
+
+% used by create_angles through extract_force_displ_singletrial_passive.m
+% used by passive analyses through extract_force_displ_singletrial_passive_EMG.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, trial_name)

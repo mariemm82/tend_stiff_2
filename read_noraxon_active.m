@@ -3,6 +3,8 @@
 % Marie Moltubakk 2.11.2016
 % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
 % Produce a new noraxon data array
+
+% used by strength analyses through extract_isokinetic and extract_isometric
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, trial_name)

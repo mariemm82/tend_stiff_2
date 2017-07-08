@@ -3,6 +3,8 @@
 % Marie Moltubakk 11.6.2013, EMG added 1.6.2015
 % Read complete, prepared noraon array + prepared us array
 % Produce array with time, corrected force, corrected displacement
+
+% used by passive analyses
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

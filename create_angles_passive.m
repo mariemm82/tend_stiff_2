@@ -110,8 +110,7 @@ function []=create_angles_passive(input_plot)
     global at_momentarm
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
-    dm_columns = 35; % number of data columns entered per subject % PROJECTSPECIFIC
-    linestotal = read_datamaster_passive(dm_filename,dm_columns);
+    linestotal = read_datamaster_passive(dm_filename);
     subject_last = max(str2double(dm_subjectno)); % highest subject number in table
 
     

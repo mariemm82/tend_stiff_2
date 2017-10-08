@@ -98,7 +98,7 @@ function [] = strength_analysis(input_plot)
 %    global dm_CPM_calc_NX dm_CPM_sol_NX
 %    global dm_leg_length
     global filepath
-    dm_filename = 'data/stretcher_strength/datamaster_strength.tsv';
+    dm_filename = 'data/datamaster_strength.tsv';
     dm_columns = 22; % number of data columns entered per subject % PROJECTSPECIFIC
     linestotal = read_datamaster_strength(dm_filename,dm_columns);
     
@@ -622,7 +622,7 @@ function [] = strength_analysis(input_plot)
         out_arrays_headers{i+1} = strcat('BD ', num2str(BD_no(i)));
     end
     for i=1:CON_count
-        out_arrays_headers{i+1+BD_count} = strcat('CON ', num2str(CON_no(i)));
+        out_arrays_headers{i+1+BD_count} = strcat('CON ', num2str(CON_no(i)), 'add'); % MMM TODO: Add L/R and PRE/POST
     end
     
     % preallocate output arrays

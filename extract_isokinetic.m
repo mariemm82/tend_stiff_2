@@ -243,6 +243,9 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     
     % prepare filter
+    % variable here is:
+    % 20 hz --> 20/(noraxonfreq/2);
+    % 0.05 = 37.5/(1500/2) --> 37.5 hz
     [B, A] = butter(8, 0.05, 'low'); %VAR
     
     % collect and filter three trials
@@ -298,13 +301,13 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     work(1:length(trials)) = zeros;
     torque_angle_reshaped{length(trials)} = [];
     for i=1:length(trials)
-        %reshape
+        %reshape torque-angle to 0.1 deg intervals
         work_angle_start = ceil(10*min(trials{i}(:,2)))/10;
         work_angle_stop = floor(10*max(trials{i}(:,2)))/10;
-        torque_angle_reshaped{i} = (work_angle_start:0.1:work_angle_stop)';
+        torque_angle_reshaped{i} = (work_angle_start:0.1:work_angle_stop)'; %VAR
         torque_angle_reshaped{i}(:,2) = spline(trials{i}(:,2), trials{i}(:,1), torque_angle_reshaped{i}(:,1));
         
-        % remove negative torques
+        % remove entries of negative torque at beginning/end
         torque_pos = torque_angle_reshaped{i}(:,2);
         torque_pos = torque_pos(torque_pos>=0);
         work(i) = mean(torque_pos)*0.5*pi();

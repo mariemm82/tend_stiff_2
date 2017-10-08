@@ -369,7 +369,7 @@ function [] = tendstiff(input_project, input_plot)
     end
     %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    save loop_end
+    save all_data_stiff_loop_end
     
     
     %% truncate cells

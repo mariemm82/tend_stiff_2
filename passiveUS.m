@@ -17,15 +17,15 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% LATER? change tendon lengths to be based on prone length, not zero angle length?
+% LATER? change tendon lengths to be based on prone length, not zero angle length? MMM TODO?
 
 
 
 
-function [] = passiveUS(input_project, input_plot)
+function [] = passiveUS(input_project, input_plot, input_norm)
     close all
     
-    toggle_normalization = 1; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/elong
+    toggle_normalization = input_norm; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/% of total elong
 
     
     

@@ -12,6 +12,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     global column_norm_angle column_norm_torque column_norm_velocity % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global filepath
     global plot_individual plot_conversion
+    global mat_version
     
     
     % Read Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
@@ -25,7 +26,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     array_velocity = noraxon_prepped(:,column_norm_velocity);
     % array_output_raw = [array_torque array_angle];
     
-    % tweak for BD101 % dirty - MMM
+    % tweak for BD101 % dirty
     % incorrect offset @ isokinetic trials, due to imprecision during data collection
     if strcmp(subject_id(8:10), '101')
         offset_manual = max(array_angle) - 30;
@@ -185,20 +186,25 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     threshold = 8; % how low should the avg torque be during onset phase, in order to discard trial
     if strcmp(trial_name,'isokin DF 30') == 0
         for i = 1:2:length(loc_peak_start) % check every second entry = PF phases
-            % if torque drops lower than zero
-            % cprintf('blue', horzcat(trial_name, ': ', num2str(mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset))), ' Nm.\n'))
-            if mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset)) < threshold
-                % "start" peak 1 belongs with "end" peak 2!
-                if i == length(loc_peak_start)
-                    % add to list for deletion, current phase
-                    delete_peaks_start = [delete_peaks_start, i];
-                else
-                    % add to list for deletion, current phase (e.g. PF) + next phase (e.g. DF)
-                    delete_peaks_start = [delete_peaks_start, i, i+1];
-                    if i+1 == length(loc_peak_end) % rough scripting... BD 101
-                        delete_peaks_end = [delete_peaks_end, i+1];
+            % remove entries with "start" at the end of torque array:
+            if loc_peak_start(i) == length(array_torque)
+                delete_peaks_start = [delete_peaks_start, i];
+            else
+                % if torque drops lower than zero
+                % cprintf('blue', horzcat(trial_name, ': ', num2str(mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset))), ' Nm.\n'))
+                if mean(array_torque(loc_peak_start(i):loc_peak_start(i)+onset)) < threshold
+                    % "start" peak 1 belongs with "end" peak 2!
+                    if i == length(loc_peak_start)
+                        % add to list for deletion, current phase
+                        delete_peaks_start = [delete_peaks_start, i];
                     else
-                        delete_peaks_end = [delete_peaks_end, i+1, i+2];
+                        % add to list for deletion, current phase (e.g. PF) + next phase (e.g. DF)
+                        delete_peaks_start = [delete_peaks_start, i, i+1];
+                        if i+1 == length(loc_peak_end) % rough scripting... BD 101
+                            delete_peaks_end = [delete_peaks_end, i+1];
+                        else
+                            delete_peaks_end = [delete_peaks_end, i+1, i+2];
+                        end
                     end
                 end
             end
@@ -220,12 +226,21 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         plottitle = horzcat('Isokinetic phase check, ', horzcat(subject_id, ': ', trial_name));
         figure('Name',plottitle)
         hold on
-        yyaxis left
+        % left axis
+        if strcmp(mat_version,'2015b') == 0
+            yyaxis left
+        end
         findpeaks(-array_angle,'MinPeakDistance',peakdistance)
-        yyaxis right
+        % right axis
+        if strcmp(mat_version,'2015b') == 0
+            yyaxis right
+        end
         plot(array_torque)
         ylabel('Isokinetic torque (Nm)')
-        yyaxis left
+        % left axis
+        if strcmp(mat_version,'2015b') == 0
+            yyaxis left
+        end
         for i=1:length(loc_peak_start)
             line([loc_peak_start(i) loc_peak_start(i)], [min(-array_angle) max(-array_angle)],'Color','g');
         end
@@ -238,7 +253,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         legend('Angle','Peaks','Torque','location','NorthEast')
     end
     
-    
+        
     
     
     
@@ -288,7 +303,8 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     % spline for common angles @ 2.5 deg
     angles_common2 = (-7.5:2.5:27.5)';
     array_intervals_output = spline(array_raw_output(:,2), array_raw_output(:,1), angles_common2);
-%     % tmp plot to confirm no smoothing
+
+     % TMP plot to confirm no smoothing:
 %      figure,plot(array_raw_output(:,2),array_raw_output(:,1))
 %      hold on
 %      plot(angles_common2,array_intervals_output,':ko', 'MarkerEdgeColor','k','MarkerFaceColor',[0 0 0])
@@ -348,5 +364,5 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     %%% print report
     
-    cprintf('blue', horzcat(trial_name, ': Peak torque = ', num2str(round(torque_max,2)) ,' Nm, angle = ', num2str(round(torque_max_angle,2)) ,'°, work = ', num2str(round(work_max,2)) ,' J.\n'))
+    cprintf('blue', horzcat(trial_name, ': Peak torque = ', num2str(round(torque_max,1)) ,' Nm, angle = ', num2str(round(torque_max_angle,1)) ,'°, work = ', num2str(round(work_max,1)) ,' J.\n'))
 end

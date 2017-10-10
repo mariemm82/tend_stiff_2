@@ -17,6 +17,11 @@ function out = read_datamaster_strength(file,datamaster_columns)
     % restructure imported data into multiple columns
     % n o lines = 1 header + 1 per subject entry
     nolines = length(datamaster{1,1})/datamaster_columns;
+    if floor(nolines) == nolines
+        % is integer - everything ok
+    else
+        cprintf('*red', 'WARNING: Mismatch # of entries in datamaster vs dm_columns variable.\n')
+    end
 
     for i = 2:nolines
         delta = (i-1)*datamaster_columns;

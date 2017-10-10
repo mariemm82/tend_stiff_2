@@ -179,7 +179,8 @@ function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, t
         hold on
         plot(noraxon_resampled(:,1),noraxon_resampled(:,column_norm_angle),'b')
         plot(noraxon_resampled(:,1),noraxon_resampled(:,column_norm_velocity),'r')
-        xlabel('Time (s)'),ylabel('Torque/angle/velocity'),title(plottitle);
+        xlabel('Time (s)'),ylabel('Torque/angle/velocity');
+        title(plottitle,'Interpreter', 'none')
         legend('Torque','Angle','Velocity','Location','Northwest');
     end
 end

@@ -47,9 +47,9 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     elseif min(array_velocity) < -40  % trial 45 deg/s
         peakdistance = 140;
     elseif min(array_velocity) < -25  % trial 30 deg/s
-        peakdistance = 200;
+        peakdistance = 80; %old: 200 - large distance no longer required, since script below is very good at detecting+removing invalid peaks
     else
-        peakdistance = 200;
+        peakdistance = 80; %old: 200
     end
     
     
@@ -62,12 +62,16 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     
     
+    %MMM TODO GOON: INT 13 PRE 2, PF 30, why is the third trial starting
+    %point not detected (or why is it deleted)
+    
+    
     % remove incorrect peaks
 
     % remove "peaks" at mid value (e.g. starting phase) in inverted data
     delete_peaks = [];
     delete_review = [];
-    % define cutoff for peak value (DF/PF) vs "mid value"
+    % define cutoff, what is a peak value (DF/PF) and what is "mid value"
     DF_peak = max(-array_angle) - 4; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
     PF_peak = min(-array_angle) + 3; % approx -30 deg + 3 deg = -27 deg (PF, inverted)
     for i = 1:length(val_peaks)
@@ -91,7 +95,13 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         peak1 = val_peaks(i-1);
         peak2 = val_peaks(i);
         if abs(peak1-peak2) < 6 % two consequtive peaks are less than 6 degrees different --> same peak
-            delete_peaks = [delete_peaks, i-1];
+            if peak1 < -15
+                % delete FIRST for -30/DF positions
+                delete_peaks = [delete_peaks, i-1];
+            else
+                % delete LAST for +10/PF positions
+                delete_peaks = [delete_peaks, i];
+            end
         end
     end
     % delete array entries selected above
@@ -223,7 +233,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     end
     
     if plot_individual && plot_conversion
-        plottitle = horzcat('Isokinetic phase check, ', horzcat(subject_id, ': ', trial_name));
+        plottitle = horzcat('Isokinetic phase check, ', horzcat(subject_id, ', ', trial_name));
         figure('Name',plottitle)
         hold on
         % left axis
@@ -249,7 +259,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         end
         xlabel('Time (frames)')
         ylabel('Ankle angle (deg) INVERTED')
-        title(plottitle)
+        title(plottitle,'Interpreter', 'none')
         legend('Angle','Peaks','Torque','location','NorthEast')
     end
     
@@ -354,7 +364,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         end
         xlabel('Ankle angle (deg)')
         ylabel('Isokinetic torque (Nm)')
-        title(plottitle)
+        title(plottitle,'Interpreter', 'none')
         %legend('øeg','location','SouthWest')
         saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
      end

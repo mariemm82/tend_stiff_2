@@ -16,6 +16,8 @@
 
 function [] = strength_analysis(input_project, input_plot)
     close all
+ 
+    
     
     
     
@@ -32,7 +34,7 @@ function [] = strength_analysis(input_project, input_plot)
     else
         plot_individual = 0;
     end
-    plot_conversion = 0;
+    plot_conversion = 1;
     plot_norm = 0;
 
 
@@ -310,7 +312,7 @@ function [] = strength_analysis(input_project, input_plot)
             % set(ax, 'xdir','reverse')
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend(isokinetic_labels)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -332,7 +334,7 @@ function [] = strength_analysis(input_project, input_plot)
 %            set(ax, 'xdir','reverse')
             xlabel('Velocity (°/s)')
             ylabel('Isokinetic peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend(isokinetic_labels(1:end),'location','SouthEast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -384,7 +386,7 @@ function [] = strength_analysis(input_project, input_plot)
             % set(ax, 'xdir','reverse')
             xlabel('Frame')
             ylabel('Ankle angle (°)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend(isometric_labels)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -406,7 +408,7 @@ function [] = strength_analysis(input_project, input_plot)
             %set(ax, 'xdir','reverse')
             xlabel('Ankle angle (°)')
             ylabel('Isometric peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             % legend(isometric_labels)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -616,6 +618,8 @@ function [] = strength_analysis(input_project, input_plot)
             end
         end
         
+        % save after each trial, in case of crash during next trial
+        save all_data_strength_inloop
     end
     %% LOOP FINISHED ==============================================
     save all_data_strength
@@ -979,7 +983,6 @@ function [] = strength_analysis(input_project, input_plot)
 
     
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % MMM TODO - work?
     
     % variables to export to file
     out_arrays_input_cols = [1 16 31 46 61]; % locations in all_strength_isokin_angles
@@ -1067,14 +1070,14 @@ function [] = strength_analysis(input_project, input_plot)
             out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count+STR_POST_count} = CON_POST_id{i};
         end
                 
+        % organize and output table with TORQUE-ANGLE data per velocity
+        % (i.e. one file for DF30, one file for PF45, etc)
+
         % preallocate output arrays
         cols_abs = length(angles_common2);
         rows = STR_PRE_count+CON_PRE_count+STR_POST_count+CON_POST_count + 1; % adding 1 extra column for holding joint angles
         out_arrays_abs(cols_abs,rows) = zeros;
-        
-        % organize and output table for each of the selected variables
-        % (i.e. one file for DF30, one file for PF45, etc)
-        % out_arrays_input_labels = {'DF30' 'PF30' 'PF45' 'PF60' 'PF90'};
+
         for var = 1:length(out_arrays_input_labels)
             
             % reset output arrays
@@ -1105,11 +1108,13 @@ function [] = strength_analysis(input_project, input_plot)
             
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_strength_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/intervention_arrays_strength_torque-angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyy-mm-dd HH-MM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table
         end
+               
+
         % end of intervention
         
     end
@@ -1142,7 +1147,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-20 15 plot_isom_torque_min plot_isom_torque_max])
             xlabel('Ankle angle (°)')
             ylabel('Isometric peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('BD', 'CON', 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1157,7 +1162,7 @@ function [] = strength_analysis(input_project, input_plot)
         
         % plot torque-velocity summary - 4 velocities
         if BD_count > 1 && CON_count > 1 && plot_check
-            plottitle = horzcat('GRP ISOKINETIC torque-velocity (all vel)');
+            plottitle = horzcat('GRP ISOKINETIC torque-velocity (all velocities)');
             figure('Name',plottitle)
             hold on
             
@@ -1171,7 +1176,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([20 130 0 150]) %VAR
             xlabel('Velocity (°/s)')
             ylabel('Isokinetic peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('BD','CON','location','NorthEast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1193,7 +1198,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([40 100 0 140]) %VAR
             xlabel('Velocity (°/s)')
             ylabel('Isokinetic peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('BD','CON','location','NorthEast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1205,7 +1210,7 @@ function [] = strength_analysis(input_project, input_plot)
         
         if BD_count > 1 && CON_count > 1 && plot_check
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 30°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 30°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             plot(angle_array, CON_angle_vars_mean(:,2),'r','LineWidth',1.5,'LineStyle','--')
@@ -1220,7 +1225,7 @@ function [] = strength_analysis(input_project, input_plot)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 45°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 45°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             plot(angle_array, BD_angle_vars_mean(:,2),'m','LineWidth',1)
@@ -1239,7 +1244,7 @@ function [] = strength_analysis(input_project, input_plot)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 60°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 60°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             plot(angle_array, BD_angle_vars_mean(:,3),'g','LineWidth',1)
@@ -1258,7 +1263,7 @@ function [] = strength_analysis(input_project, input_plot)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 90°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 90°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             plot(angle_array, BD_angle_vars_mean(:,4),'b','LineWidth',1)
@@ -1277,7 +1282,7 @@ function [] = strength_analysis(input_project, input_plot)
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 120°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 120°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             plot(angle_array, BD_angle_vars_mean(:,5),'k','LineWidth',1)
@@ -1293,7 +1298,7 @@ function [] = strength_analysis(input_project, input_plot)
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
             
             % subplots
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion');
             figure('Name',plottitle)
             
             subplot(2,2,1); % 30 deg/s
@@ -1363,7 +1368,7 @@ function [] = strength_analysis(input_project, input_plot)
         % isokinetic trials, plot per group /////////////////////////////////////////////////////////////////////////
         
         if BD_count > 1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion, dancers');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion, dancers');
             figure('Name',plottitle)
             hold on
             
@@ -1402,7 +1407,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 30 150]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'isokin PF 45' 'isokin PF 60' 'isokin PF 90' 'isokin PF 120'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -1410,7 +1415,7 @@ function [] = strength_analysis(input_project, input_plot)
         end
         
         if CON_count > 1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion, controls');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion, controls');
             figure('Name',plottitle)
             hold on
             plot(angle_array, CON_angle_vars_mean(:,2),'r','LineWidth',1.5)
@@ -1446,7 +1451,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 30 150]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'isokin PF 30' 'isokin PF 45' 'isokin PF 60' 'isokin PF 90'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -1456,7 +1461,7 @@ function [] = strength_analysis(input_project, input_plot)
         % isokinetic trials, dorsiflex /////////////////////////////////////////////////////////////////////////
         
         if CON_count > 1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, dorsiflexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, dorsiflexion');
             figure('Name',plottitle)
             hold on
             
@@ -1475,7 +1480,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 0 20]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('isokin DF 30', 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1526,7 +1531,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-20 15 plot_isom_torque_min plot_isom_torque_max])
             xlabel('Ankle angle (°)')
             ylabel('Isometric peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('STR PRE','STR POST','CON PRE','CON POST', 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1560,7 +1565,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([20 100 0 200]) %VAR
             xlabel('Velocity (°/s)')
             ylabel('Isokinetic peak torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('STR PRE','STR POST','CON PRE','CON POST', 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
             print(horzcat('data_plots/',plottitle,'.jpg'),'-dpng')
@@ -1571,7 +1576,7 @@ function [] = strength_analysis(input_project, input_plot)
         % plot torque-angle per velocity /////////////////////////////////////////////////////////////////////////
         if STR_PRE_count > 1 && CON_PRE_count > 1 && STR_POST_count > 1 && CON_POST_count > 1 && plot_check
 
-            plottitle = horzcat('GRP isokinetic torque-angle, 30°-s, dorsiflexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 30°-s, dorsiflexion');
             figure('Name',plottitle)
             hold on
             
@@ -1611,7 +1616,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 30°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 30°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             
@@ -1647,7 +1652,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             
             
-            plottitle = horzcat('GRP isokinetic torque-angle, 45°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 45°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             
@@ -1683,7 +1688,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             
 
-            plottitle = horzcat('GRP isokinetic torque-angle, 60°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 60°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             
@@ -1719,7 +1724,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             
 
-            plottitle = horzcat('GRP isokinetic torque-angle, 90°-s, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, 90°-s, plantar flexion');
             figure('Name',plottitle)
             hold on
             
@@ -1757,7 +1762,7 @@ function [] = strength_analysis(input_project, input_plot)
         
             % same as above, in SUBPLOTS  /////////////////////////////////////////////////////////////////////////
             % not including +/- SD lines here, for legibility
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion');
             figure('Name',plottitle)
             
             subplot(2,2,1); % 30 deg/s
@@ -1833,7 +1838,7 @@ function [] = strength_analysis(input_project, input_plot)
     % isokinetic trials, plot per group /////////////////////////////////////////////////////////////////////////
 
         if STR_PRE_count > 1 && STR_POST_count >1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion, STRETCHING SIDE, PRE-POST');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion, STRETCHING SIDE, PRE-POST');
             figure('Name',plottitle)
             hold on
             
@@ -1884,7 +1889,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 -Inf Inf]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'PRE isokin PF 30' 'PRE isokin PF 45' 'PRE isokin PF 60' 'PRE isokin PF 90' 'POST isokin PF 30' 'POST isokin PF 45' 'POST isokin PF 60' 'POST isokin PF 90'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -1894,7 +1899,7 @@ function [] = strength_analysis(input_project, input_plot)
         
         
         if CON_PRE_count > 1 && CON_POST_count >1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, plantar flexion, CONTROL SIDE, PRE-POST');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, plantar flexion, CONTROL SIDE, PRE-POST');
             figure('Name',plottitle)
             hold on
             
@@ -1945,7 +1950,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 -Inf Inf]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'PRE isokin PF 30' 'PRE isokin PF 45' 'PRE isokin PF 60' 'PRE isokin PF 90' 'POST isokin PF 30' 'POST isokin PF 45' 'POST isokin PF 60' 'POST isokin PF 90'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -1954,7 +1959,7 @@ function [] = strength_analysis(input_project, input_plot)
 
         
         if STR_PRE_count > 1 && STR_POST_count >1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, dorsiflexion, STRETCHING SIDE, PRE-POST');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, dorsiflexion, STRETCHING SIDE, PRE-POST');
             figure('Name',plottitle)
             hold on
             
@@ -1974,7 +1979,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 -Inf Inf]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'PRE isokin DF 30' 'POST isokin DF 30'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
@@ -1984,7 +1989,7 @@ function [] = strength_analysis(input_project, input_plot)
         
         
         if CON_PRE_count > 1 && CON_POST_count >1 && plot_check
-            plottitle = horzcat('GRP isokinetic torque-angle, dorsiflexion, CONTROL SIDE, PRE-POST');
+            plottitle = horzcat('GRP ISOKINETIC torque-angle, dorsiflexion, CONTROL SIDE, PRE-POST');
             figure('Name',plottitle)
             hold on
             
@@ -2004,7 +2009,7 @@ function [] = strength_analysis(input_project, input_plot)
             axis([-10 30 -Inf Inf]) %VAR
             xlabel('Ankle angle (°)')
             ylabel('Isokinetic torque (Nm)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             labels = {'PRE isokin DF 30' 'POST isokin DF 30'};
             legend(labels, 'Location','Northeast')
             saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))

@@ -34,7 +34,7 @@ function [] = strength_analysis(input_project, input_plot)
     else
         plot_individual = 0;
     end
-    plot_conversion = 1;
+    plot_conversion = 0;
     plot_norm = 0;
 
 
@@ -364,7 +364,7 @@ function [] = strength_analysis(input_project, input_plot)
         end
         
         % plot torque-time curves
-        if plot_individual
+        if plot_individual && plot_conversion
             plottitle = horzcat('ISOMETRIC angle checkup, ', subject_id);
             figure('Name',plottitle)
             hold on
@@ -620,6 +620,7 @@ function [] = strength_analysis(input_project, input_plot)
         
         % save after each trial, in case of crash during next trial
         save all_data_strength_inloop
+        close all
     end
     %% LOOP FINISHED ==============================================
     save all_data_strength

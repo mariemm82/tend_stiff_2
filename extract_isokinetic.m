@@ -81,10 +81,6 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     
     
-    
-    
-    
-    
     %% remove "peaks" identified at mid angles (often seen in starting phase)
     delete_peaks = [];
     delete_review = [];
@@ -142,6 +138,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     end
     val_peaks(delete_peaks) = [];
     loc_peaks(delete_peaks) = [];
+    delete_peaks = [];
     
 
     
@@ -151,7 +148,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
             if plot_peakcheck
                 plot(loc_peaks(1),val_peaks(1),'pb')
             end
-            %val_peaks(1) = [];
+            val_peaks(1) = [];
             loc_peaks(1) = [];
         end
     else % PF trial
@@ -159,7 +156,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
             if plot_peakcheck
                 plot(loc_peaks(1),val_peaks(1),'pb')
             end
-            %val_peaks(1) = [];
+            val_peaks(1) = [];
             loc_peaks(1) = [];
         end
     end
@@ -248,20 +245,37 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         end
         
     end
+
     
+    
+    %% remove double identical peaks (caused by two nearby, similar peaks resulting in same refined peak)
+    for i = 1:length(loc_peak_start)-1
+        if loc_peak_start(i) == loc_peak_start(i+1)
+            delete_peaks = [delete_peaks, i];
+        end
+    end
+	% delete array entries selected above
+    if plot_peakcheck && ~isempty(delete_peaks)
+        plot(loc_peak_start(delete_peaks),val_peaks(delete_peaks),'xk')
+    end
+    loc_peak_start(delete_peaks) = [];
+    loc_peak_end(delete_peaks) = []; % mmm todo - safe to assume both to be deleted?
+        
+    
+    
+    %% at this point, the 3 trials should be correctly identified
     % plot refined peaks
     if plot_peakcheck
         for i=1:length(loc_peak_start)
             line([loc_peak_start(i) loc_peak_start(i)], [min(-array_angle) max(-array_angle)],'Color','g','LineWidth',1.5);
         end
+        for i=1:2:length(loc_peak_start)-1
+            line([loc_peak_start(i) loc_peak_end(i+1)], [min(-array_angle) min(-array_angle)],'Color','g','LineWidth',1.5,'LineStyle','--');
+        end
         for i=1:length(loc_peak_end)
             line([loc_peak_end(i) loc_peak_end(i)], [min(-array_angle) max(-array_angle)],'Color','y');
         end
     end
-   
-    
-    
-    %% at this point, the 3 trials should be correctly identified
     
     
     
@@ -366,6 +380,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     else
         trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
         trials = {trial1};
+        % todo MMM - if zero trials...
     end
 
     

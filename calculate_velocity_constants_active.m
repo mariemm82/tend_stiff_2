@@ -247,8 +247,9 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     convert_ind_velocity_b_volt = convert_ind_velocity_b/convert_ind_velocity_a;
     
     % output velocity conversion numbers to screen, as text
-    cprintf('magenta', horzcat('NORM Velocity conversion factors: a = ', num2str(convert_ind_velocity_a), ', b = ', num2str(convert_ind_velocity_b), '. Offset in millivolt = ', num2str(convert_ind_velocity_b_volt), ' mV.\n' ));
-    
+    if plot_conversion
+        cprintf('magenta', horzcat('NORM Velocity conversion factors: a = ', num2str(convert_ind_velocity_a), ', b = ', num2str(convert_ind_velocity_b), '. Offset in millivolt = ', num2str(convert_ind_velocity_b_volt), ' mV.\n' ));
+    end
     
     
     

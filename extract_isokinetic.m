@@ -17,10 +17,10 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     global column_norm_angle column_norm_torque % column_norm_velocity % column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio  column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global filepath
-    global plot_individual
+    global plot_check
     global mat_version
     
-    plot_peakcheck = plot_individual; % plot figure showing initial IDing of peaks, and removal at each stage
+    plot_peakcheck = plot_check; % plot figure showing initial IDing of peaks, and removal at each stage
     
     
     %% Read and prepare noraxon arrays
@@ -65,7 +65,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     % plot peaks and eliminated peaks
     if plot_peakcheck
         plottitle = horzcat('Isokinetic phase check, ', subject_id, ', ', trial_name);
-        figure('Name',plottitle)
+        figure('Name',plottitle,'units','normalized','outerposition',[0 0 1 1])
         findpeaks(-array_angle,'MinPeakDistance',peakdistance) % --- will plot figure with peaks IDed
         hold on
         % right axis
@@ -87,7 +87,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     % define cutoff, what is a peak value (DF/PF) and what is "mid value"
     val_peaks_sort = sort(val_peaks,'descend');
     DF_peak = val_peaks_sort(3) - 4;
-    PF_peak =  val_peaks_sort(end-3) + 3;
+    PF_peak =  val_peaks_sort(end-2) + 3;
     % old:
 %    DF_peak = max(-array_angle) - 4; % approx +10 deg - 4 deg = +6 deg (DF, inverted)
 %    PF_peak = min(-array_angle) + 3; % approx -30 deg + 3 deg = -27 deg (PF, inverted)
@@ -162,7 +162,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     end
     
     % write report if less than 6 peaks (3 full sets) remain + there are deletions of peaks near end range
-    if length(loc_peaks) < 6 && ~isempty(delete_review) %VAR
+    if length(loc_peaks) < 6 && ~isempty(delete_review)
         cprintf('red', horzcat('WARNING: Less than 3 DF peaks remain, deletions @ ', num2str(round(delete_review,2)), '°, max DF = ', num2str(round(max(-array_angle),2)), '°. Check manually.\n'))
     end
     
@@ -254,14 +254,15 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
             delete_peaks = [delete_peaks, i];
         end
     end
-	% delete array entries selected above
-    if plot_peakcheck && ~isempty(delete_peaks)
-        plot(loc_peak_start(delete_peaks),val_peaks(delete_peaks),'xk')
+	% plot & delete array entries selected above
+    if ~isempty(delete_peaks)
+        if plot_peakcheck
+            plot(loc_peak_start(delete_peaks),val_peaks(delete_peaks),'xk')
+        end
+        cprintf('red', horzcat('WARNING: Deleted 2 identical START peaks, POST = ', num2str(loc_peak_end(delete_peaks)), ' vs ', num2str(loc_peak_end(delete_peaks+1)), '.\n'))
+        loc_peak_start(delete_peaks) = [];
+        loc_peak_end(delete_peaks) = [];
     end
-    loc_peak_start(delete_peaks) = [];
-    loc_peak_end(delete_peaks) = []; % mmm todo - safe to assume both to be deleted?
-        
-    
     
     %% at this point, the 3 trials should be correctly identified
     % plot refined peaks
@@ -331,16 +332,16 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     %% prepare for output
     
     if plot_peakcheck
-        % PLOT trials which remain for analysis
+        % PLOT horizontal green lines for trials which remain for analysis
         if strcmp(mat_version,'2015b') == 0
             yyaxis right
         end
         if strcmp(trial_name,'isokin DF 30') == 0 % PF trials
-            for i = 1:2:length(loc_peak_start)
+            for i = 1:2:length(loc_peak_end)-1
                 plot(loc_peak_start(i):loc_peak_end(i+1), array_torque(loc_peak_start(i):loc_peak_end(i+1)),'r','LineWidth',2)
             end
         else % DF trials
-            for i = 1:2:length(loc_peak_start)-1
+            for i = 1:2:length(loc_peak_end)-1
                 plot(loc_peak_start(i):loc_peak_end(i+1), array_torque(loc_peak_start(i):loc_peak_end(i+1)),'r','LineWidth',2)
             end
         end
@@ -351,7 +352,9 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         xlabel('Time (frames)')
         ylabel('Ankle angle (deg) INVERTED')
         title(plottitle,'Interpreter', 'none')
-        legend('Angle','Peaks','midval','2cons','init/TQ','location','East')
+        legend('Angle','Peaks','midval','2cons','init/TQ','location','West')
+        
+        print(horzcat('data_plots/',plottitle),'-dpng')
     end
 
     % invert torque for dorsiflexion trial
@@ -377,10 +380,12 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
         trial2 = [filtfilt(B, A, array_torque(loc_peak_start(3):loc_peak_end(4))) array_angle(loc_peak_start(3):loc_peak_end(4))];
         trials = {trial1 trial2};
-    else
+    elseif length(loc_peak_start) >= 1 && length(loc_peak_end) >= 2
         trial1 = [filtfilt(B, A, array_torque(loc_peak_start(1):loc_peak_end(2))) array_angle(loc_peak_start(1):loc_peak_end(2))];
         trials = {trial1};
-        % todo MMM - if zero trials...
+    else % if no valid trials remain...
+        cprintf('red*', horzcat('WARNING, ', trial_name, ': No remaining trials! Review peakcheck plot for errors.\n'))
+        return
     end
 
     
@@ -453,7 +458,7 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     
     %% checkpoint plot
     
-     if plot_individual
+     if plot_check
         % plotting reshaped torque instead of trials{} which is output to the main method, as a check that data which are basis for WORK calculations are correct
         plottitle = horzcat(horzcat(trial_name, ', ', subject_id));
         figure('Name',plottitle)
@@ -474,7 +479,8 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
         ylabel('Isokinetic torque (Nm)')
         title(plottitle,'Interpreter', 'none')
         %legend('labels','location','SouthWest')
-        saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+
+        print(horzcat('data_plots/',plottitle),'-dpng')
     end
     
  

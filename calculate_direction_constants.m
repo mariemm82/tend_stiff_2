@@ -116,7 +116,8 @@ function [convert_ind_direction_b_volt] = calculate_direction_constants(inputfil
 
     
     %%% output angle conversion numbers to screen, as text
-    cprintf('magenta', horzcat('Direction conversion factors: b offset in millivolt = ', num2str(convert_ind_direction_b_volt), ' mV.\n'));
-    
+    if plot_conversion
+        cprintf('magenta', horzcat('Direction conversion factors: b offset in millivolt = ', num2str(convert_ind_direction_b_volt), ' mV.\n'));
+    end
 end
 

@@ -97,10 +97,10 @@ function noraxon_resampled = read_noraxon_active(noraxonfile, finalfreq, side, t
     % filter velocity
     [B, A] = butter(4, velocity_cutoff_active, 'low');
     norm_velocity_filtered = filtfilt(B, A, norm_velocity);
-    
-    % make a rough correction for velocity offset: - MMM TODO ???
+    % 2017-10-12: Is a correction for velocity offset needed? at the moment, no calculations on velocity
     
 
+    
     
     
     

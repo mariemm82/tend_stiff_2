@@ -102,13 +102,6 @@ elseif strcmpi(type_of_test,'stiffness') == 1
     %% STIFFNESS trials
     % stiffness analyses only need ANGLE data. Using two CPM trials (from scans on SOL and CALC) for conversion.
     
-    %%% Calculate individual Norm conversion factors (y = ax + b) for ANGLE
-    % Reads raw data from Norm, filter
-    % Produces individual conversion factors for angle, prints report
-    
-    % old line from stiffness, probably obsolete, replaced by lines below as for passive trials.
-    %[convert_norm_angle_a, convert_norm_angle_b] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_calc_NX{line}));
-    
     % trial 1
     [convert_ind_angle_a1, convert_ind_angle_b1] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_calc_NX{line}), side);
     % trial 2

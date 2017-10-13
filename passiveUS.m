@@ -2,30 +2,30 @@
 % main file for analysis of passive dorsiflexion with US
 % Marie Moltubakk 4.2.2015
 % 
-% Note 1:
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
 % modified. These lines are marked % PROJECTSPECIFIC
 % 
-% 16.09.15: adapted to read datamaster including "Lichtwark" file names
-% 03.08.16: INPUT ARGUMENT: pass 0/1/2 for amount of plots (see below)
-% 13.03.17: adapted for pre-post data comparison
-%
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
+% input argument 3 = but set in beginning of function: toggle_normalization (0 = absolute, 1 = normalized)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% LATER? change tendon lengths to be based on prone length, not zero angle length? MMM TODO?
+% MMM TODO!!! change tendon lengths to be based on prone length, not zero angle length?
+% --- length, pennation and angle angle in input data = prone position
+% --- for LICHT:
+%            % version 2 - length PRONE is zero elong, zero strain
+%            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - prone_GMfas_length; %fascicle elong 
+%            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - prone_GMfas_length) / prone_GMfas_length * 100; %fascicle strain
 
 
 
-
-function [] = passiveUS(input_project, input_plot, input_norm)
+function [] = passiveUS(input_project, input_plot, input_normalize)
     close all
     
-    toggle_normalization = input_norm; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/% of total elong
+    toggle_normalization = input_normalize; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/% of total elong
 
     
     
@@ -65,14 +65,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
     noraxonfreq = 1500; % sampling frequency of noraxon data
     freq_default = 100; % output frequency for noraxon data without US video (MVC, etc)
     angle_step_plots = 0.05; % resampled, averaged data extracted every x degrees for PLOTS
-    angle_step_stats_abs = 0.5; % every 0.5 degrees
-    angle_step_stats_norm = 10;  % every 5 percent
+    angle_step_stats_abs = 0.5; % every x degrees
+    angle_step_stats_norm = 10;  % every x percent
     
 
-    % variables for NORM conversion factors calculated from actual data
+    % variables for NORM conversion factors - some from manifacturers, some from calibration trials, some calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
-    % default conversion factors from Norm manuals and Achilles calibration
     global convert_achilles norm_volt_per_degree norm_volt_per_velocity norm_volt_per_nm_a norm_volt_per_nm_b
+    % default conversion factors from Norm manuals and Achilles calibration:
     convert_achilles = -81.9909;  % conversion factor ACHILLES torque, V -> Nm
     norm_volt_per_degree = (2048*((1*16)+0)/1024)*(10000/32768); %   (Gain * (Sampled Position + Offset) / 1024) * (10v/32768) = Volt-value, Sampled Position is in units of 1/16 degree.
     norm_volt_per_velocity = (1024*((1*16)+0)/1024)*(10000/32768); %   (Gain * (Sampled Velocity + Offset) / 1024) * (10v/32768) = Volt-value. Sampled Velocity is in units of 1/16 degree.
@@ -257,25 +257,24 @@ function [] = passiveUS(input_project, input_plot, input_norm)
     
     
     %% Read max angles and forces from "create_angles_passive.m"
-    %%% To extract max angles and forces per trial/subject/common
-    %%% Produces arrays with angles and forces
+    % Extracts max angles and forces per trial/subject/common
+    % Produces arrays with angles and forces per subject/side/trial/group
 
-%    global ang_subjectno 
-%    global ang_pre_r ang_pre_l ang_post_r ang_post_l ang_ind_max ang_common_max % ang = norm ankle angle, probably not to be used
     global input_gon_pre_r input_gon_pre_l input_gon_post_r input_gon_post_l input_gon_ind_max input_gon_common_max % gon = goniometer ankle angle
-    global input_for_pre_r input_for_pre_l input_for_post_r input_for_post_l input_for_ind_max input_for_common_max input_for_ind_rmax input_for_ind_lmax
+    global input_for_pre_r input_for_pre_l input_for_post_r input_for_post_l input_for_ind_max input_for_common_max 
+    global input_for_ind_rmax input_for_ind_lmax
     dm_filename = 'angles_output.tsv';
     if exist(dm_filename, 'file') == 2
         read_angles_passive(dm_filename);
     else
-        cprintf('*red', 'ERROR: Subject angle data file does not exist. Generate by running "create_angles_passive".\n')
+        cprintf('*red', 'ERROR: Subject ANGLE data file does not exist. Generate by running "create_angles_passive".\n')
         return
     end
     dm_filename = 'forces_output.tsv';
     if exist(dm_filename, 'file') == 2
         read_forces_passive(dm_filename);
     else
-        cprintf('*red', 'ERROR: Subject force data file does not exist. Generate by running "create_angles_passive".\n')
+        cprintf('*red', 'ERROR: Subject FORCE data file does not exist. Generate by running "create_angles_passive".\n')
         return
     end
     %% Read ... from "create_angles_passive.m"
@@ -283,7 +282,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
 
 
     %% Read datamaster file, to connect corresponding data files
-    %%% Produces arrays with file names and variables per trial
+    % Produces arrays with file names and variables per trial
 
     global dm_subjectno dm_timepoint dm_side dm_trial 
     global dm_ROM_sol1_NX dm_ROM_sol1_US dm_ROM_sol1_US_frame dm_ROM_sol2_NX dm_ROM_sol2_US dm_ROM_sol2_US_frame
@@ -372,27 +371,15 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         CON_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         CON_angle_vars_norm_mean{ceil(linestotal)} = zeros;
     else % intervention study
-        CON_PRE_count = 0;
-        CON_POST_count = 0;
         STR_PRE_count = 0;
         STR_POST_count = 0;
-        CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study - rough coding
-
-        CON_PRE_no(ceil(linestotal)) = zeros;
-        CON_PRE_angle_vars{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-
-        CON_POST_no(ceil(linestotal)) = zeros;
-        CON_POST_angle_vars{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+        CON_PRE_count = 0;
+        CON_POST_count = 0;
+        
+        CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study - rough coding MMM TODO
 
         STR_PRE_no(ceil(linestotal)) = zeros;
+        STR_PRE_prone(ceil(linestotal),10) = zeros;
         STR_PRE_angle_vars{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
@@ -400,11 +387,29 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         STR_POST_no(ceil(linestotal)) = zeros;
+        STR_POST_prone(ceil(linestotal),10) = zeros;
         STR_POST_angle_vars{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+        
+        CON_PRE_no(ceil(linestotal)) = zeros;
+        CON_PRE_prone(ceil(linestotal),10) = zeros;
+        CON_PRE_angle_vars{ceil(linestotal)} = zeros;
+        CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
+        CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+        CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+        CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+        CON_POST_no(ceil(linestotal)) = zeros;
+        CON_POST_prone(ceil(linestotal),10) = zeros;
+        CON_POST_angle_vars{ceil(linestotal)} = zeros;
+        CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
+        CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+        CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+        CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
     end
     %% 
     
@@ -441,20 +446,20 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             end
         elseif input_project == 2 % intervention
             filepath = 'data\';
-            subject_id = horzcat('Intervent ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
-            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                CON_PRE_count = CON_PRE_count + 1;
-                CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
-                CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
-            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+            subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
                 STR_PRE_count = STR_PRE_count + 1;
                 STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                CON_POST_count = CON_POST_count + 1;
-                CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
                 STR_POST_count = STR_POST_count + 1;
                 STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
+            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                CON_PRE_count = CON_PRE_count + 1;
+                CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
+                CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno; % rough coding MMM TODO
+            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                CON_POST_count = CON_POST_count + 1;
+                CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
             end
         end
         cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
@@ -470,31 +475,6 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         
         
         %% calculate MVC from EMG data
-
-        % prepare column placement
-        if strcmpi(dm_side{line},'R') == 1
-            %column_tibant = column_r_tibant;
-            column_gm = column_r_gm;
-            column_gl = column_r_gl;
-            column_sol = column_r_sol;
-        else % left
-            %column_tibant = column_l_tibant;
-            column_gm = column_l_gm;
-            column_gl = column_l_gl;
-            column_sol = column_l_sol;
-        end
-
-%         % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - DORSIFLEXION
-%         % Produce a new noraxon data array
-%         noraxon_mvc_dorsi = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
-% 
-%         % Calculate co-activation constants
-%         % Read complete, prepared noraxon array + number of frames to average (freq * time)
-%         % Produce max torque, max EMG constants
-%         [~,EMG_max_TA] = calculate_EMG_max(noraxon_mvc_dorsi, freq_default*(mvc_window_ms/1000), column_tibant, 1); % 1 = invert torque for dorsiflexion
-        EMG_max_TA = 0;
-
-        
         % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - PLANTAR FLEXION
         % Produce a new noraxon data array
         noraxon_mvc_plantar = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantar');
@@ -502,9 +482,18 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         % Calculate co-activation constants
         % Read complete, prepared noraxon array + number of frames to average (freq * time)
         % Produce max torque, max EMG constants
-        [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gm, 0);
-        [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_gl, 0);
-        [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_sol, 0);
+        if strcmpi(dm_side{line},'R') == 1
+            [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gm, 0);
+            [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gl, 0);
+            [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_sol, 0);
+        else % left
+            [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gm, 0);
+            [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gl, 0);
+            [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_sol, 0);
+        end
+        
+        % no calculations for tibialis anterior for passive trials:
+        EMG_max_TA = 0;
         %%
 
 
@@ -562,9 +551,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_displ_SOL)
             ylabel(txt_displ)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('Trial 1','Trial 2','Location','Southeast')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
 
@@ -614,9 +603,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_el_GMmsc)
             ylabel(txt_displ)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('Trial 1','Trial 2','Location','Southeast')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
         
@@ -666,9 +655,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_displ_GMFAS)
             ylabel(txt_displ)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('Trial 1','Trial 2','Location','Southeast')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
                 
@@ -805,11 +794,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'--r','LineWidth',1) % fascicle elongation
                 ylabel('Elongation (mm) / Strain (%) / Pennation angle (°)')
                 xlabel(txt_gonio)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Fasc length','Faslen PRONE', 'Pennation angle', 'Penn ang PRONE', 'Fasc strain', 'Fasc elong', 'Location','West')
                 % not possible to break axis with two y-axes: "Object Copy of Axes with multiple coordinate systems is not supported."
                 % breakxaxis([-15 -5]);
-                saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+                print(horzcat('data_plots/',plottitle),'-dpng')
             end
         % LATER - Fukunaga fascicle/muscle/SEE faslen/elong/strain also for SOL fascicle scans?
         end
@@ -836,9 +825,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_force)
             ylabel('Force (N)')
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Location','Southeast')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
        
         % Plot all 6 trials separately: EMG vs angle
@@ -874,9 +863,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_EMG)
             ylabel('Muscle activation (% of MVC)')
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('Gastr.med.','Gastr.lat.','Soleus','Location','Northwest')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
         
@@ -901,9 +890,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             plot([0 0],[0 0], 'Marker','o', 'MarkerSize',10, 'MarkerFaceColor',col_grey)% zero point
             xlabel('Norm angle (°)')
             ylabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Norm/Norm','Location','Southeast')
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
         
@@ -953,8 +942,8 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         col_AT = 2;
         col_GMtend = 3;
         col_leg = 4;
-        col_GMFAS = 5; % in elongation: GMFAS displacement
-        col_GMapo = 6;
+        col_GMFAS_and_penn_ang = 5; % in elongation: GMFAS displacement
+        col_GMapo_and_faslen = 6;
         col_GMmsc = 7;
         col_SOLmsc = 8;
         col_GMmsc_Fukunaga = 9;
@@ -997,6 +986,8 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             %    5 averaged fascicle strain
             data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_length_rest*100;
             data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_length_rest*100;
+        elseif input_project == 2 && toggle_normalization == 1
+            % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
         end
         %%
         
@@ -1023,9 +1014,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_ind_len_MTU)
             ylabel(txt_length)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('Full GM MTU', 'SEE (from archi)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
             
 %             % raw elongation (mm)
 %             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
@@ -1038,17 +1029,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS_and_penn_ang),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
 %             axis(axis_ind_elong)
 %             ylabel(txt_elong)
 %             xlabel(txt_gonio)
-%             title(plottitle)
+%             title(plottitle,'Interpreter', 'none')
 %             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
-%             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+%             print(horzcat('data_plots/',plottitle),'-dpng')
 %             xlim([-0.5 inf]) 
 %             ylim([-inf inf]) 
-%             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
+%             print(horzcat('data_plots/GRP_INT ',plottitle, ' ZOOM'),'-dpng')
             
             % raw elongation (mm) - CLEANED VERSION, LICHT ONLY
             plottitle = horzcat('IND MTU elongation v2 vs angle, ', subject_id);
@@ -1061,9 +1052,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_ind_elong)
             ylabel(txt_elong)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
             
 %             % strain (percent of initial length)
 %             plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
@@ -1076,20 +1067,20 @@ function [] = passiveUS(input_project, input_plot, input_norm)
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
 %             if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
 %                 text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
 %             end
 %             axis(axis_ind_strain)
 %             ylabel(txt_strain)
 %             xlabel(txt_gonio)
-%             title(plottitle)
+%             title(plottitle,'Interpreter', 'none')
 %             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
-%             saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+%             print(horzcat('data_plots/',plottitle),'-dpng')
 %             xlim([-0.5 inf]) 
 %             ylim([-inf inf]) 
-%             saveas(gcf, horzcat('data_plots/', plottitle,' ZOOM.jpg'))
-            
+%             print(horzcat('data_plots/', plottitle,' ZOOM'),'-dpng'))
+
             % strain (percent of initial length) - CLEANED VERSION, LICHT ONLY
             plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
             figure('Name',plottitle);
@@ -1101,9 +1092,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             axis(axis_ind_strain)
             ylabel(txt_strain)
             xlabel(txt_gonio)
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
-            saveas(gcf, horzcat('data_plots/', plottitle,'.jpg'))
+            print(horzcat('data_plots/',plottitle),'-dpng')
         end
         %%
         
@@ -1236,19 +1227,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
         out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_trial_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo);
+        out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen);
         out_elong_msc_GM_trial_max = MTU_elong_array(loc_frame,col_GMmsc);
         out_elong_msc_SOL_trial_max = MTU_elong_array(loc_frame,col_SOLmsc);
         out_strain_AT_trial_max = MTU_strain_array(loc_frame,col_AT);
         out_strain_GMtend_trial_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_trial_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo);
+        out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen);
         out_strain_msc_GM_trial_max = MTU_strain_array(loc_frame,col_GMmsc);
         out_strain_msc_SOL_trial_max = MTU_strain_array(loc_frame,col_SOLmsc);
         out_length_AT_trial_max = MTU_length_array(loc_frame,col_AT);
         out_length_GMtend_trial_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_trial_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo);
+        out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo_and_faslen);
         out_length_msc_GM_trial_max = MTU_length_array(loc_frame,col_GMmsc);
         out_length_msc_SOL_trial_max = MTU_length_array(loc_frame,col_SOLmsc);
         out_contrib_GM_trial_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1263,19 +1254,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo); 
+        out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
         out_elong_msc_GM_ind_max = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_ind_max = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_ind_max = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_ind_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_ind_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo); 
+        out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
         out_strain_msc_GM_ind_max = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_ind_max = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_ind_max = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_ind_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_ind_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo); 
+        out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
         out_length_msc_GM_ind_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_ind_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_ind_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1290,19 +1281,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo); 
+        out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
         out_elong_msc_GM_common_max = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_common_max = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_common_max = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_common_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_common_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo); 
+        out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
         out_strain_msc_GM_common_max = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_common_max = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_common_max = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_common_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_common_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo); 
+        out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
         out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_common_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1344,19 +1335,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GMtend);
             out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
-            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo); 
+            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
             out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_GMmsc); 
             out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_SOLmsc); 
             out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
             out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GMtend);
             out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
-            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo); 
+            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
             out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_GMmsc); 
             out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_SOLmsc); 
             out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
             out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GMtend);
             out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
-            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo); 
+            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
             out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_GMmsc); 
             out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_SOLmsc); 
             out_contrib_GM_submax_1 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1372,19 +1363,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo); 
+        out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
         out_elong_msc_GM_submax_2 = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_submax_2 = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_submax_2 = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_submax_2 = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_submax_2 = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo); 
+        out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
         out_strain_msc_GM_submax_2 = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_submax_2 = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_submax_2 = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_submax_2 = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_submax_2 = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo); 
+        out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
         out_length_msc_GM_submax_2 = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_submax_2 = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_submax_2 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1606,19 +1597,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
         out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
         out_elong_leg_max = max(MTU_elong_array(:,col_leg));
-        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo)); 
+        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo_and_faslen)); 
         out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
         out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
         out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
         out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
         out_strain_leg_max = max(MTU_strain_array(:,col_leg));
-        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo)); 
+        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo_and_faslen)); 
         out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
         out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
         out_length_AT_max = max(MTU_length_array(:,col_AT)); 
         out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
         out_length_leg_max = max(MTU_length_array(:,col_leg));
-        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo)); 
+        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo_and_faslen)); 
         out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
         out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
         out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
@@ -1689,9 +1680,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
 %                 axis([0 max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]) 0 1.5*max(at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force))])
 %                 xlabel(txt_gonio)
 %                 ylabel('Force (N)')
-%                 title(plottitle)
+%                 title(plottitle,'Interpreter', 'none')
 %                 legend('Raw data', 'Fit 4th order','Fit 3rd order','Fit 2nd order','Location','Northwest')
-%                 saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+%                 print(horzcat('data_plots/',plottitle),'-dpng')
 
                 
         
@@ -1706,8 +1697,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         
         
         %%% AT STIFFNESS - possible?
-        % LATER
-        % stiffness = delta force / delta length for AT? check literature
+        % LATER - stiffness = delta force / delta length for AT? check literature
         %%
         
         
@@ -2061,76 +2051,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             end
          %%
         else % project == 2 == intervention
-         %% intervention study
-            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                %% PRE CON
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                CON_PRE_angle_vars{CON_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
-                % spline
-                CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
-                    CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
-                end
-                %% END PRE CON
-            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                %% PRE STR
+         %% intervention study =================================================================================================================
+            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                %% STR PRE
                 % all data in ONE cell, common angles, RAW data:
                 STR_PRE_angle_vars{STR_PRE_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
@@ -2195,76 +2118,10 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
                     STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
                 end
-                %% END PRE STR
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                %% POST CON
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                CON_POST_angle_vars{CON_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
+                %% END STR PRE
                 
-                % tweak for NaN EMG data - replace  with 1000
-                CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
-                % spline
-                CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
-                    CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
-                end
-                %% END POST CON
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                %% POST STR
+                %% STR POST
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 STR_POST_angle_vars{STR_POST_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
@@ -2330,7 +2187,145 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                     STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
                 end
 
-                %% END POST STR
+                %% END STR POST
+                
+            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                %% CON PRE
+                % all data in ONE cell, up to each subject's max angle, RAW data:
+                CON_PRE_angle_vars{CON_PRE_count} = [ ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    MTU_elong_array(:,2) ...                                        6
+                    MTU_elong_array(:,3) ...                                        7
+                    MTU_elong_array(:,4) ...                                        8
+                    MTU_elong_array(:,5) ...                                        9
+                    MTU_elong_array(:,6) ...                                        10
+                    MTU_elong_array(:,7) ...                                        11
+                    MTU_length_array(:,2) ...                                       12
+                    MTU_length_array(:,3) ...                                       13
+                    MTU_length_array(:,4) ...                                       14
+                    MTU_length_array(:,5) ...                                       15
+                    MTU_length_array(:,6) ...                                       16
+                    MTU_length_array(:,7) ...                                       17
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    MTU_elong_array(:,8) ...                                        19
+                    MTU_length_array(:,8) ...                                       20
+                    MTU_strain_array(:,2) ...                                       21
+                    MTU_strain_array(:,3) ...                                       22
+                    MTU_strain_array(:,4) ...                                       23
+                    MTU_strain_array(:,5) ...                                       24
+                    MTU_strain_array(:,6) ...                                       25
+                    MTU_strain_array(:,7) ...                                       26
+                    MTU_strain_array(:,8) ...                                       27
+                    MTU_elong_array(:,9) ...                                        28
+                    MTU_elong_array(:,10) ...                                       29
+                    MTU_strain_array(:,9) ...                                       30
+                    MTU_strain_array(:,10) ...                                      31
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                    MTU_length_array(:,9) ...                                        36
+                    MTU_length_array(:,10) ...                                       37
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    ];
+
+                % all data in ONE cell, NORMALIZED data:
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
+                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+                % MMM TODO - consider types of normalization for intervention study
+
+                % resample for plots
+
+                % tweak for NaN EMG data - replace  with 1000
+                CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
+                % spline
+                CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
+                    CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
+                end
+                %% END CON PRE
+
+            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                %% CON POST
+                % all data in ONE cell, up to each subject's max angle, RAW data:
+                CON_POST_angle_vars{CON_POST_count} = [ ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    MTU_elong_array(:,2) ...                                        6
+                    MTU_elong_array(:,3) ...                                        7
+                    MTU_elong_array(:,4) ...                                        8
+                    MTU_elong_array(:,5) ...                                        9
+                    MTU_elong_array(:,6) ...                                        10
+                    MTU_elong_array(:,7) ...                                        11
+                    MTU_length_array(:,2) ...                                       12
+                    MTU_length_array(:,3) ...                                       13
+                    MTU_length_array(:,4) ...                                       14
+                    MTU_length_array(:,5) ...                                       15
+                    MTU_length_array(:,6) ...                                       16
+                    MTU_length_array(:,7) ...                                       17
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    MTU_elong_array(:,8) ...                                        19
+                    MTU_length_array(:,8) ...                                       20
+                    MTU_strain_array(:,2) ...                                       21
+                    MTU_strain_array(:,3) ...                                       22
+                    MTU_strain_array(:,4) ...                                       23
+                    MTU_strain_array(:,5) ...                                       24
+                    MTU_strain_array(:,6) ...                                       25
+                    MTU_strain_array(:,7) ...                                       26
+                    MTU_strain_array(:,8) ...                                       27
+                    MTU_elong_array(:,9) ...                                        28
+                    MTU_elong_array(:,10) ...                                       29
+                    MTU_strain_array(:,9) ...                                       30
+                    MTU_strain_array(:,10) ...                                      31
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                    MTU_length_array(:,9) ...                                        36
+                    MTU_length_array(:,10) ...                                       37
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    ];
+
+                % all data in ONE cell, NORMALIZED data:
+                CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
+                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                % resample for plots
+                
+                % tweak for NaN EMG data - replace  with 1000
+                CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
+                % spline
+                CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
+                    CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
+                end
+                %% END CON POST
+
             end
          %% 
         end
@@ -2353,23 +2348,19 @@ function [] = passiveUS(input_project, input_plot, input_norm)
          %%
         else % project == 2 == intervention
          %% intervention study
-         % LATER
-            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                %% PRE CON
-                %% END PRE CON
-            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                %% PRE STR
-                %% END PRE STR
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                %% POST CON
-                %% END POST CON
+            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                STR_PRE_prone(STR_PRE_count,:) = MTU_prone_vars;
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                %% POST STR
-                %% END POST STR
+                STR_POST_prone(STR_POST_count,:) = MTU_prone_vars;
+            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                CON_PRE_prone(CON_PRE_count,:) = MTU_prone_vars;
+            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                CON_POST_prone(CON_POST_count,:) = MTU_prone_vars;
             end
          %% 
         end
         %%
+        
         
         
         %% prepare arrays for individual trial data to file
@@ -2426,11 +2417,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             ];
         
         
-        % TMP output fascicle data
+        % TEMP output fascicle data
 %        all_GMfas_output(line,:) = [trial_GMfas_length MTU_length_array(1,col_GMmsc_Fukunaga) max(MTU_length_array(:,col_GMmsc_Fukunaga)) out_ROM_trial_max];
         %%
 
-        
+        save all_data_passive_inloop
         
     end
     %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2447,14 +2438,18 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         CON_angle_vars_norm(CON_count+1:end) = [];
         CON_prone(CON_count+1:end,:) = [];
     else % intervention study
-        CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
-        CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
-        CON_POST_angle_vars(CON_POST_count+1:end) = [];
-        CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
         STR_PRE_angle_vars(STR_PRE_count+1:end) = [];
         STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
+        STR_PRE_prone(STR_PRE_count+1:end,:) = [];
         STR_POST_angle_vars(STR_POST_count+1:end) = [];
         STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
+        STR_POST_prone(STR_POST_count+1:end,:) = [];
+        CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
+        CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
+        CON_PRE_prone(CON_PRE_count+1:end,:) = [];
+        CON_POST_angle_vars(CON_POST_count+1:end) = [];
+        CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
+        CON_POST_prone(CON_POST_count+1:end,:) = [];
     end
     %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -2481,7 +2476,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         csvwrite(filename_output, all_passive_output)
     end
     
-    % TMP output fascicle data
+    % TEMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2717,7 +2712,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             out_arrays_abs_diff(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
             out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
             
-            % pre and post values
+            % add values: pre and post
             
             % add STR PRE first
             for subj = 1:STR_PRE_count
@@ -2751,7 +2746,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
-            % diff values
+            % ad values: difference between PRE-POST
             
             % add STR first
             for subj = 1:STR_PRE_count
@@ -2801,7 +2796,6 @@ function [] = passiveUS(input_project, input_plot, input_norm)
     if input_project == 1 && toggle_normalization == 1
 
         %%% adjust relevant axes:
-        % TODO MMM
         axis_el_GMFAS = [-1 35 0 5];
         axis_len_GMFAS = [-1 35 0 22];
         
@@ -2812,13 +2806,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         axis_len_SEE_arch = [-1 35 0 Inf];
         
         axis_el_MTU = [-1 35 0 20];
-        % axis_len_MTU TODO MMM
         
         % strain - not affected by normalization
         
         txt_elong = 'Elongation (% of resting MTU length/elong)';
         txt_length = 'Length (% of resting MTU length)';
-
+        
+    elseif input_project == 2 && toggle_normalization == 1
+        % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
     end
     %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -2836,6 +2831,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
         CON_prone_mean = mean(CON_prone);
         
         n_o_array_elements = length(CON_angle_vars{1,1}(1,:));
+        
         if BD_count > 0
             % preallocate array
             BD_max(BD_count,n_o_array_elements) = zeros;
@@ -3037,106 +3033,15 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             
     elseif input_project == 2
         %% intervention study
+        
+        % prone variables
+        STR_PRE_prone_mean = mean(STR_PRE_prone);
+        STR_POST_prone_mean = mean(STR_POST_prone);
+        CON_PRE_prone_mean = mean(CON_PRE_prone);
+        CON_POST_prone_mean = mean(CON_POST_prone);
+        
         n_o_array_elements = max( [length(CON_PRE_angle_vars{1,1}(1,:)) length(STR_PRE_angle_vars{1,1}(1,:)) length(CON_POST_angle_vars{1,1}(1,:)) length(STR_POST_angle_vars{1,1}(1,:))] );
-        % CON PRE
-        if CON_PRE_count > 0
-            % preallocate array
-            CON_PRE_max(CON_PRE_count,n_o_array_elements) = zeros;
-   %         CON_PRE_max_norm(CON_PRE_count,n_o_array_elements) = zeros;
-            % collect variables per subject
-            for i = 1:CON_PRE_count % per subject
-                for j = 1:n_o_array_elements % per element in arrays
-                    % OLD: Max values
-    %                CON_PRE_max(i,j) = max(CON_PRE_angle_vars{1,i}(:,j));
-    %                CON_PRE_max_norm(i,j) = max(CON_PRE_angle_vars_norm{1,i}(:,j));
-                    % NEW: end of array values
-                    CON_PRE_max(i,j) = max(CON_PRE_angle_vars{1,i}(end,j));
-    %                CON_PRE_max_norm(i,j) = max(CON_PRE_angle_vars_norm{1,i}(end,j));
-                end
-            end
-            % calculate mean and SD of max values across subjects
-            CON_PRE_ROM_mean = mean(CON_PRE_max(:,1));
-            CON_PRE_ROM_SD = std(CON_PRE_max(:,1));
-            CON_PRE_F_mean = mean(CON_PRE_max(:,2));
-            CON_PRE_F_SD = std(CON_PRE_max(:,2));
-            CON_PRE_EMG_gm_mean = nanmean(CON_PRE_max(:,3));
-            CON_PRE_EMG_gm_SD = nanstd(CON_PRE_max(:,3));
-            CON_PRE_EMG_gl_mean = nanmean(CON_PRE_max(:,4));
-            CON_PRE_EMG_gl_SD = nanstd(CON_PRE_max(:,4));
-            CON_PRE_EMG_sol_mean = nanmean(CON_PRE_max(:,5));
-            CON_PRE_EMG_sol_SD = nanstd(CON_PRE_max(:,5));
 
-            CON_PRE_elong_AT_mean = mean(CON_PRE_max(:,6)); % elong AT
-            CON_PRE_elong_AT_SD = std(CON_PRE_max(:,6));
-            CON_PRE_elong_GMtend_mean = mean(CON_PRE_max(:,7)); % elong GM tend
-            CON_PRE_elong_GMtend_SD = std(CON_PRE_max(:,7));
-            CON_PRE_elong_MTU_mean = mean(CON_PRE_max(:,8)); % elong leg
-            CON_PRE_elong_MTU_SD = std(CON_PRE_max(:,8));
-            CON_PRE_displ_GMFAS_mean = mean(CON_PRE_max(:,9));  % GMFAS displ 
-            CON_PRE_displ_GMFAS_SD = std(CON_PRE_max(:,9));
-            CON_PRE_elong_GMapo_mean = mean(CON_PRE_max(:,10)); 
-            CON_PRE_elong_GMapo_SD = std(CON_PRE_max(:,10));
-            CON_PRE_elong_msc_GM_mean = mean(CON_PRE_max(:,11)); % GM msc
-            CON_PRE_elong_msc_GM_SD = std(CON_PRE_max(:,11));
-            CON_PRE_elong_msc_SOL_mean = mean(CON_PRE_max(:,19)); 
-            CON_PRE_elong_msc_SOL_SD = std(CON_PRE_max(:,19));
-
-            CON_PRE_L_at_SOL_mean = mean(CON_PRE_max(:,12)); % L AT
-            CON_PRE_L_at_SOL_SD = std(CON_PRE_max(:,12));
-            CON_PRE_L_at_GM_mean = mean(CON_PRE_max(:,13)); % L GM tend
-            CON_PRE_L_at_GM_SD = std(CON_PRE_max(:,13));
-            CON_PRE_L_MTU_mean = mean(CON_PRE_max(:,14)); % L leg
-            CON_PRE_L_MTU_SD = std(CON_PRE_max(:,14));
-            % no L GMFAS
-            CON_PRE_L_GMapo_mean = mean(CON_PRE_max(:,16)); 
-            CON_PRE_L_GMapo_SD = std(CON_PRE_max(:,16));
-            CON_PRE_L_msc_GM_mean = mean(CON_PRE_max(:,17)); 
-            CON_PRE_L_msc_GM_SD = std(CON_PRE_max(:,17));
-            CON_PRE_L_msc_SOL_mean = mean(CON_PRE_max(:,20)); 
-            CON_PRE_L_msc_SOL_SD = std(CON_PRE_max(:,20));
-
-            CON_PRE_strain_at_SOL_mean = mean(CON_PRE_max(:,21)); % L AT
-            CON_PRE_strain_at_SOL_SD = std(CON_PRE_max(:,21));
-            CON_PRE_strain_at_GM_mean = mean(CON_PRE_max(:,22)); % L GM tend
-            CON_PRE_strain_at_GM_SD = std(CON_PRE_max(:,22));
-            CON_PRE_strain_MTU_mean = mean(CON_PRE_max(:,23)); % L calf
-            CON_PRE_strain_MTU_SD = std(CON_PRE_max(:,23));
-            % no strain GMfas
-            CON_PRE_strain_GMapo_mean = mean(CON_PRE_max(:,25)); 
-            CON_PRE_strain_GMapo_SD = std(CON_PRE_max(:,25));
-            CON_PRE_strain_msc_GM_mean = mean(CON_PRE_max(:,26)); 
-            CON_PRE_strain_msc_GM_SD = std(CON_PRE_max(:,26));
-            CON_PRE_strain_msc_SOL_mean = mean(CON_PRE_max(:,27)); 
-            CON_PRE_strain_msc_SOL_SD = std(CON_PRE_max(:,27));
-            
-            CON_PRE_elong_msc_GM_licht_mean = mean(CON_PRE_max(:,28)); 
-            CON_PRE_elong_msc_GM_licht_SD = std(CON_PRE_max(:,28));
-            CON_PRE_elong_tend_GM_licht_mean = mean(CON_PRE_max(:,29)); 
-            CON_PRE_elong_tend_GM_licht_SD = std(CON_PRE_max(:,29));
-            CON_PRE_strain_msc_GM_licht_mean = mean(CON_PRE_max(:,30)); 
-            CON_PRE_strain_msc_GM_licht_SD = std(CON_PRE_max(:,30));
-            CON_PRE_strain_tend_GM_licht_mean = mean(CON_PRE_max(:,31)); 
-            CON_PRE_strain_tend_GM_licht_SD = std(CON_PRE_max(:,31));
-
-            CON_PRE_length_GMfas_licht_mean = mean(CON_PRE_max(:,32)); 
-            CON_PRE_length_GMfas_licht_SD = std(CON_PRE_max(:,32)); 
-            CON_PRE_pennation_GMfas_licht_mean = mean(CON_PRE_max(:,33)); 
-            CON_PRE_pennation_GMfas_licht_SD = std(CON_PRE_max(:,33)); 
-            CON_PRE_elong_GMfas_licht_mean = mean(CON_PRE_max(:,34)); 
-            CON_PRE_elong_GMfas_licht_SD = std(CON_PRE_max(:,34)); 
-            CON_PRE_strain_GMfas_licht_mean = mean(CON_PRE_max(:,35)); 
-            CON_PRE_strain_GMfas_licht_SD = std(CON_PRE_max(:,35)); 
-            
-            CON_PRE_length_msc_GM_licht_mean = mean(CON_PRE_max(:,36)); 
-            CON_PRE_length_msc_GM_licht_SD = std(CON_PRE_max(:,36));
-            CON_PRE_length_tend_GM_licht_mean = mean(CON_PRE_max(:,37)); 
-            CON_PRE_length_tend_GM_licht_SD = std(CON_PRE_max(:,37));
-
-            CON_PRE_torque_mean = mean(CON_PRE_max(:,18));
-            CON_PRE_torque_SD = std(CON_PRE_max(:,18));
-            % determine common angle range
-            CON_PRE_common_ROM = min(CON_PRE_max(:,1));
-        end
         % STR PRE
         if STR_PRE_count > 0
             % preallocate array
@@ -3236,105 +3141,7 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             % determine common angle range
             STR_PRE_common_ROM = min(STR_PRE_max(:,1));
         end
-        % CON POST
-        if CON_POST_count > 0
-            % preallocate array
-            CON_POST_max(CON_POST_count,n_o_array_elements) = zeros;
-      %      CON_POST_max_norm(CON_POST_count,n_o_array_elements) = zeros;
-            % collect variables per subject
-            for i = 1:CON_POST_count % per subject
-                for j = 1:n_o_array_elements % per element in arrays
-                    % OLD: Max values
-    %                CON_POST_max(i,j) = max(CON_POST_angle_vars{1,i}(:,j));
-    %                CON_POST_max_norm(i,j) = max(CON_POST_angle_vars_norm{1,i}(:,j));
-                    % NEW: end of array values
-                    CON_POST_max(i,j) = max(CON_POST_angle_vars{1,i}(end,j));
-    %                CON_POST_max_norm(i,j) = max(CON_POST_angle_vars_norm{1,i}(end,j));
-                end
-            end
-            % calculate mean and SD of max values across subjects
-            CON_POST_ROM_mean = mean(CON_POST_max(:,1));
-            CON_POST_ROM_SD = std(CON_POST_max(:,1));
-            CON_POST_F_mean = mean(CON_POST_max(:,2));
-            CON_POST_F_SD = std(CON_POST_max(:,2));
-            CON_POST_EMG_gm_mean = nanmean(CON_POST_max(:,3));
-            CON_POST_EMG_gm_SD = nanstd(CON_POST_max(:,3));
-            CON_POST_EMG_gl_mean = nanmean(CON_POST_max(:,4));
-            CON_POST_EMG_gl_SD = nanstd(CON_POST_max(:,4));
-            CON_POST_EMG_sol_mean = nanmean(CON_POST_max(:,5));
-            CON_POST_EMG_sol_SD = nanstd(CON_POST_max(:,5));
-
-            CON_POST_elong_AT_mean = mean(CON_POST_max(:,6)); % elong AT
-            CON_POST_elong_AT_SD = std(CON_POST_max(:,6));
-            CON_POST_elong_GMtend_mean = mean(CON_POST_max(:,7)); % elong GM tend
-            CON_POST_elong_GMtend_SD = std(CON_POST_max(:,7));
-            CON_POST_elong_MTU_mean = mean(CON_POST_max(:,8)); % elong leg
-            CON_POST_elong_MTU_SD = std(CON_POST_max(:,8));
-            CON_POST_displ_GMFAS_mean = mean(CON_POST_max(:,9));  % GMFAS displ 
-            CON_POST_displ_GMFAS_SD = std(CON_POST_max(:,9));
-            CON_POST_elong_GMapo_mean = mean(CON_POST_max(:,10)); 
-            CON_POST_elong_GMapo_SD = std(CON_POST_max(:,10));
-            CON_POST_elong_msc_GM_mean = mean(CON_POST_max(:,11)); % GM msc
-            CON_POST_elong_msc_GM_SD = std(CON_POST_max(:,11));
-            CON_POST_elong_msc_SOL_mean = mean(CON_POST_max(:,19)); 
-            CON_POST_elong_msc_SOL_SD = std(CON_POST_max(:,19));
-
-            CON_POST_L_at_SOL_mean = mean(CON_POST_max(:,12)); % L AT
-            CON_POST_L_at_SOL_SD = std(CON_POST_max(:,12));
-            CON_POST_L_at_GM_mean = mean(CON_POST_max(:,13)); % L GM tend
-            CON_POST_L_at_GM_SD = std(CON_POST_max(:,13));
-            CON_POST_L_MTU_mean = mean(CON_POST_max(:,14)); % L leg
-            CON_POST_L_MTU_SD = std(CON_POST_max(:,14));
-            % no L GMFAS
-            CON_POST_L_GMapo_mean = mean(CON_POST_max(:,16)); 
-            CON_POST_L_GMapo_SD = std(CON_POST_max(:,16));
-            CON_POST_L_msc_GM_mean = mean(CON_POST_max(:,17)); 
-            CON_POST_L_msc_GM_SD = std(CON_POST_max(:,17));
-            CON_POST_L_msc_SOL_mean = mean(CON_POST_max(:,20)); 
-            CON_POST_L_msc_SOL_SD = std(CON_POST_max(:,20));
-
-            CON_POST_strain_at_SOL_mean = mean(CON_POST_max(:,21)); % L AT
-            CON_POST_strain_at_SOL_SD = std(CON_POST_max(:,21));
-            CON_POST_strain_at_GM_mean = mean(CON_POST_max(:,22)); % L GM tend
-            CON_POST_strain_at_GM_SD = std(CON_POST_max(:,22));
-            CON_POST_strain_MTU_mean = mean(CON_POST_max(:,23)); % L calf
-            CON_POST_strain_MTU_SD = std(CON_POST_max(:,23));
-            % no strain GMfas
-            CON_POST_strain_GMapo_mean = mean(CON_POST_max(:,25)); 
-            CON_POST_strain_GMapo_SD = std(CON_POST_max(:,25));
-            CON_POST_strain_msc_GM_mean = mean(CON_POST_max(:,26)); 
-            CON_POST_strain_msc_GM_SD = std(CON_POST_max(:,26));
-            CON_POST_strain_msc_SOL_mean = mean(CON_POST_max(:,27)); 
-            CON_POST_strain_msc_SOL_SD = std(CON_POST_max(:,27));
-
-            CON_POST_elong_msc_GM_licht_mean = mean(CON_POST_max(:,28)); 
-            CON_POST_elong_msc_GM_licht_SD = std(CON_POST_max(:,28));
-            CON_POST_elong_tend_GM_licht_mean = mean(CON_POST_max(:,29)); 
-            CON_POST_elong_tend_GM_licht_SD = std(CON_POST_max(:,29));
-            CON_POST_strain_msc_GM_licht_mean = mean(CON_POST_max(:,30)); 
-            CON_POST_strain_msc_GM_licht_SD = std(CON_POST_max(:,30));
-            CON_POST_strain_tend_GM_licht_mean = mean(CON_POST_max(:,31)); 
-            CON_POST_strain_tend_GM_licht_SD = std(CON_POST_max(:,31));
-            
-            CON_POST_length_GMfas_licht_mean = mean(CON_POST_max(:,32)); 
-            CON_POST_length_GMfas_licht_SD = std(CON_POST_max(:,32)); 
-            CON_POST_pennation_GMfas_licht_mean = mean(CON_POST_max(:,33)); 
-            CON_POST_pennation_GMfas_licht_SD = std(CON_POST_max(:,33)); 
-            CON_POST_elong_GMfas_licht_mean = mean(CON_POST_max(:,34)); 
-            CON_POST_elong_GMfas_licht_SD = std(CON_POST_max(:,34)); 
-            CON_POST_strain_GMfas_licht_mean = mean(CON_POST_max(:,35)); 
-            CON_POST_strain_GMfas_licht_SD = std(CON_POST_max(:,35)); 
-
-            CON_POST_length_msc_GM_licht_mean = mean(CON_POST_max(:,36)); 
-            CON_POST_length_msc_GM_licht_SD = std(CON_POST_max(:,36));
-            CON_POST_length_tend_GM_licht_mean = mean(CON_POST_max(:,37)); 
-            CON_POST_length_tend_GM_licht_SD = std(CON_POST_max(:,37));
-
-            CON_POST_torque_mean = mean(CON_POST_max(:,18));
-            CON_POST_torque_SD = std(CON_POST_max(:,18));
-            % determine common angle range
-            CON_POST_common_ROM = min(CON_POST_max(:,1));
-        end
+        
         % STR POST
         if STR_POST_count > 0
             % preallocate array
@@ -3434,6 +3241,207 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             % determine common angle range
             STR_POST_common_ROM = min(STR_POST_max(:,1));
         end
+        
+        % CON PRE
+        if CON_PRE_count > 0
+            % preallocate array
+            CON_PRE_max(CON_PRE_count,n_o_array_elements) = zeros;
+   %         CON_PRE_max_norm(CON_PRE_count,n_o_array_elements) = zeros;
+            % collect variables per subject
+            for i = 1:CON_PRE_count % per subject
+                for j = 1:n_o_array_elements % per element in arrays
+                    % OLD: Max values
+    %                CON_PRE_max(i,j) = max(CON_PRE_angle_vars{1,i}(:,j));
+    %                CON_PRE_max_norm(i,j) = max(CON_PRE_angle_vars_norm{1,i}(:,j));
+                    % NEW: end of array values
+                    CON_PRE_max(i,j) = max(CON_PRE_angle_vars{1,i}(end,j));
+    %                CON_PRE_max_norm(i,j) = max(CON_PRE_angle_vars_norm{1,i}(end,j));
+                end
+            end
+            % calculate mean and SD of max values across subjects
+            CON_PRE_ROM_mean = mean(CON_PRE_max(:,1));
+            CON_PRE_ROM_SD = std(CON_PRE_max(:,1));
+            CON_PRE_F_mean = mean(CON_PRE_max(:,2));
+            CON_PRE_F_SD = std(CON_PRE_max(:,2));
+            CON_PRE_EMG_gm_mean = nanmean(CON_PRE_max(:,3));
+            CON_PRE_EMG_gm_SD = nanstd(CON_PRE_max(:,3));
+            CON_PRE_EMG_gl_mean = nanmean(CON_PRE_max(:,4));
+            CON_PRE_EMG_gl_SD = nanstd(CON_PRE_max(:,4));
+            CON_PRE_EMG_sol_mean = nanmean(CON_PRE_max(:,5));
+            CON_PRE_EMG_sol_SD = nanstd(CON_PRE_max(:,5));
+
+            CON_PRE_elong_AT_mean = mean(CON_PRE_max(:,6)); % elong AT
+            CON_PRE_elong_AT_SD = std(CON_PRE_max(:,6));
+            CON_PRE_elong_GMtend_mean = mean(CON_PRE_max(:,7)); % elong GM tend
+            CON_PRE_elong_GMtend_SD = std(CON_PRE_max(:,7));
+            CON_PRE_elong_MTU_mean = mean(CON_PRE_max(:,8)); % elong leg
+            CON_PRE_elong_MTU_SD = std(CON_PRE_max(:,8));
+            CON_PRE_displ_GMFAS_mean = mean(CON_PRE_max(:,9));  % GMFAS displ 
+            CON_PRE_displ_GMFAS_SD = std(CON_PRE_max(:,9));
+            CON_PRE_elong_GMapo_mean = mean(CON_PRE_max(:,10)); 
+            CON_PRE_elong_GMapo_SD = std(CON_PRE_max(:,10));
+            CON_PRE_elong_msc_GM_mean = mean(CON_PRE_max(:,11)); % GM msc
+            CON_PRE_elong_msc_GM_SD = std(CON_PRE_max(:,11));
+            CON_PRE_elong_msc_SOL_mean = mean(CON_PRE_max(:,19)); 
+            CON_PRE_elong_msc_SOL_SD = std(CON_PRE_max(:,19));
+
+            CON_PRE_L_at_SOL_mean = mean(CON_PRE_max(:,12)); % L AT
+            CON_PRE_L_at_SOL_SD = std(CON_PRE_max(:,12));
+            CON_PRE_L_at_GM_mean = mean(CON_PRE_max(:,13)); % L GM tend
+            CON_PRE_L_at_GM_SD = std(CON_PRE_max(:,13));
+            CON_PRE_L_MTU_mean = mean(CON_PRE_max(:,14)); % L leg
+            CON_PRE_L_MTU_SD = std(CON_PRE_max(:,14));
+            % no L GMFAS
+            CON_PRE_L_GMapo_mean = mean(CON_PRE_max(:,16)); 
+            CON_PRE_L_GMapo_SD = std(CON_PRE_max(:,16));
+            CON_PRE_L_msc_GM_mean = mean(CON_PRE_max(:,17)); 
+            CON_PRE_L_msc_GM_SD = std(CON_PRE_max(:,17));
+            CON_PRE_L_msc_SOL_mean = mean(CON_PRE_max(:,20)); 
+            CON_PRE_L_msc_SOL_SD = std(CON_PRE_max(:,20));
+
+            CON_PRE_strain_at_SOL_mean = mean(CON_PRE_max(:,21)); % L AT
+            CON_PRE_strain_at_SOL_SD = std(CON_PRE_max(:,21));
+            CON_PRE_strain_at_GM_mean = mean(CON_PRE_max(:,22)); % L GM tend
+            CON_PRE_strain_at_GM_SD = std(CON_PRE_max(:,22));
+            CON_PRE_strain_MTU_mean = mean(CON_PRE_max(:,23)); % L calf
+            CON_PRE_strain_MTU_SD = std(CON_PRE_max(:,23));
+            % no strain GMfas
+            CON_PRE_strain_GMapo_mean = mean(CON_PRE_max(:,25)); 
+            CON_PRE_strain_GMapo_SD = std(CON_PRE_max(:,25));
+            CON_PRE_strain_msc_GM_mean = mean(CON_PRE_max(:,26)); 
+            CON_PRE_strain_msc_GM_SD = std(CON_PRE_max(:,26));
+            CON_PRE_strain_msc_SOL_mean = mean(CON_PRE_max(:,27)); 
+            CON_PRE_strain_msc_SOL_SD = std(CON_PRE_max(:,27));
+            
+            CON_PRE_elong_msc_GM_licht_mean = mean(CON_PRE_max(:,28)); 
+            CON_PRE_elong_msc_GM_licht_SD = std(CON_PRE_max(:,28));
+            CON_PRE_elong_tend_GM_licht_mean = mean(CON_PRE_max(:,29)); 
+            CON_PRE_elong_tend_GM_licht_SD = std(CON_PRE_max(:,29));
+            CON_PRE_strain_msc_GM_licht_mean = mean(CON_PRE_max(:,30)); 
+            CON_PRE_strain_msc_GM_licht_SD = std(CON_PRE_max(:,30));
+            CON_PRE_strain_tend_GM_licht_mean = mean(CON_PRE_max(:,31)); 
+            CON_PRE_strain_tend_GM_licht_SD = std(CON_PRE_max(:,31));
+
+            CON_PRE_length_GMfas_licht_mean = mean(CON_PRE_max(:,32)); 
+            CON_PRE_length_GMfas_licht_SD = std(CON_PRE_max(:,32)); 
+            CON_PRE_pennation_GMfas_licht_mean = mean(CON_PRE_max(:,33)); 
+            CON_PRE_pennation_GMfas_licht_SD = std(CON_PRE_max(:,33)); 
+            CON_PRE_elong_GMfas_licht_mean = mean(CON_PRE_max(:,34)); 
+            CON_PRE_elong_GMfas_licht_SD = std(CON_PRE_max(:,34)); 
+            CON_PRE_strain_GMfas_licht_mean = mean(CON_PRE_max(:,35)); 
+            CON_PRE_strain_GMfas_licht_SD = std(CON_PRE_max(:,35)); 
+            
+            CON_PRE_length_msc_GM_licht_mean = mean(CON_PRE_max(:,36)); 
+            CON_PRE_length_msc_GM_licht_SD = std(CON_PRE_max(:,36));
+            CON_PRE_length_tend_GM_licht_mean = mean(CON_PRE_max(:,37)); 
+            CON_PRE_length_tend_GM_licht_SD = std(CON_PRE_max(:,37));
+
+            CON_PRE_torque_mean = mean(CON_PRE_max(:,18));
+            CON_PRE_torque_SD = std(CON_PRE_max(:,18));
+            % determine common angle range
+            CON_PRE_common_ROM = min(CON_PRE_max(:,1));
+        end
+
+        % CON POST
+        if CON_POST_count > 0
+            % preallocate array
+            CON_POST_max(CON_POST_count,n_o_array_elements) = zeros;
+      %      CON_POST_max_norm(CON_POST_count,n_o_array_elements) = zeros;
+            % collect variables per subject
+            for i = 1:CON_POST_count % per subject
+                for j = 1:n_o_array_elements % per element in arrays
+                    % OLD: Max values
+    %                CON_POST_max(i,j) = max(CON_POST_angle_vars{1,i}(:,j));
+    %                CON_POST_max_norm(i,j) = max(CON_POST_angle_vars_norm{1,i}(:,j));
+                    % NEW: end of array values
+                    CON_POST_max(i,j) = max(CON_POST_angle_vars{1,i}(end,j));
+    %                CON_POST_max_norm(i,j) = max(CON_POST_angle_vars_norm{1,i}(end,j));
+                end
+            end
+            % calculate mean and SD of max values across subjects
+            CON_POST_ROM_mean = mean(CON_POST_max(:,1));
+            CON_POST_ROM_SD = std(CON_POST_max(:,1));
+            CON_POST_F_mean = mean(CON_POST_max(:,2));
+            CON_POST_F_SD = std(CON_POST_max(:,2));
+            CON_POST_EMG_gm_mean = nanmean(CON_POST_max(:,3));
+            CON_POST_EMG_gm_SD = nanstd(CON_POST_max(:,3));
+            CON_POST_EMG_gl_mean = nanmean(CON_POST_max(:,4));
+            CON_POST_EMG_gl_SD = nanstd(CON_POST_max(:,4));
+            CON_POST_EMG_sol_mean = nanmean(CON_POST_max(:,5));
+            CON_POST_EMG_sol_SD = nanstd(CON_POST_max(:,5));
+
+            CON_POST_elong_AT_mean = mean(CON_POST_max(:,6)); % elong AT
+            CON_POST_elong_AT_SD = std(CON_POST_max(:,6));
+            CON_POST_elong_GMtend_mean = mean(CON_POST_max(:,7)); % elong GM tend
+            CON_POST_elong_GMtend_SD = std(CON_POST_max(:,7));
+            CON_POST_elong_MTU_mean = mean(CON_POST_max(:,8)); % elong leg
+            CON_POST_elong_MTU_SD = std(CON_POST_max(:,8));
+            CON_POST_displ_GMFAS_mean = mean(CON_POST_max(:,9));  % GMFAS displ 
+            CON_POST_displ_GMFAS_SD = std(CON_POST_max(:,9));
+            CON_POST_elong_GMapo_mean = mean(CON_POST_max(:,10)); 
+            CON_POST_elong_GMapo_SD = std(CON_POST_max(:,10));
+            CON_POST_elong_msc_GM_mean = mean(CON_POST_max(:,11)); % GM msc
+            CON_POST_elong_msc_GM_SD = std(CON_POST_max(:,11));
+            CON_POST_elong_msc_SOL_mean = mean(CON_POST_max(:,19)); 
+            CON_POST_elong_msc_SOL_SD = std(CON_POST_max(:,19));
+
+            CON_POST_L_at_SOL_mean = mean(CON_POST_max(:,12)); % L AT
+            CON_POST_L_at_SOL_SD = std(CON_POST_max(:,12));
+            CON_POST_L_at_GM_mean = mean(CON_POST_max(:,13)); % L GM tend
+            CON_POST_L_at_GM_SD = std(CON_POST_max(:,13));
+            CON_POST_L_MTU_mean = mean(CON_POST_max(:,14)); % L leg
+            CON_POST_L_MTU_SD = std(CON_POST_max(:,14));
+            % no L GMFAS
+            CON_POST_L_GMapo_mean = mean(CON_POST_max(:,16)); 
+            CON_POST_L_GMapo_SD = std(CON_POST_max(:,16));
+            CON_POST_L_msc_GM_mean = mean(CON_POST_max(:,17)); 
+            CON_POST_L_msc_GM_SD = std(CON_POST_max(:,17));
+            CON_POST_L_msc_SOL_mean = mean(CON_POST_max(:,20)); 
+            CON_POST_L_msc_SOL_SD = std(CON_POST_max(:,20));
+
+            CON_POST_strain_at_SOL_mean = mean(CON_POST_max(:,21)); % L AT
+            CON_POST_strain_at_SOL_SD = std(CON_POST_max(:,21));
+            CON_POST_strain_at_GM_mean = mean(CON_POST_max(:,22)); % L GM tend
+            CON_POST_strain_at_GM_SD = std(CON_POST_max(:,22));
+            CON_POST_strain_MTU_mean = mean(CON_POST_max(:,23)); % L calf
+            CON_POST_strain_MTU_SD = std(CON_POST_max(:,23));
+            % no strain GMfas
+            CON_POST_strain_GMapo_mean = mean(CON_POST_max(:,25)); 
+            CON_POST_strain_GMapo_SD = std(CON_POST_max(:,25));
+            CON_POST_strain_msc_GM_mean = mean(CON_POST_max(:,26)); 
+            CON_POST_strain_msc_GM_SD = std(CON_POST_max(:,26));
+            CON_POST_strain_msc_SOL_mean = mean(CON_POST_max(:,27)); 
+            CON_POST_strain_msc_SOL_SD = std(CON_POST_max(:,27));
+
+            CON_POST_elong_msc_GM_licht_mean = mean(CON_POST_max(:,28)); 
+            CON_POST_elong_msc_GM_licht_SD = std(CON_POST_max(:,28));
+            CON_POST_elong_tend_GM_licht_mean = mean(CON_POST_max(:,29)); 
+            CON_POST_elong_tend_GM_licht_SD = std(CON_POST_max(:,29));
+            CON_POST_strain_msc_GM_licht_mean = mean(CON_POST_max(:,30)); 
+            CON_POST_strain_msc_GM_licht_SD = std(CON_POST_max(:,30));
+            CON_POST_strain_tend_GM_licht_mean = mean(CON_POST_max(:,31)); 
+            CON_POST_strain_tend_GM_licht_SD = std(CON_POST_max(:,31));
+            
+            CON_POST_length_GMfas_licht_mean = mean(CON_POST_max(:,32)); 
+            CON_POST_length_GMfas_licht_SD = std(CON_POST_max(:,32)); 
+            CON_POST_pennation_GMfas_licht_mean = mean(CON_POST_max(:,33)); 
+            CON_POST_pennation_GMfas_licht_SD = std(CON_POST_max(:,33)); 
+            CON_POST_elong_GMfas_licht_mean = mean(CON_POST_max(:,34)); 
+            CON_POST_elong_GMfas_licht_SD = std(CON_POST_max(:,34)); 
+            CON_POST_strain_GMfas_licht_mean = mean(CON_POST_max(:,35)); 
+            CON_POST_strain_GMfas_licht_SD = std(CON_POST_max(:,35)); 
+
+            CON_POST_length_msc_GM_licht_mean = mean(CON_POST_max(:,36)); 
+            CON_POST_length_msc_GM_licht_SD = std(CON_POST_max(:,36));
+            CON_POST_length_tend_GM_licht_mean = mean(CON_POST_max(:,37)); 
+            CON_POST_length_tend_GM_licht_SD = std(CON_POST_max(:,37));
+
+            CON_POST_torque_mean = mean(CON_POST_max(:,18));
+            CON_POST_torque_SD = std(CON_POST_max(:,18));
+            % determine common angle range
+            CON_POST_common_ROM = min(CON_POST_max(:,1));
+        end
+
         %%    
     end
     %% GROUP CALCULATIONS - NUMBERS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3510,42 +3518,6 @@ function [] = passiveUS(input_project, input_plot, input_norm)
     elseif input_project == 2
         %% intervention
         
-        if CON_PRE_count > 0
-            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
-            
-            % preallocate
-            len = 10000;
-            for i = 1:CON_PRE_count
-                if length(CON_PRE_angle_vars{:,i}) < len
-                    len = length(CON_PRE_angle_vars{:,i});
-                end
-            end
-            CON_PRE_angle_vars_mean_tmp(len,n_o_array_elements,CON_PRE_count) = zeros;
-
-            % CON_PRE_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
-            loc_end = find(CON_PRE_angle_vars{1,CON_PRE_count}(:,1) >= (CON_PRE_common_ROM - 0.00001), 1, 'first'); % using last subject (CON_PRE_count) - could use any, angle is the same in all
-            for i = 1:CON_PRE_count
-                CON_PRE_angle_vars_mean_tmp(:,:,i) = CON_PRE_angle_vars{i}(1:loc_end,:);
-            end
-            CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
-            %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
-            
-            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-            
-            % preallocate
-            CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
-
-            % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-            for i = 1:CON_PRE_count
-                CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
-            end
-            CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
-            
-            %%% clean up
-            clear CON_PRE_angle_vars_mean_tmp CON_PRE_angle_vars_norm_mean_tmp
-        end
-
-        
         if STR_PRE_count > 0
             %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
 
@@ -3580,6 +3552,79 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             %%% clean up
 
             clear STR_PRE_angle_vars_mean_tmp STR_PRE_angle_vars_norm_mean_tmp
+        end
+        
+        
+        if STR_POST_count > 0
+            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
+
+            % preallocate
+            len = 10000;
+            for i = 1:STR_POST_count
+                if length(STR_POST_angle_vars{:,i}) < len
+                    len = length(STR_POST_angle_vars{:,i});
+                end
+            end
+            STR_POST_angle_vars_mean_tmp(len,n_o_array_elements,STR_POST_count) = zeros;
+
+            % STR_POST_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
+            loc_end = find(STR_POST_angle_vars{1,STR_POST_count}(:,1) >= (STR_POST_common_ROM - 0.00001), 1, 'first'); % using last subject (STR_POST_count) - could use any, angle is the same in all
+            for i = 1:STR_POST_count
+                STR_POST_angle_vars_mean_tmp(:,:,i) = STR_POST_angle_vars{i}(1:loc_end,:);
+            end
+            STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
+            %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
+
+            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+
+            % preallocate
+            STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
+
+            % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+            for i = 1:STR_POST_count
+                STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
+            end
+            STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
+
+            %%% clean up
+
+            clear STR_POST_angle_vars_mean_tmp STR_POST_angle_vars_norm_mean_tmp
+        end
+        
+        
+        if CON_PRE_count > 0
+            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
+            
+            % preallocate
+            len = 10000;
+            for i = 1:CON_PRE_count
+                if length(CON_PRE_angle_vars{:,i}) < len
+                    len = length(CON_PRE_angle_vars{:,i});
+                end
+            end
+            CON_PRE_angle_vars_mean_tmp(len,n_o_array_elements,CON_PRE_count) = zeros;
+
+            % CON_PRE_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
+            loc_end = find(CON_PRE_angle_vars{1,CON_PRE_count}(:,1) >= (CON_PRE_common_ROM - 0.00001), 1, 'first'); % using last subject (CON_PRE_count) - could use any, angle is the same in all
+            for i = 1:CON_PRE_count
+                CON_PRE_angle_vars_mean_tmp(:,:,i) = CON_PRE_angle_vars{i}(1:loc_end,:);
+            end
+            CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
+            %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
+            
+            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+            
+            % preallocate
+            CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
+
+            % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+            for i = 1:CON_PRE_count
+                CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
+            end
+            CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
+            
+            %%% clean up
+            clear CON_PRE_angle_vars_mean_tmp CON_PRE_angle_vars_norm_mean_tmp
         end
 
         
@@ -3619,42 +3664,6 @@ function [] = passiveUS(input_project, input_plot, input_norm)
             clear CON_POST_angle_vars_mean_tmp CON_POST_angle_vars_norm_mean_tmp
         end
 
-        
-        if STR_POST_count > 0
-            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
-
-            % preallocate
-            len = 10000;
-            for i = 1:STR_POST_count
-                if length(STR_POST_angle_vars{:,i}) < len
-                    len = length(STR_POST_angle_vars{:,i});
-                end
-            end
-            STR_POST_angle_vars_mean_tmp(len,n_o_array_elements,STR_POST_count) = zeros;
-
-            % STR_POST_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
-            loc_end = find(STR_POST_angle_vars{1,STR_POST_count}(:,1) >= (STR_POST_common_ROM - 0.00001), 1, 'first'); % using last subject (STR_POST_count) - could use any, angle is the same in all
-            for i = 1:STR_POST_count
-                STR_POST_angle_vars_mean_tmp(:,:,i) = STR_POST_angle_vars{i}(1:loc_end,:);
-            end
-            STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
-            %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
-
-            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-            % preallocate
-            STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
-
-            % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-            for i = 1:STR_POST_count
-                STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
-            end
-            STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
-
-            %%% clean up
-
-            clear STR_POST_angle_vars_mean_tmp STR_POST_angle_vars_norm_mean_tmp
-        end
         %%
     end
     %% GROUP CALCULATIONS - ARRAYS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3679,9 +3688,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('force vs angle - 2 ind curves dancers');
@@ -3693,9 +3702,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('force vs angle - 3 ind curves controls');
@@ -3707,9 +3716,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('force vs angle - 4 NORMALIZED');
@@ -3720,9 +3729,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Force (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('force vs angle - 5 ind curves dancers');
@@ -3734,9 +3743,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Force (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('force vs angle - 6 ind curves controls');
@@ -3748,9 +3757,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Force (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3785,9 +3794,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 plot(CON_angle_vars_mean(:,1), CON_angle_vars_mean(:,5),'c--','LineWidth',0.5) % SOL
                 ylabel(txt_emg)
                 xlabel(txt_gonio)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max', 'Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('torque vs angle - 2 ind curves dancers');
@@ -3799,9 +3808,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('torque vs angle - 3 ind curves controls');
@@ -3813,9 +3822,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('torque vs angle - 4 NORMALIZED');
@@ -3826,9 +3835,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Torque (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('torque vs angle - 5 ind curves dancers');
@@ -3840,9 +3849,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Torque (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('torque vs angle - 6 ind curves controls');
@@ -3854,9 +3863,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Torque (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             
@@ -3875,9 +3884,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT length vs angle - 2 ind curves dancers');
@@ -3889,9 +3898,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT length vs angle - 3 ind curves controls');
@@ -3903,9 +3912,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 4 NORMALIZED');
@@ -3916,9 +3925,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_ATP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 1');
@@ -3933,9 +3942,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 5 ind curves dancers');
@@ -3947,9 +3956,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_ATP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 2 ind curves dancers');
@@ -3961,9 +3970,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 6 ind curves controls');
@@ -3975,9 +3984,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_ATP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old 
                 plottitle = horzcat('free AT strain vs angle - 3 ind curves controls');
@@ -3989,9 +3998,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% FREE AT: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4009,9 +4018,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('free AT elongation vs angle - 2 ind curves dancers');
@@ -4023,9 +4032,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('free AT elongation vs angle - 3 ind curves controls');
@@ -4037,9 +4046,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             
@@ -4058,9 +4067,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) length vs angle - 2 ind curves dancers');
@@ -4072,9 +4081,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) length vs angle - 3 ind curves controls');
@@ -4086,9 +4095,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 4 NORMALIZED');
@@ -4099,9 +4108,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtendP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 1');
@@ -4116,9 +4125,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 5 ind curves dancers');
@@ -4130,9 +4139,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtendP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 2 ind curves dancers');
@@ -4144,9 +4153,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 6 ind curves controls');
@@ -4158,9 +4167,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtendP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 ind curves controls');
@@ -4172,9 +4181,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                                    
             %% GM TENDON: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4192,9 +4201,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) elongation vs angle - 2 ind curves dancers');
@@ -4206,9 +4215,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 ind curves controls');
@@ -4220,9 +4229,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             
@@ -4241,9 +4250,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 2 ind curves dancers');
@@ -4255,9 +4264,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 ind curves controls');
@@ -4269,9 +4278,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 4 NORMALIZED');
@@ -4282,9 +4291,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapoP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 1');
@@ -4299,9 +4308,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check && plot_old
@@ -4314,9 +4323,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapoP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 2 ind curves dancers');
@@ -4328,9 +4337,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 6 ind curves controls');
@@ -4342,9 +4351,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapoP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 ind curves controls');
@@ -4356,9 +4365,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% GM APO: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4376,9 +4385,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 2 ind curves dancers');
@@ -4390,9 +4399,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 ind curves controls');
@@ -4404,9 +4413,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
 
@@ -4425,9 +4434,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL length vs angle - 2 ind curves dancers');
@@ -4439,9 +4448,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL length vs angle - 3 ind curves controls');
@@ -4453,9 +4462,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 4 NORMALIZED');
@@ -4466,9 +4475,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOLP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 1');
@@ -4483,9 +4492,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 5 ind curves dancers');
@@ -4497,9 +4506,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOLP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 2 ind curves dancers');
@@ -4511,9 +4520,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 6 ind curves controls');
@@ -4525,9 +4534,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOLP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL strain vs angle - 3 ind curves controls');
@@ -4539,9 +4548,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% SOL MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4559,9 +4568,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL elongation vs angle - 2 ind curves dancers');
@@ -4573,9 +4582,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle SOL elongation vs angle - 3 ind curves controls');
@@ -4587,9 +4596,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
                         
@@ -4608,9 +4617,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) length vs angle - 2 ind curves dancers');
@@ -4622,9 +4631,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) length vs angle - 3 ind curves controls');
@@ -4636,9 +4645,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 4 NORMALIZED');
@@ -4649,9 +4658,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmscP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 1');
@@ -4666,9 +4675,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check && plot_old
@@ -4681,9 +4690,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmscP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 5 ind curves dancers');
@@ -4695,9 +4704,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 6 ind curves controls');
@@ -4709,9 +4718,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmscP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 ind curves controls');
@@ -4723,9 +4732,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% GM MUSCLE portion: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4743,9 +4752,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 2 ind curves dancers');
@@ -4757,9 +4766,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 ind curves controls');
@@ -4771,9 +4780,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             
@@ -4793,11 +4802,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -4814,11 +4823,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('muscle GM (architecture) length vs angle - 3 ind curves controls');
@@ -4834,11 +4843,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
 
             %% GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4855,9 +4864,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -4870,9 +4879,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 ind curves controls');
@@ -4884,9 +4893,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% GM MUSCLE Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4903,9 +4912,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -4918,9 +4927,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('muscle GM (architecture) strain vs angle - 3 ind curves controls');
@@ -4932,13 +4941,13 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
 
-            %% SEE / GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 1');
                 figure('Name',plottitle)
@@ -4954,11 +4963,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -4975,11 +4984,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 3 ind curves controls');
@@ -4995,14 +5004,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
-            %% SEE / GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
                 figure('Name',plottitle)
@@ -5016,9 +5025,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -5031,9 +5040,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 3 ind curves controls');
@@ -5045,12 +5054,12 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
-            %% SEE / GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 1');
                 figure('Name',plottitle)
@@ -5064,9 +5073,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -5079,9 +5088,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 3 ind curves controls');
@@ -5093,9 +5102,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
 
             
@@ -5110,16 +5119,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, 'b.')
                 errorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMapo),'ro') % GMapo contains faslen
-                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMapo),'bo')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMapo_and_faslen_and_faslen),'ro')     
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMapo_and_faslen),'bo')
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 &&  plot_check
@@ -5131,16 +5140,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMapo),'o') % GMapo contains faslen
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMapo_and_faslen),'o')    
                 end
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('GM fascicle length vs angle - 3 ind curves controls');
@@ -5151,16 +5160,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_count
-                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMapo),'o') % GMapo contains faslen
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMapo_and_faslen),'o')
                 end
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             %% GM fascicle (Lichtwark): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5177,9 +5186,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -5192,9 +5201,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('GM fascicle elongation vs angle - 3 ind curves controls');
@@ -5206,9 +5215,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             %% GM fascicle (Lichtwark): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5225,9 +5234,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -5240,9 +5249,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('GM fascicle strain vs angle - 3 ind curves controls');
@@ -5254,9 +5263,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
 
             %% GM fascicle (Lichtwark): Pennation angle vs ankle angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5270,16 +5279,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, 'b.')
                 errorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMFAS),'ro') % GMfas contains penn angle
-                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMFAS),'bo')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMFAS_and_penn_ang),'ro')
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMFAS_and_penn_ang),'bo')
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             if BD_count > 1 && plot_check
@@ -5291,16 +5300,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMFAS),'o') % GMfas contains penn angle
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMFAS_and_penn_ang),'o')
                 end
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('GM pennation angle vs ankle angle - 3 ind curves controls');
@@ -5311,16 +5320,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_count
-                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMFAS),'o') % GMfas contains penn angle
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMFAS_and_penn_ang),'o')
                 end
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
                        
@@ -5336,16 +5345,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 errorbar(CON_ROM_mean, CON_L_MTU_mean, CON_L_MTU_SD, 'b.', 'MarkerFaceColor', 'b')
                 herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, 'r.')
                 herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, 'b.')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_leg),'ro')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_leg),'ro')    
                 plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_leg),'bo')
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Southeast')
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('MTU length vs angle - 2 ind curves dancers');
@@ -5356,16 +5365,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_leg),'o')
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_leg),'o')   
                 end
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('MTU length vs angle - 3 ind curves controls');
@@ -5381,11 +5390,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
                 xlim([-30 35])
                 breakxaxis([-19 -1]);
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             %% Full MTU: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5403,9 +5412,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('MTU elongation vs angle - 2 ind curves dancers');
@@ -5417,9 +5426,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('MTU elongation vs angle - 3 ind curves controls');
@@ -5431,13 +5440,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % commenting out MTU strain plots since they simply show the Grieve calculation factor
+            % MTU strain plots simply show the Grieve calculation factor
+            % removed from output through toggle "plot_old"
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 4 NORMALIZED');
                 figure('Name',plottitle)
@@ -5447,9 +5457,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTUP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 1');
@@ -5464,9 +5474,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 5 ind curves dancers');
@@ -5478,9 +5488,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTUP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 2 ind curves dancers');
@@ -5492,9 +5502,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 6 ind curves controls');
@@ -5506,9 +5516,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTUP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 3 ind curves controls');
@@ -5520,9 +5530,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             
@@ -5541,9 +5551,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check && plot_old
                 plottitle = horzcat('displacement GMFAS vs angle - 2 ind curves dancers');
@@ -5555,9 +5565,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('displacement GMFAS vs angle - 3 ind curves controls');
@@ -5569,9 +5579,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
 
             
@@ -5606,9 +5616,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer MTU', 'Dancer GM tend','Dancer free AT','Control MTU','Control GM tend','Control free AT','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
             
@@ -5627,9 +5637,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('EMG gas.med. vs angle - 2 ind curves dancers');
@@ -5641,9 +5651,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('EMG gas.med. vs angle - 3 ind curves controls');
@@ -5655,9 +5665,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% EMG vs angle GL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5675,9 +5685,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('EMG gas.lat. vs angle - 2 ind curves dancers');
@@ -5689,9 +5699,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('EMG gas.lat. vs angle - 3 ind curves controls');
@@ -5703,9 +5713,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
                         
             %% EMG vs angle SOL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5723,9 +5733,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('Dancer avg', 'Control avg','Dancer ind max','Control ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if BD_count > 1 && plot_check
                 plottitle = horzcat('EMG soleus vs angle - 2 ind curves dancers');
@@ -5737,9 +5747,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             if CON_count > 1 && plot_check
                 plottitle = horzcat('EMG soleus vs angle - 3 ind curves controls');
@@ -5751,13 +5761,13 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_BD ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
     elseif input_project == 2
-        %% intervention study
+        %% intervention study ======================================================================================================================
         
             %% FORCE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -5782,9 +5792,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -5801,9 +5811,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('force vs angle - 3 CONTROL PRE-POST');
@@ -5819,13 +5829,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_force)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
             % systematic order, and all subjects have all 4 legs/timepoints
+            % rough coding MMM TODO
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
                     plottitle = horzcat('force vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
@@ -5839,15 +5850,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                     axis(axis_force)
                     xlabel(txt_gonio)
                     ylabel('Force (N)')
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
             
             
-            % LATER? other type of normalization - normalize to what? add plots with individual data normalised (same as #2 and #3)?
             if plot_check
                 plottitle = horzcat('force vs angle - 4 NORMALIZED');
                 figure('Name',plottitle)
@@ -5860,9 +5870,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_PP)
                 xlabel('Gonio angle (% of ind max)')
                 ylabel('Force (% of ind max)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5888,9 +5898,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -5907,9 +5917,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('torque vs angle - 3 CONTROL PRE-POST');
@@ -5925,13 +5935,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
             % systematic order, and all subjects have all 4 legs/timepoints
+            % rough coding MMM TODO
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
                     plottitle = horzcat('IND torque vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
@@ -5945,9 +5956,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_torque)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -5974,9 +5985,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -5993,9 +6004,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('free AT length vs angle - 3 CONTROL PRE-POST');
@@ -6011,9 +6022,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6031,9 +6042,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                     axis(axis_len_AT)
                     xlabel(txt_gonio)
                     ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6060,9 +6071,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6079,9 +6090,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('free AT elongation vs angle - 3 CONTROL PRE-POST');
@@ -6097,9 +6108,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6117,9 +6128,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                     axis(axis_el_AT)
                     xlabel(txt_gonio)
                     ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -6146,9 +6157,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6165,9 +6176,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('free AT strain vs angle - 3 CONTROL PRE-POST');
@@ -6183,9 +6194,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6203,9 +6214,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_AT)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6232,9 +6243,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6251,9 +6262,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM tendon (from calc) length vs angle - 3 CONTROL PRE-POST');
@@ -6269,9 +6280,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6289,9 +6300,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -6318,9 +6329,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6337,9 +6348,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 CONTROL PRE-POST');
@@ -6355,9 +6366,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6375,9 +6386,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -6404,9 +6415,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6423,9 +6434,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 CONTROL PRE-POST');
@@ -6441,9 +6452,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6461,9 +6472,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMtend)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6490,9 +6501,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6509,9 +6520,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 CONTROL PRE-POST');
@@ -6527,9 +6538,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6547,9 +6558,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6576,9 +6587,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6595,9 +6606,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 CONTROL PRE-POST');
@@ -6613,9 +6624,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6633,9 +6644,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6662,9 +6673,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6681,9 +6692,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 CONTROL PRE-POST');
@@ -6699,9 +6710,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6719,9 +6730,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMapo)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
                  
@@ -6748,9 +6759,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6767,9 +6778,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle SOL length vs angle - 3 CONTROL PRE-POST');
@@ -6785,9 +6796,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6805,9 +6816,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6834,9 +6845,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6853,9 +6864,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROL PRE-POST');
@@ -6871,9 +6882,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6891,9 +6902,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -6920,9 +6931,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -6939,9 +6950,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROL PRE-POST');
@@ -6957,9 +6968,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -6977,9 +6988,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SOL)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -7006,9 +7017,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7025,9 +7036,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (ins-knee) vs angle - 3 CONTROL PRE-POST');
@@ -7043,9 +7054,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7063,9 +7074,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -7092,9 +7103,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7111,9 +7122,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 CONTROL PRE-POST');
@@ -7129,9 +7140,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7149,9 +7160,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -7178,9 +7189,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7197,9 +7208,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 CONTROL PRE-POST');
@@ -7215,9 +7226,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7235,9 +7246,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -7262,12 +7273,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
+                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMmsc_Fukunaga),'ro')
+                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMmsc_Fukunaga),'bo')
+                
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7281,12 +7297,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,36))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMmsc_Fukunaga),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMmsc_Fukunaga),'o')
+                end
+
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROL PRE-POST');
@@ -7299,12 +7324,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,36))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMmsc_Fukunaga),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMmsc_Fukunaga),'o')
+                end
+                
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7322,9 +7356,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -7351,9 +7385,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7370,9 +7404,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROL PRE-POST');
@@ -7388,9 +7422,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7408,9 +7442,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -7437,9 +7471,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7456,9 +7490,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) strain vs angle - 3 CONTROL PRE-POST');
@@ -7474,9 +7508,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7494,13 +7528,13 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
-            %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 1');
                 figure('Name',plottitle)
@@ -7520,12 +7554,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
+                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_SEE_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_SEE_Fukunaga),'ro')
+                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_SEE_Fukunaga),'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_SEE_Fukunaga),'bo')
+
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7539,12 +7578,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,37))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_SEE_Fukunaga),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_SEE_Fukunaga),'o')
+                end
+                
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 3 CONTROL PRE-POST');
@@ -7557,12 +7605,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,37))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_SEE_Fukunaga),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_SEE_Fukunaga),'o')
+                end
+                
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7577,16 +7634,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,37),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,37),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,37),'b','LineStyle','-','LineWidth',1)
-                axis(axis_len_SEE_arch)
-                xlabel(txt_gonio)
-                ylabel(txt_elong)
-                    title(plottitle)
+                    axis(axis_len_SEE_arch)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
-            %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
                 figure('Name',plottitle)
@@ -7609,9 +7666,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7628,9 +7685,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROL PRE-POST');
@@ -7646,9 +7703,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7666,13 +7723,13 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
-            %% GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 1');
                 figure('Name',plottitle)
@@ -7695,9 +7752,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7714,9 +7771,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 3 CONTROL PRE-POST');
@@ -7732,9 +7789,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7752,9 +7809,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
@@ -7779,12 +7836,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
+                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMapo_and_faslen), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMapo_and_faslen),'ro')
+                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMapo_and_faslen), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMapo_and_faslen),'bo')
+
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7798,12 +7860,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,32))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMapo_and_faslen),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMapo_and_faslen),'o')
+                end
+                
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM fascicle length vs angle - 3 CONTROL PRE-POST');
@@ -7816,12 +7887,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,32))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMapo_and_faslen),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMapo_and_faslen),'o')
+                end
+                
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7839,9 +7919,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -7868,9 +7948,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7887,9 +7967,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROL PRE-POST');
@@ -7905,9 +7985,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -7925,9 +8005,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -7954,9 +8034,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -7973,9 +8053,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROL PRE-POST');
@@ -7991,9 +8071,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8011,9 +8091,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8037,12 +8117,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
+                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMFAS_and_penn_ang), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMFAS_and_penn_ang),'ro')
+                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMFAS_and_penn_ang), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMFAS_and_penn_ang),'bo')
+                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8056,12 +8141,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,33))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMFAS_and_penn_ang),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMFAS_and_penn_ang),'o')
+                end
+                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('GM pennation angle vs ankle angle - 3 CONTROL PRE-POST');
@@ -8074,12 +8168,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,33))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMFAS_and_penn_ang),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMFAS_and_penn_ang),'o')
+                end
+                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8097,9 +8200,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8125,12 +8228,17 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 herrorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
+                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_leg), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_leg),'ro')
+                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_leg), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_leg),'bo')
+
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8144,12 +8252,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,14))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_leg),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_leg),'o')
+                end
+                
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('MTU length vs angle - 3 CONTROL PRE-POST');
@@ -8162,12 +8279,21 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,14))
                 end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_leg),'square')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_leg),'o')
+                end
+                
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8185,9 +8311,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Southeast')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8214,9 +8340,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8233,9 +8359,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('MTU elongation vs angle - 3 CONTROL PRE-POST');
@@ -8251,9 +8377,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8271,16 +8397,16 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_el_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
-            % commenting out MTU strain plots since they simply show the Grieve calculation factor
-            
             %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if plot_check
+            % MTU strain plots simply show the Grieve calculation factor
+            % removed from output through toggle "plot_old"
+            if plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
@@ -8302,12 +8428,12 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            if plot_check
+            if plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 2 STRETCH PRE-POST');
                 figure('Name',plottitle)
                 hold on
@@ -8321,11 +8447,11 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
-            if plot_check
+            if plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 3 CONTROL PRE-POST');
                 figure('Name',plottitle)
                 hold on
@@ -8339,14 +8465,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
             % systematic order, and all subjects have all 4 legs/timepoints
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
                     plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
@@ -8359,9 +8485,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_str_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8388,9 +8514,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8407,9 +8533,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('displacement GMFAS vs angle - 3 CONTROL PRE-POST');
@@ -8425,9 +8551,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8445,14 +8571,14 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_displ_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
             %% Length +- SD, 3 MTU components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % LATER if needed?
+            % add LATER if needed - already done for BD study
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -8477,9 +8603,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8496,9 +8622,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('EMG gas.med. vs angle - 3 CONTROL PRE-POST');
@@ -8514,9 +8640,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8534,9 +8660,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8563,9 +8689,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8582,9 +8708,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('EMG gas.lat. vs angle - 3 CONTROL PRE-POST');
@@ -8600,9 +8726,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8620,9 +8746,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
             
@@ -8649,9 +8775,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
@@ -8668,9 +8794,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
                 plottitle = horzcat('EMG soleus vs angle - 3 CONTROL PRE-POST');
@@ -8686,9 +8812,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                title(plottitle)
+                title(plottitle,'Interpreter', 'none')
                 %legend
-                saveas(gcf, horzcat('data_plots/GRP_INT ',plottitle,'.jpg'))
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % the following plots require that trials are analysed in
@@ -8706,9 +8832,9 @@ function [] = passiveUS(input_project, input_plot, input_norm)
                 axis(axis_EMG)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
-                    title(plottitle)
+                    title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                    saveas(gcf, horzcat('data_plots/',plottitle,'.jpg'))
+                    print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
         

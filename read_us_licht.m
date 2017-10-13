@@ -30,6 +30,12 @@ function [usdata_licht] = read_us_licht(usfile, usframe, trial_name)
     %   Norm data start recording at triggerframe, after that, higher sampling frequency and longer duration of recording than the US video
     usdata_offset = usdata.data(usframe+1:end,:);
 
+    % Lichtwark export format:
+    % from tsv: "Fascicle Length R1_F1"
+    % R1 = GM region, R2 = SOL region
+    % F1 = fascicle #1
+    % if number_of_columns == 8 -> 3 fascicles measured --> if last fascicle is F2, there are 2x SOL
+    
     % check number and type of fascicles tracked, average duplicates
     if number_of_columns == 3 % contains 1 GM trial
         usdata_offset(:,1) = usdata_offset(:,1) - usdata_offset(1,1); % correct lichtwark time error (set first frame = 0.00)

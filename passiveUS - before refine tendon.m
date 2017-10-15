@@ -371,35 +371,14 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         CON_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         CON_angle_vars_norm_mean{ceil(linestotal)} = zeros;
     else % intervention study
-        STR_PRE_count = 0;
-        STR_POST_count = 0;
         CON_PRE_count = 0;
         CON_POST_count = 0;
+        STR_PRE_count = 0;
+        STR_POST_count = 0;
         
-        STR_PRE_ID{ceil(linestotal)} = [];
-        STR_POST_ID{ceil(linestotal)} = [];
-        CON_PRE_ID{ceil(linestotal)} = [];
-        CON_POST_ID{ceil(linestotal)} = [];
-        % old CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study
+        CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study - rough coding - MMM TODO
 
-        STR_PRE_no(ceil(linestotal)) = zeros;
-        STR_PRE_prone(ceil(linestotal),10) = zeros;
-        STR_PRE_angle_vars{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-
-        STR_POST_no(ceil(linestotal)) = zeros;
-        STR_POST_prone(ceil(linestotal),10) = zeros;
-        STR_POST_angle_vars{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-        
         CON_PRE_no(ceil(linestotal)) = zeros;
-        CON_PRE_prone(ceil(linestotal),10) = zeros;
         CON_PRE_angle_vars{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
@@ -407,13 +386,25 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         CON_POST_no(ceil(linestotal)) = zeros;
-        CON_POST_prone(ceil(linestotal),10) = zeros;
         CON_POST_angle_vars{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
+        STR_PRE_no(ceil(linestotal)) = zeros;
+        STR_PRE_angle_vars{ceil(linestotal)} = zeros;
+        STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
+        STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+        STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+        STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+        STR_POST_no(ceil(linestotal)) = zeros;
+        STR_POST_angle_vars{ceil(linestotal)} = zeros;
+        STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
+        STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+        STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+        STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
     end
     %% 
     
@@ -451,23 +442,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         elseif input_project == 2 % intervention
             filepath = 'data\';
             subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                STR_PRE_count = STR_PRE_count + 1;
-                STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
-                STR_PRE_ID{STR_PRE_count} = subject_id;
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                STR_POST_count = STR_POST_count + 1;
-                STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
-                STR_POST_ID{STR_POST_count} = subject_id;
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
                 CON_PRE_count = CON_PRE_count + 1;
                 CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
-                CON_PRE_ID{CON_PRE_count} = subject_id;
-                % old: CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
+                CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno; % rough coding MMM TODO
+            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                STR_PRE_count = STR_PRE_count + 1;
+                STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
                 CON_POST_count = CON_POST_count + 1;
                 CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
-                CON_POST_ID{CON_POST_count} = subject_id;
+            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                STR_POST_count = STR_POST_count + 1;
+                STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
             end
         end
         cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
@@ -950,8 +937,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         col_AT = 2;
         col_GMtend = 3;
         col_leg = 4;
-        col_GMFAS_and_penn_ang = 5; % in elongation: GMFAS displacement
-        col_GMapo_and_faslen = 6;
+        col_GMFAS = 5; % in elongation: GMFAS displacement
+        col_GMapo = 6;
         col_GMmsc = 7;
         col_SOLmsc = 8;
         col_GMmsc_Fukunaga = 9;
@@ -994,8 +981,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             %    5 averaged fascicle strain
             data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_length_rest*100;
             data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_length_rest*100;
-        elseif input_project == 2 && toggle_normalization == 1
-            % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
+        elseif input_project == 2
+            % MMM TODO - normalization for intervention?
         end
         %%
         
@@ -1037,8 +1024,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
 %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS_and_penn_ang),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
+%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
 %             axis(axis_ind_elong)
 %             ylabel(txt_elong)
 %             xlabel(txt_gonio)
@@ -1075,7 +1062,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
 %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
+%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
 %             if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
 %                 text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
 %             end
@@ -1235,19 +1222,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
         out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_trial_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen);
+        out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo);
         out_elong_msc_GM_trial_max = MTU_elong_array(loc_frame,col_GMmsc);
         out_elong_msc_SOL_trial_max = MTU_elong_array(loc_frame,col_SOLmsc);
         out_strain_AT_trial_max = MTU_strain_array(loc_frame,col_AT);
         out_strain_GMtend_trial_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_trial_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen);
+        out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo);
         out_strain_msc_GM_trial_max = MTU_strain_array(loc_frame,col_GMmsc);
         out_strain_msc_SOL_trial_max = MTU_strain_array(loc_frame,col_SOLmsc);
         out_length_AT_trial_max = MTU_length_array(loc_frame,col_AT);
         out_length_GMtend_trial_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_trial_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo_and_faslen);
+        out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo);
         out_length_msc_GM_trial_max = MTU_length_array(loc_frame,col_GMmsc);
         out_length_msc_SOL_trial_max = MTU_length_array(loc_frame,col_SOLmsc);
         out_contrib_GM_trial_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1262,19 +1249,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+        out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo); 
         out_elong_msc_GM_ind_max = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_ind_max = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_ind_max = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_ind_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_ind_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+        out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo); 
         out_strain_msc_GM_ind_max = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_ind_max = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_ind_max = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_ind_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_ind_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+        out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo); 
         out_length_msc_GM_ind_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_ind_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_ind_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1289,19 +1276,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+        out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo); 
         out_elong_msc_GM_common_max = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_common_max = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_common_max = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_common_max = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_common_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+        out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo); 
         out_strain_msc_GM_common_max = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_common_max = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_common_max = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_common_max = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_common_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+        out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo); 
         out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_common_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1343,19 +1330,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GMtend);
             out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
-            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo); 
             out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_GMmsc); 
             out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_SOLmsc); 
             out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
             out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GMtend);
             out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
-            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo); 
             out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_GMmsc); 
             out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_SOLmsc); 
             out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
             out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GMtend);
             out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
-            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo); 
             out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_GMmsc); 
             out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_SOLmsc); 
             out_contrib_GM_submax_1 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1371,19 +1358,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
         out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
         out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+        out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo); 
         out_elong_msc_GM_submax_2 = MTU_elong_array(loc_frame,col_GMmsc); 
         out_elong_msc_SOL_submax_2 = MTU_elong_array(loc_frame,col_SOLmsc); 
         out_strain_AT_submax_2 = MTU_strain_array(loc_frame,col_AT); 
         out_strain_GMtend_submax_2 = MTU_strain_array(loc_frame,col_GMtend);
         out_strain_leg_submax_2 = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+        out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo); 
         out_strain_msc_GM_submax_2 = MTU_strain_array(loc_frame,col_GMmsc); 
         out_strain_msc_SOL_submax_2 = MTU_strain_array(loc_frame,col_SOLmsc); 
         out_length_AT_submax_2 = MTU_length_array(loc_frame,col_AT); 
         out_length_GMtend_submax_2 = MTU_length_array(loc_frame,col_GMtend);
         out_length_leg_submax_2 = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+        out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo); 
         out_length_msc_GM_submax_2 = MTU_length_array(loc_frame,col_GMmsc); 
         out_length_msc_SOL_submax_2 = MTU_length_array(loc_frame,col_SOLmsc); 
         out_contrib_GM_submax_2 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
@@ -1605,19 +1592,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
         out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
         out_elong_leg_max = max(MTU_elong_array(:,col_leg));
-        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo_and_faslen)); 
+        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo)); 
         out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
         out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
         out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
         out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
         out_strain_leg_max = max(MTU_strain_array(:,col_leg));
-        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo_and_faslen)); 
+        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo)); 
         out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
         out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
         out_length_AT_max = max(MTU_length_array(:,col_AT)); 
         out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
         out_length_leg_max = max(MTU_length_array(:,col_leg));
-        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo_and_faslen)); 
+        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo)); 
         out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
         out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
         out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
@@ -2060,145 +2047,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
          %%
         else % project == 2 == intervention
          %% intervention study =================================================================================================================
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                %% STR PRE
-                % all data in ONE cell, common angles, RAW data:
-                STR_PRE_angle_vars{STR_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-                
-                % tweak for NaN EMG data - replace  with 1000
-                STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
-                % spline
-                STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
-                    STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
-                end
-                %% END STR PRE
-                
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                %% STR POST
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                STR_POST_angle_vars{STR_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
-                % spline
-                STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
-                    STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
-                end
-
-                %% END STR POST
-                
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                %% CON PRE
+            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                %% PRE CON
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 CON_PRE_angle_vars{CON_PRE_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
@@ -2264,10 +2114,76 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
                     CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
                 end
-                %% END CON PRE
+                %% END PRE CON
+            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                %% PRE STR
+                % all data in ONE cell, common angles, RAW data:
+                STR_PRE_angle_vars{STR_PRE_count} = [ ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    MTU_elong_array(:,2) ...                                        6
+                    MTU_elong_array(:,3) ...                                        7
+                    MTU_elong_array(:,4) ...                                        8
+                    MTU_elong_array(:,5) ...                                        9
+                    MTU_elong_array(:,6) ...                                        10
+                    MTU_elong_array(:,7) ...                                        11
+                    MTU_length_array(:,2) ...                                       12
+                    MTU_length_array(:,3) ...                                       13
+                    MTU_length_array(:,4) ...                                       14
+                    MTU_length_array(:,5) ...                                       15
+                    MTU_length_array(:,6) ...                                       16
+                    MTU_length_array(:,7) ...                                       17
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    MTU_elong_array(:,8) ...                                        19
+                    MTU_length_array(:,8) ...                                       20
+                    MTU_strain_array(:,2) ...                                       21
+                    MTU_strain_array(:,3) ...                                       22
+                    MTU_strain_array(:,4) ...                                       23
+                    MTU_strain_array(:,5) ...                                       24
+                    MTU_strain_array(:,6) ...                                       25
+                    MTU_strain_array(:,7) ...                                       26
+                    MTU_strain_array(:,8) ...                                       27
+                    MTU_elong_array(:,9) ...                                        28
+                    MTU_elong_array(:,10) ...                                       29
+                    MTU_strain_array(:,9) ...                                       30
+                    MTU_strain_array(:,10) ...                                      31
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                    MTU_length_array(:,9) ...                                        36
+                    MTU_length_array(:,10) ...                                       37
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    ];
 
+                % all data in ONE cell, NORMALIZED data:
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
+                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                % resample for plots
+                
+                % tweak for NaN EMG data - replace  with 1000
+                STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
+                % spline
+                STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
+                    STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
+                end
+                %% END PRE STR
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                %% CON POST
+                %% POST CON
                 % all data in ONE cell, up to each subject's max angle, RAW data:
                 CON_POST_angle_vars{CON_POST_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
@@ -2332,8 +2248,75 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
                     CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
                 end
-                %% END CON POST
+                %% END POST CON
+            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                %% POST STR
+                % all data in ONE cell, up to each subject's max angle, RAW data:
+                STR_POST_angle_vars{STR_POST_count} = [ ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    MTU_elong_array(:,2) ...                                        6
+                    MTU_elong_array(:,3) ...                                        7
+                    MTU_elong_array(:,4) ...                                        8
+                    MTU_elong_array(:,5) ...                                        9
+                    MTU_elong_array(:,6) ...                                        10
+                    MTU_elong_array(:,7) ...                                        11
+                    MTU_length_array(:,2) ...                                       12
+                    MTU_length_array(:,3) ...                                       13
+                    MTU_length_array(:,4) ...                                       14
+                    MTU_length_array(:,5) ...                                       15
+                    MTU_length_array(:,6) ...                                       16
+                    MTU_length_array(:,7) ...                                       17
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    MTU_elong_array(:,8) ...                                        19
+                    MTU_length_array(:,8) ...                                       20
+                    MTU_strain_array(:,2) ...                                       21
+                    MTU_strain_array(:,3) ...                                       22
+                    MTU_strain_array(:,4) ...                                       23
+                    MTU_strain_array(:,5) ...                                       24
+                    MTU_strain_array(:,6) ...                                       25
+                    MTU_strain_array(:,7) ...                                       26
+                    MTU_strain_array(:,8) ...                                       27
+                    MTU_elong_array(:,9) ...                                        28
+                    MTU_elong_array(:,10) ...                                       29
+                    MTU_strain_array(:,9) ...                                       30
+                    MTU_strain_array(:,10) ...                                      31
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                    MTU_length_array(:,9) ...                                        36
+                    MTU_length_array(:,10) ...                                       37
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    ];
 
+                % all data in ONE cell, NORMALIZED data:
+                STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
+                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                % resample for plots
+
+                % tweak for NaN EMG data - replace  with 1000
+                STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
+                % spline
+                STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
+                % replace 1000 with NaN
+                if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
+                    STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
+                end
+
+                %% END POST STR
             end
          %% 
         end
@@ -2356,14 +2339,19 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
          %%
         else % project == 2 == intervention
          %% intervention study
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                STR_PRE_prone(STR_PRE_count,:) = MTU_prone_vars;
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                STR_POST_prone(STR_POST_count,:) = MTU_prone_vars;
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                CON_PRE_prone(CON_PRE_count,:) = MTU_prone_vars;
+         % MMM TODO - prone arrays?!?
+            if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                %% PRE CON
+                %% END PRE CON
+            elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                %% PRE STR
+                %% END PRE STR
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                CON_POST_prone(CON_POST_count,:) = MTU_prone_vars;
+                %% POST CON
+                %% END POST CON
+            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                %% POST STR
+                %% END POST STR
             end
          %% 
         end
@@ -2425,11 +2413,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             ];
         
         
-        % TEMP output fascicle data
+        % TMP output fascicle data
 %        all_GMfas_output(line,:) = [trial_GMfas_length MTU_length_array(1,col_GMmsc_Fukunaga) max(MTU_length_array(:,col_GMmsc_Fukunaga)) out_ROM_trial_max];
         %%
 
-        save all_data_passive_inloop
+        
         
     end
     %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2446,18 +2434,15 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         CON_angle_vars_norm(CON_count+1:end) = [];
         CON_prone(CON_count+1:end,:) = [];
     else % intervention study
-        STR_PRE_angle_vars(STR_PRE_count+1:end) = [];
-        STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
-        STR_PRE_prone(STR_PRE_count+1:end,:) = [];
-        STR_POST_angle_vars(STR_POST_count+1:end) = [];
-        STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
-        STR_POST_prone(STR_POST_count+1:end,:) = [];
         CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
         CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
-        CON_PRE_prone(CON_PRE_count+1:end,:) = [];
         CON_POST_angle_vars(CON_POST_count+1:end) = [];
         CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
-        CON_POST_prone(CON_POST_count+1:end,:) = [];
+        STR_PRE_angle_vars(STR_PRE_count+1:end) = [];
+        STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
+        STR_POST_angle_vars(STR_POST_count+1:end) = [];
+        STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
+        % MMM TODO - add prone?
     end
     %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -2484,7 +2469,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         csvwrite(filename_output, all_passive_output)
     end
     
-    % TEMP output fascicle data
+    % TMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2671,36 +2656,29 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         end
         
         % create table headers (subject numbers)
-        
         % pre and post values
         out_arrays_headers{1+STR_PRE_count+STR_POST_count+CON_PRE_count+CON_POST_count} = [];
-        
         out_arrays_headers{1} = 'Joint_angle';
         for i=1:STR_PRE_count
-            out_arrays_headers{i+1} = STR_PRE_ID{i};
-        end
-        for i=1:CON_PRE_count
-            out_arrays_headers{i+1+STR_PRE_count} = CON_PRE_ID{i};
+            out_arrays_headers{i+1} = strcat('STR_PRE_', num2str(STR_PRE_no(i)));
         end
         for i=1:STR_POST_count
-            out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count} = STR_POST_ID{i};
+            out_arrays_headers{i+1+STR_PRE_count} = strcat('STR_POST_', num2str(STR_POST_no(i)));
+        end
+        for i=1:CON_PRE_count
+            out_arrays_headers{i+1+STR_PRE_count+STR_POST_count} = strcat('CON_PRE_', num2str(CON_PRE_no(i)));
         end
         for i=1:CON_POST_count
-            out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count+STR_POST_count} = CON_POST_ID{i};
+            out_arrays_headers{i+1+STR_PRE_count+STR_POST_count+CON_PRE_count} = strcat('CON_POST_', num2str(CON_POST_no(i)));
         end
-        
         % difference values
-        if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
-            % output of pre-post DIFFERENCES requires that trials are analysed in systematic order (does not check which subject-numbers to group)
-            % - but will not be exported unless equal amount of 4 legs/timepoints - rough coding
-            out_arrays_headers_diff{1+STR_PRE_count+CON_PRE_count} = [];
-            out_arrays_headers_diff{1} = 'Joint_angle';
-            for i=1:STR_PRE_count
-                out_arrays_headers_diff{i+1} = strcat('STR_PP_', num2str(STR_PRE_no(i)), '__', num2str(STR_POST_no(i)));
-            end
-            for i=1:CON_PRE_count
-                out_arrays_headers_diff{i+1+STR_PRE_count} = strcat('CON_PP_', num2str(CON_PRE_no(i)), '__',num2str(CON_POST_no(i)));
-            end
+        out_arrays_headers_diff{1+STR_PRE_count+CON_PRE_count} = [];
+        out_arrays_headers_diff{1} = 'Joint_angle';
+        for i=1:STR_PRE_count % rough coding - necessary that all subjects have all timepoints
+            out_arrays_headers_diff{i+1} = strcat('STR_PP_', num2str(STR_PRE_no(i)), '__', num2str(STR_POST_no(i)));
+        end
+        for i=1:CON_PRE_count % rough coding - necessary that all subjects have all timepoints
+            out_arrays_headers_diff{i+1+STR_PRE_count} = strcat('CON_PP_', num2str(CON_PRE_no(i)), '__',num2str(CON_POST_no(i)));
         end
         
         % preallocate output arrays
@@ -2727,7 +2705,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             out_arrays_abs_diff(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
             out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
             
-            % add values: pre and post
+            % pre and post values
             
             % add STR PRE first
             for subj = 1:STR_PRE_count
@@ -2761,23 +2739,22 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
-            % add values: difference between PRE-POST
-            if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
-                % add STR first
-                for subj = 1:STR_PRE_count
-                    % absolute values
-                    out_arrays_abs_diff(:,subj+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                    % normalized values
-                    out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
-                end
-
-                % add CON second
-                for subj = 1:CON_PRE_count
-                    % absolute values
-                    out_arrays_abs_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                    % normalized values
-                    out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
-                end
+            % diff values
+            
+            % add STR first
+            for subj = 1:STR_PRE_count
+                % absolute values
+                out_arrays_abs_diff(:,subj+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+            end
+            
+            % add CON second
+            for subj = 1:CON_PRE_count
+                % absolute values
+                out_arrays_abs_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
+                % normalized values
+                out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % create tables and save as file
@@ -2791,15 +2768,14 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
             
             % difference values
-            if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
-                out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
-                writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
-
-                out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
-                writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
-            end
+            out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
+            
+            out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
+            
             clear out_arrays_abs_table out_arrays_norm_table out_arrays_abs_diff_table out_arrays_norm_diff_table
         end
     end
@@ -2830,7 +2806,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         txt_length = 'Length (% of resting MTU length)';
         
     elseif input_project == 2 && toggle_normalization == 1
-        % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
+        % MMM TODO - normalization for intervention?
     end
     %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -2848,7 +2824,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         CON_prone_mean = mean(CON_prone);
         
         n_o_array_elements = length(CON_angle_vars{1,1}(1,:));
-        
         if BD_count > 0
             % preallocate array
             BD_max(BD_count,n_o_array_elements) = zeros;
@@ -3050,215 +3025,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             
     elseif input_project == 2
         %% intervention study
-        
-        % prone variables
-        STR_PRE_prone_mean = mean(STR_PRE_prone);
-        STR_POST_prone_mean = mean(STR_POST_prone);
-        CON_PRE_prone_mean = mean(CON_PRE_prone);
-        CON_POST_prone_mean = mean(CON_POST_prone);
-        
         n_o_array_elements = max( [length(CON_PRE_angle_vars{1,1}(1,:)) length(STR_PRE_angle_vars{1,1}(1,:)) length(CON_POST_angle_vars{1,1}(1,:)) length(STR_POST_angle_vars{1,1}(1,:))] );
-
-        % STR PRE
-        if STR_PRE_count > 0
-            % preallocate array
-            STR_PRE_max(STR_PRE_count,n_o_array_elements) = zeros;
-    %        STR_PRE_max_norm(STR_PRE_count,n_o_array_elements) = zeros;
-            % collect variables per subject
-            for i = 1:STR_PRE_count % per subject
-                for j = 1:n_o_array_elements % per element in arrays
-                    % OLD: Max values
-    %                STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(:,j));
-    %                STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(:,j));
-                    % NEW: end of array values
-                    STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(end,j));
-     %               STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(end,j));
-                end
-            end
-            % calculate mean and SD of max values across subjects
-            STR_PRE_ROM_mean = mean(STR_PRE_max(:,1));
-            STR_PRE_ROM_SD = std(STR_PRE_max(:,1));
-            STR_PRE_F_mean = mean(STR_PRE_max(:,2));
-            STR_PRE_F_SD = std(STR_PRE_max(:,2));
-            STR_PRE_EMG_gm_mean = nanmean(STR_PRE_max(:,3));
-            STR_PRE_EMG_gm_SD = nanstd(STR_PRE_max(:,3));
-            STR_PRE_EMG_gl_mean = nanmean(STR_PRE_max(:,4));
-            STR_PRE_EMG_gl_SD = nanstd(STR_PRE_max(:,4));
-            STR_PRE_EMG_sol_mean = nanmean(STR_PRE_max(:,5));
-            STR_PRE_EMG_sol_SD = nanstd(STR_PRE_max(:,5));
-
-            STR_PRE_elong_AT_mean = mean(STR_PRE_max(:,6)); % elong AT
-            STR_PRE_elong_AT_SD = std(STR_PRE_max(:,6));
-            STR_PRE_elong_GMtend_mean = mean(STR_PRE_max(:,7)); % elong GM tend
-            STR_PRE_elong_GMtend_SD = std(STR_PRE_max(:,7));
-            STR_PRE_elong_MTU_mean = mean(STR_PRE_max(:,8)); % elong leg
-            STR_PRE_elong_MTU_SD = std(STR_PRE_max(:,8));
-            STR_PRE_displ_GMFAS_mean = mean(STR_PRE_max(:,9));  % GMFAS displ 
-            STR_PRE_displ_GMFAS_SD = std(STR_PRE_max(:,9));
-            STR_PRE_elong_GMapo_mean = mean(STR_PRE_max(:,10)); 
-            STR_PRE_elong_GMapo_SD = std(STR_PRE_max(:,10));
-            STR_PRE_elong_msc_GM_mean = mean(STR_PRE_max(:,11)); % GM msc
-            STR_PRE_elong_msc_GM_SD = std(STR_PRE_max(:,11));
-            STR_PRE_elong_msc_SOL_mean = mean(STR_PRE_max(:,19)); 
-            STR_PRE_elong_msc_SOL_SD = std(STR_PRE_max(:,19));
-
-            STR_PRE_L_at_SOL_mean = mean(STR_PRE_max(:,12)); % L AT
-            STR_PRE_L_at_SOL_SD = std(STR_PRE_max(:,12));
-            STR_PRE_L_at_GM_mean = mean(STR_PRE_max(:,13)); % L GM tend
-            STR_PRE_L_at_GM_SD = std(STR_PRE_max(:,13));
-            STR_PRE_L_MTU_mean = mean(STR_PRE_max(:,14)); % L leg
-            STR_PRE_L_MTU_SD = std(STR_PRE_max(:,14));
-            % no L GMFAS
-            STR_PRE_L_GMapo_mean = mean(STR_PRE_max(:,16)); 
-            STR_PRE_L_GMapo_SD = std(STR_PRE_max(:,16));
-            STR_PRE_L_msc_GM_mean = mean(STR_PRE_max(:,17)); 
-            STR_PRE_L_msc_GM_SD = std(STR_PRE_max(:,17));
-            STR_PRE_L_msc_SOL_mean = mean(STR_PRE_max(:,20)); 
-            STR_PRE_L_msc_SOL_SD = std(STR_PRE_max(:,20));
-
-            STR_PRE_strain_at_SOL_mean = mean(STR_PRE_max(:,21)); % L AT
-            STR_PRE_strain_at_SOL_SD = std(STR_PRE_max(:,21));
-            STR_PRE_strain_at_GM_mean = mean(STR_PRE_max(:,22)); % L GM tend
-            STR_PRE_strain_at_GM_SD = std(STR_PRE_max(:,22));
-            STR_PRE_strain_MTU_mean = mean(STR_PRE_max(:,23)); % L calf
-            STR_PRE_strain_MTU_SD = std(STR_PRE_max(:,23));
-            % no strain GMfas
-            STR_PRE_strain_GMapo_mean = mean(STR_PRE_max(:,25)); 
-            STR_PRE_strain_GMapo_SD = std(STR_PRE_max(:,25));
-            STR_PRE_strain_msc_GM_mean = mean(STR_PRE_max(:,26)); 
-            STR_PRE_strain_msc_GM_SD = std(STR_PRE_max(:,26));
-            STR_PRE_strain_msc_SOL_mean = mean(STR_PRE_max(:,27)); 
-            STR_PRE_strain_msc_SOL_SD = std(STR_PRE_max(:,27));
-
-            STR_PRE_elong_msc_GM_licht_mean = mean(STR_PRE_max(:,28)); 
-            STR_PRE_elong_msc_GM_licht_SD = std(STR_PRE_max(:,28));
-            STR_PRE_elong_tend_GM_licht_mean = mean(STR_PRE_max(:,29)); 
-            STR_PRE_elong_tend_GM_licht_SD = std(STR_PRE_max(:,29));
-            STR_PRE_strain_msc_GM_licht_mean = mean(STR_PRE_max(:,30)); 
-            STR_PRE_strain_msc_GM_licht_SD = std(STR_PRE_max(:,30));
-            STR_PRE_strain_tend_GM_licht_mean = mean(STR_PRE_max(:,31)); 
-            STR_PRE_strain_tend_GM_licht_SD = std(STR_PRE_max(:,31));
-            
-            STR_PRE_length_GMfas_licht_mean = mean(STR_PRE_max(:,32)); 
-            STR_PRE_length_GMfas_licht_SD = std(STR_PRE_max(:,32)); 
-            STR_PRE_pennation_GMfas_licht_mean = mean(STR_PRE_max(:,33)); 
-            STR_PRE_pennation_GMfas_licht_SD = std(STR_PRE_max(:,33)); 
-            STR_PRE_elong_GMfas_licht_mean = mean(STR_PRE_max(:,34)); 
-            STR_PRE_elong_GMfas_licht_SD = std(STR_PRE_max(:,34)); 
-            STR_PRE_strain_GMfas_licht_mean = mean(STR_PRE_max(:,35)); 
-            STR_PRE_strain_GMfas_licht_SD = std(STR_PRE_max(:,35)); 
-
-            STR_PRE_length_msc_GM_licht_mean = mean(STR_PRE_max(:,36)); 
-            STR_PRE_length_msc_GM_licht_SD = std(STR_PRE_max(:,36));
-            STR_PRE_length_tend_GM_licht_mean = mean(STR_PRE_max(:,37)); 
-            STR_PRE_length_tend_GM_licht_SD = std(STR_PRE_max(:,37));
-
-            STR_PRE_torque_mean = mean(STR_PRE_max(:,18));
-            STR_PRE_torque_SD = std(STR_PRE_max(:,18));
-            % determine common angle range
-            STR_PRE_common_ROM = min(STR_PRE_max(:,1));
-        end
-        
-        % STR POST
-        if STR_POST_count > 0
-            % preallocate array
-            STR_POST_max(STR_POST_count,n_o_array_elements) = zeros;
-     %       STR_POST_max_norm(STR_POST_count,n_o_array_elements) = zeros;
-            % collect variables per subject
-            for i = 1:STR_POST_count % per subject
-                for j = 1:n_o_array_elements % per element in arrays
-                    % OLD: Max values
-    %                STR_POST_max(i,j) = max(STR_POST_angle_vars{1,i}(:,j));
-    %                STR_POST_max_norm(i,j) = max(STR_POST_angle_vars_norm{1,i}(:,j));
-                    % NEW: end of array values
-                    STR_POST_max(i,j) = max(STR_POST_angle_vars{1,i}(end,j));
-    %                STR_POST_max_norm(i,j) = max(STR_POST_angle_vars_norm{1,i}(end,j));
-                end
-            end
-            % calculate mean and SD of max values across subjects
-            STR_POST_ROM_mean = mean(STR_POST_max(:,1));
-            STR_POST_ROM_SD = std(STR_POST_max(:,1));
-            STR_POST_F_mean = mean(STR_POST_max(:,2));
-            STR_POST_F_SD = std(STR_POST_max(:,2));
-            STR_POST_EMG_gm_mean = nanmean(STR_POST_max(:,3));
-            STR_POST_EMG_gm_SD = nanstd(STR_POST_max(:,3));
-            STR_POST_EMG_gl_mean = nanmean(STR_POST_max(:,4));
-            STR_POST_EMG_gl_SD = nanstd(STR_POST_max(:,4));
-            STR_POST_EMG_sol_mean = nanmean(STR_POST_max(:,5));
-            STR_POST_EMG_sol_SD = nanstd(STR_POST_max(:,5));
-
-            STR_POST_elong_AT_mean = mean(STR_POST_max(:,6)); % elong AT
-            STR_POST_elong_AT_SD = std(STR_POST_max(:,6));
-            STR_POST_elong_GMtend_mean = mean(STR_POST_max(:,7)); % elong GM tend
-            STR_POST_elong_GMtend_SD = std(STR_POST_max(:,7));
-            STR_POST_elong_MTU_mean = mean(STR_POST_max(:,8)); % elong leg
-            STR_POST_elong_MTU_SD = std(STR_POST_max(:,8));
-            STR_POST_displ_GMFAS_mean = mean(STR_POST_max(:,9));  % GMFAS displ 
-            STR_POST_displ_GMFAS_SD = std(STR_POST_max(:,9));
-            STR_POST_elong_GMapo_mean = mean(STR_POST_max(:,10)); 
-            STR_POST_elong_GMapo_SD = std(STR_POST_max(:,10));
-            STR_POST_elong_msc_GM_mean = mean(STR_POST_max(:,11)); % GM msc
-            STR_POST_elong_msc_GM_SD = std(STR_POST_max(:,11));
-            STR_POST_elong_msc_SOL_mean = mean(STR_POST_max(:,19)); 
-            STR_POST_elong_msc_SOL_SD = std(STR_POST_max(:,19));
-
-            STR_POST_L_at_SOL_mean = mean(STR_POST_max(:,12)); % L AT
-            STR_POST_L_at_SOL_SD = std(STR_POST_max(:,12));
-            STR_POST_L_at_GM_mean = mean(STR_POST_max(:,13)); % L GM tend
-            STR_POST_L_at_GM_SD = std(STR_POST_max(:,13));
-            STR_POST_L_MTU_mean = mean(STR_POST_max(:,14)); % L leg
-            STR_POST_L_MTU_SD = std(STR_POST_max(:,14));
-            % no L GMFAS
-            STR_POST_L_GMapo_mean = mean(STR_POST_max(:,16)); 
-            STR_POST_L_GMapo_SD = std(STR_POST_max(:,16));
-            STR_POST_L_msc_GM_mean = mean(STR_POST_max(:,17)); 
-            STR_POST_L_msc_GM_SD = std(STR_POST_max(:,17));
-            STR_POST_L_msc_SOL_mean = mean(STR_POST_max(:,20)); 
-            STR_POST_L_msc_SOL_SD = std(STR_POST_max(:,20));
-
-            STR_POST_strain_at_SOL_mean = mean(STR_POST_max(:,21)); % L AT
-            STR_POST_strain_at_SOL_SD = std(STR_POST_max(:,21));
-            STR_POST_strain_at_GM_mean = mean(STR_POST_max(:,22)); % L GM tend
-            STR_POST_strain_at_GM_SD = std(STR_POST_max(:,22));
-            STR_POST_strain_MTU_mean = mean(STR_POST_max(:,23)); % L calf
-            STR_POST_strain_MTU_SD = std(STR_POST_max(:,23));
-            % no strain GMfas
-            STR_POST_strain_GMapo_mean = mean(STR_POST_max(:,25)); 
-            STR_POST_strain_GMapo_SD = std(STR_POST_max(:,25));
-            STR_POST_strain_msc_GM_mean = mean(STR_POST_max(:,26)); 
-            STR_POST_strain_msc_GM_SD = std(STR_POST_max(:,26));
-            STR_POST_strain_msc_SOL_mean = mean(STR_POST_max(:,27)); 
-            STR_POST_strain_msc_SOL_SD = std(STR_POST_max(:,27));
-
-            STR_POST_elong_msc_GM_licht_mean = mean(STR_POST_max(:,28)); 
-            STR_POST_elong_msc_GM_licht_SD = std(STR_POST_max(:,28));
-            STR_POST_elong_tend_GM_licht_mean = mean(STR_POST_max(:,29)); 
-            STR_POST_elong_tend_GM_licht_SD = std(STR_POST_max(:,29));
-            STR_POST_strain_msc_GM_licht_mean = mean(STR_POST_max(:,30)); 
-            STR_POST_strain_msc_GM_licht_SD = std(STR_POST_max(:,30));
-            STR_POST_strain_tend_GM_licht_mean = mean(STR_POST_max(:,31)); 
-            STR_POST_strain_tend_GM_licht_SD = std(STR_POST_max(:,31));
-
-            STR_POST_length_GMfas_licht_mean = mean(STR_POST_max(:,32)); 
-            STR_POST_length_GMfas_licht_SD = std(STR_POST_max(:,32)); 
-            STR_POST_pennation_GMfas_licht_mean = mean(STR_POST_max(:,33)); 
-            STR_POST_pennation_GMfas_licht_SD = std(STR_POST_max(:,33)); 
-            STR_POST_elong_GMfas_licht_mean = mean(STR_POST_max(:,34)); 
-            STR_POST_elong_GMfas_licht_SD = std(STR_POST_max(:,34)); 
-            STR_POST_strain_GMfas_licht_mean = mean(STR_POST_max(:,35)); 
-            STR_POST_strain_GMfas_licht_SD = std(STR_POST_max(:,35)); 
-
-            STR_POST_length_msc_GM_licht_mean = mean(STR_POST_max(:,36)); 
-            STR_POST_length_msc_GM_licht_SD = std(STR_POST_max(:,36));
-            STR_POST_length_tend_GM_licht_mean = mean(STR_POST_max(:,37)); 
-            STR_POST_length_tend_GM_licht_SD = std(STR_POST_max(:,37));
-
-            STR_POST_torque_mean = mean(STR_POST_max(:,18));
-            STR_POST_torque_SD = std(STR_POST_max(:,18));
-            % determine common angle range
-            STR_POST_common_ROM = min(STR_POST_max(:,1));
-        end
-        
         % CON PRE
         if CON_PRE_count > 0
             % preallocate array
@@ -3358,7 +3125,105 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             % determine common angle range
             CON_PRE_common_ROM = min(CON_PRE_max(:,1));
         end
+        % STR PRE
+        if STR_PRE_count > 0
+            % preallocate array
+            STR_PRE_max(STR_PRE_count,n_o_array_elements) = zeros;
+    %        STR_PRE_max_norm(STR_PRE_count,n_o_array_elements) = zeros;
+            % collect variables per subject
+            for i = 1:STR_PRE_count % per subject
+                for j = 1:n_o_array_elements % per element in arrays
+                    % OLD: Max values
+    %                STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(:,j));
+    %                STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(:,j));
+                    % NEW: end of array values
+                    STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(end,j));
+     %               STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(end,j));
+                end
+            end
+            % calculate mean and SD of max values across subjects
+            STR_PRE_ROM_mean = mean(STR_PRE_max(:,1));
+            STR_PRE_ROM_SD = std(STR_PRE_max(:,1));
+            STR_PRE_F_mean = mean(STR_PRE_max(:,2));
+            STR_PRE_F_SD = std(STR_PRE_max(:,2));
+            STR_PRE_EMG_gm_mean = nanmean(STR_PRE_max(:,3));
+            STR_PRE_EMG_gm_SD = nanstd(STR_PRE_max(:,3));
+            STR_PRE_EMG_gl_mean = nanmean(STR_PRE_max(:,4));
+            STR_PRE_EMG_gl_SD = nanstd(STR_PRE_max(:,4));
+            STR_PRE_EMG_sol_mean = nanmean(STR_PRE_max(:,5));
+            STR_PRE_EMG_sol_SD = nanstd(STR_PRE_max(:,5));
 
+            STR_PRE_elong_AT_mean = mean(STR_PRE_max(:,6)); % elong AT
+            STR_PRE_elong_AT_SD = std(STR_PRE_max(:,6));
+            STR_PRE_elong_GMtend_mean = mean(STR_PRE_max(:,7)); % elong GM tend
+            STR_PRE_elong_GMtend_SD = std(STR_PRE_max(:,7));
+            STR_PRE_elong_MTU_mean = mean(STR_PRE_max(:,8)); % elong leg
+            STR_PRE_elong_MTU_SD = std(STR_PRE_max(:,8));
+            STR_PRE_displ_GMFAS_mean = mean(STR_PRE_max(:,9));  % GMFAS displ 
+            STR_PRE_displ_GMFAS_SD = std(STR_PRE_max(:,9));
+            STR_PRE_elong_GMapo_mean = mean(STR_PRE_max(:,10)); 
+            STR_PRE_elong_GMapo_SD = std(STR_PRE_max(:,10));
+            STR_PRE_elong_msc_GM_mean = mean(STR_PRE_max(:,11)); % GM msc
+            STR_PRE_elong_msc_GM_SD = std(STR_PRE_max(:,11));
+            STR_PRE_elong_msc_SOL_mean = mean(STR_PRE_max(:,19)); 
+            STR_PRE_elong_msc_SOL_SD = std(STR_PRE_max(:,19));
+
+            STR_PRE_L_at_SOL_mean = mean(STR_PRE_max(:,12)); % L AT
+            STR_PRE_L_at_SOL_SD = std(STR_PRE_max(:,12));
+            STR_PRE_L_at_GM_mean = mean(STR_PRE_max(:,13)); % L GM tend
+            STR_PRE_L_at_GM_SD = std(STR_PRE_max(:,13));
+            STR_PRE_L_MTU_mean = mean(STR_PRE_max(:,14)); % L leg
+            STR_PRE_L_MTU_SD = std(STR_PRE_max(:,14));
+            % no L GMFAS
+            STR_PRE_L_GMapo_mean = mean(STR_PRE_max(:,16)); 
+            STR_PRE_L_GMapo_SD = std(STR_PRE_max(:,16));
+            STR_PRE_L_msc_GM_mean = mean(STR_PRE_max(:,17)); 
+            STR_PRE_L_msc_GM_SD = std(STR_PRE_max(:,17));
+            STR_PRE_L_msc_SOL_mean = mean(STR_PRE_max(:,20)); 
+            STR_PRE_L_msc_SOL_SD = std(STR_PRE_max(:,20));
+
+            STR_PRE_strain_at_SOL_mean = mean(STR_PRE_max(:,21)); % L AT
+            STR_PRE_strain_at_SOL_SD = std(STR_PRE_max(:,21));
+            STR_PRE_strain_at_GM_mean = mean(STR_PRE_max(:,22)); % L GM tend
+            STR_PRE_strain_at_GM_SD = std(STR_PRE_max(:,22));
+            STR_PRE_strain_MTU_mean = mean(STR_PRE_max(:,23)); % L calf
+            STR_PRE_strain_MTU_SD = std(STR_PRE_max(:,23));
+            % no strain GMfas
+            STR_PRE_strain_GMapo_mean = mean(STR_PRE_max(:,25)); 
+            STR_PRE_strain_GMapo_SD = std(STR_PRE_max(:,25));
+            STR_PRE_strain_msc_GM_mean = mean(STR_PRE_max(:,26)); 
+            STR_PRE_strain_msc_GM_SD = std(STR_PRE_max(:,26));
+            STR_PRE_strain_msc_SOL_mean = mean(STR_PRE_max(:,27)); 
+            STR_PRE_strain_msc_SOL_SD = std(STR_PRE_max(:,27));
+
+            STR_PRE_elong_msc_GM_licht_mean = mean(STR_PRE_max(:,28)); 
+            STR_PRE_elong_msc_GM_licht_SD = std(STR_PRE_max(:,28));
+            STR_PRE_elong_tend_GM_licht_mean = mean(STR_PRE_max(:,29)); 
+            STR_PRE_elong_tend_GM_licht_SD = std(STR_PRE_max(:,29));
+            STR_PRE_strain_msc_GM_licht_mean = mean(STR_PRE_max(:,30)); 
+            STR_PRE_strain_msc_GM_licht_SD = std(STR_PRE_max(:,30));
+            STR_PRE_strain_tend_GM_licht_mean = mean(STR_PRE_max(:,31)); 
+            STR_PRE_strain_tend_GM_licht_SD = std(STR_PRE_max(:,31));
+            
+            STR_PRE_length_GMfas_licht_mean = mean(STR_PRE_max(:,32)); 
+            STR_PRE_length_GMfas_licht_SD = std(STR_PRE_max(:,32)); 
+            STR_PRE_pennation_GMfas_licht_mean = mean(STR_PRE_max(:,33)); 
+            STR_PRE_pennation_GMfas_licht_SD = std(STR_PRE_max(:,33)); 
+            STR_PRE_elong_GMfas_licht_mean = mean(STR_PRE_max(:,34)); 
+            STR_PRE_elong_GMfas_licht_SD = std(STR_PRE_max(:,34)); 
+            STR_PRE_strain_GMfas_licht_mean = mean(STR_PRE_max(:,35)); 
+            STR_PRE_strain_GMfas_licht_SD = std(STR_PRE_max(:,35)); 
+
+            STR_PRE_length_msc_GM_licht_mean = mean(STR_PRE_max(:,36)); 
+            STR_PRE_length_msc_GM_licht_SD = std(STR_PRE_max(:,36));
+            STR_PRE_length_tend_GM_licht_mean = mean(STR_PRE_max(:,37)); 
+            STR_PRE_length_tend_GM_licht_SD = std(STR_PRE_max(:,37));
+
+            STR_PRE_torque_mean = mean(STR_PRE_max(:,18));
+            STR_PRE_torque_SD = std(STR_PRE_max(:,18));
+            % determine common angle range
+            STR_PRE_common_ROM = min(STR_PRE_max(:,1));
+        end
         % CON POST
         if CON_POST_count > 0
             % preallocate array
@@ -3458,7 +3323,105 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             % determine common angle range
             CON_POST_common_ROM = min(CON_POST_max(:,1));
         end
+        % STR POST
+        if STR_POST_count > 0
+            % preallocate array
+            STR_POST_max(STR_POST_count,n_o_array_elements) = zeros;
+     %       STR_POST_max_norm(STR_POST_count,n_o_array_elements) = zeros;
+            % collect variables per subject
+            for i = 1:STR_POST_count % per subject
+                for j = 1:n_o_array_elements % per element in arrays
+                    % OLD: Max values
+    %                STR_POST_max(i,j) = max(STR_POST_angle_vars{1,i}(:,j));
+    %                STR_POST_max_norm(i,j) = max(STR_POST_angle_vars_norm{1,i}(:,j));
+                    % NEW: end of array values
+                    STR_POST_max(i,j) = max(STR_POST_angle_vars{1,i}(end,j));
+    %                STR_POST_max_norm(i,j) = max(STR_POST_angle_vars_norm{1,i}(end,j));
+                end
+            end
+            % calculate mean and SD of max values across subjects
+            STR_POST_ROM_mean = mean(STR_POST_max(:,1));
+            STR_POST_ROM_SD = std(STR_POST_max(:,1));
+            STR_POST_F_mean = mean(STR_POST_max(:,2));
+            STR_POST_F_SD = std(STR_POST_max(:,2));
+            STR_POST_EMG_gm_mean = nanmean(STR_POST_max(:,3));
+            STR_POST_EMG_gm_SD = nanstd(STR_POST_max(:,3));
+            STR_POST_EMG_gl_mean = nanmean(STR_POST_max(:,4));
+            STR_POST_EMG_gl_SD = nanstd(STR_POST_max(:,4));
+            STR_POST_EMG_sol_mean = nanmean(STR_POST_max(:,5));
+            STR_POST_EMG_sol_SD = nanstd(STR_POST_max(:,5));
 
+            STR_POST_elong_AT_mean = mean(STR_POST_max(:,6)); % elong AT
+            STR_POST_elong_AT_SD = std(STR_POST_max(:,6));
+            STR_POST_elong_GMtend_mean = mean(STR_POST_max(:,7)); % elong GM tend
+            STR_POST_elong_GMtend_SD = std(STR_POST_max(:,7));
+            STR_POST_elong_MTU_mean = mean(STR_POST_max(:,8)); % elong leg
+            STR_POST_elong_MTU_SD = std(STR_POST_max(:,8));
+            STR_POST_displ_GMFAS_mean = mean(STR_POST_max(:,9));  % GMFAS displ 
+            STR_POST_displ_GMFAS_SD = std(STR_POST_max(:,9));
+            STR_POST_elong_GMapo_mean = mean(STR_POST_max(:,10)); 
+            STR_POST_elong_GMapo_SD = std(STR_POST_max(:,10));
+            STR_POST_elong_msc_GM_mean = mean(STR_POST_max(:,11)); % GM msc
+            STR_POST_elong_msc_GM_SD = std(STR_POST_max(:,11));
+            STR_POST_elong_msc_SOL_mean = mean(STR_POST_max(:,19)); 
+            STR_POST_elong_msc_SOL_SD = std(STR_POST_max(:,19));
+
+            STR_POST_L_at_SOL_mean = mean(STR_POST_max(:,12)); % L AT
+            STR_POST_L_at_SOL_SD = std(STR_POST_max(:,12));
+            STR_POST_L_at_GM_mean = mean(STR_POST_max(:,13)); % L GM tend
+            STR_POST_L_at_GM_SD = std(STR_POST_max(:,13));
+            STR_POST_L_MTU_mean = mean(STR_POST_max(:,14)); % L leg
+            STR_POST_L_MTU_SD = std(STR_POST_max(:,14));
+            % no L GMFAS
+            STR_POST_L_GMapo_mean = mean(STR_POST_max(:,16)); 
+            STR_POST_L_GMapo_SD = std(STR_POST_max(:,16));
+            STR_POST_L_msc_GM_mean = mean(STR_POST_max(:,17)); 
+            STR_POST_L_msc_GM_SD = std(STR_POST_max(:,17));
+            STR_POST_L_msc_SOL_mean = mean(STR_POST_max(:,20)); 
+            STR_POST_L_msc_SOL_SD = std(STR_POST_max(:,20));
+
+            STR_POST_strain_at_SOL_mean = mean(STR_POST_max(:,21)); % L AT
+            STR_POST_strain_at_SOL_SD = std(STR_POST_max(:,21));
+            STR_POST_strain_at_GM_mean = mean(STR_POST_max(:,22)); % L GM tend
+            STR_POST_strain_at_GM_SD = std(STR_POST_max(:,22));
+            STR_POST_strain_MTU_mean = mean(STR_POST_max(:,23)); % L calf
+            STR_POST_strain_MTU_SD = std(STR_POST_max(:,23));
+            % no strain GMfas
+            STR_POST_strain_GMapo_mean = mean(STR_POST_max(:,25)); 
+            STR_POST_strain_GMapo_SD = std(STR_POST_max(:,25));
+            STR_POST_strain_msc_GM_mean = mean(STR_POST_max(:,26)); 
+            STR_POST_strain_msc_GM_SD = std(STR_POST_max(:,26));
+            STR_POST_strain_msc_SOL_mean = mean(STR_POST_max(:,27)); 
+            STR_POST_strain_msc_SOL_SD = std(STR_POST_max(:,27));
+
+            STR_POST_elong_msc_GM_licht_mean = mean(STR_POST_max(:,28)); 
+            STR_POST_elong_msc_GM_licht_SD = std(STR_POST_max(:,28));
+            STR_POST_elong_tend_GM_licht_mean = mean(STR_POST_max(:,29)); 
+            STR_POST_elong_tend_GM_licht_SD = std(STR_POST_max(:,29));
+            STR_POST_strain_msc_GM_licht_mean = mean(STR_POST_max(:,30)); 
+            STR_POST_strain_msc_GM_licht_SD = std(STR_POST_max(:,30));
+            STR_POST_strain_tend_GM_licht_mean = mean(STR_POST_max(:,31)); 
+            STR_POST_strain_tend_GM_licht_SD = std(STR_POST_max(:,31));
+
+            STR_POST_length_GMfas_licht_mean = mean(STR_POST_max(:,32)); 
+            STR_POST_length_GMfas_licht_SD = std(STR_POST_max(:,32)); 
+            STR_POST_pennation_GMfas_licht_mean = mean(STR_POST_max(:,33)); 
+            STR_POST_pennation_GMfas_licht_SD = std(STR_POST_max(:,33)); 
+            STR_POST_elong_GMfas_licht_mean = mean(STR_POST_max(:,34)); 
+            STR_POST_elong_GMfas_licht_SD = std(STR_POST_max(:,34)); 
+            STR_POST_strain_GMfas_licht_mean = mean(STR_POST_max(:,35)); 
+            STR_POST_strain_GMfas_licht_SD = std(STR_POST_max(:,35)); 
+
+            STR_POST_length_msc_GM_licht_mean = mean(STR_POST_max(:,36)); 
+            STR_POST_length_msc_GM_licht_SD = std(STR_POST_max(:,36));
+            STR_POST_length_tend_GM_licht_mean = mean(STR_POST_max(:,37)); 
+            STR_POST_length_tend_GM_licht_SD = std(STR_POST_max(:,37));
+
+            STR_POST_torque_mean = mean(STR_POST_max(:,18));
+            STR_POST_torque_SD = std(STR_POST_max(:,18));
+            % determine common angle range
+            STR_POST_common_ROM = min(STR_POST_max(:,1));
+        end
         %%    
     end
     %% GROUP CALCULATIONS - NUMBERS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3535,6 +3498,42 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     elseif input_project == 2
         %% intervention
         
+        if CON_PRE_count > 0
+            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
+            
+            % preallocate
+            len = 10000;
+            for i = 1:CON_PRE_count
+                if length(CON_PRE_angle_vars{:,i}) < len
+                    len = length(CON_PRE_angle_vars{:,i});
+                end
+            end
+            CON_PRE_angle_vars_mean_tmp(len,n_o_array_elements,CON_PRE_count) = zeros;
+
+            % CON_PRE_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
+            loc_end = find(CON_PRE_angle_vars{1,CON_PRE_count}(:,1) >= (CON_PRE_common_ROM - 0.00001), 1, 'first'); % using last subject (CON_PRE_count) - could use any, angle is the same in all
+            for i = 1:CON_PRE_count
+                CON_PRE_angle_vars_mean_tmp(:,:,i) = CON_PRE_angle_vars{i}(1:loc_end,:);
+            end
+            CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
+            %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
+            
+            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+            
+            % preallocate
+            CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
+
+            % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+            for i = 1:CON_PRE_count
+                CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
+            end
+            CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
+            
+            %%% clean up
+            clear CON_PRE_angle_vars_mean_tmp CON_PRE_angle_vars_norm_mean_tmp
+        end
+
+        
         if STR_PRE_count > 0
             %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
 
@@ -3569,79 +3568,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             %%% clean up
 
             clear STR_PRE_angle_vars_mean_tmp STR_PRE_angle_vars_norm_mean_tmp
-        end
-        
-        
-        if STR_POST_count > 0
-            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
-
-            % preallocate
-            len = 10000;
-            for i = 1:STR_POST_count
-                if length(STR_POST_angle_vars{:,i}) < len
-                    len = length(STR_POST_angle_vars{:,i});
-                end
-            end
-            STR_POST_angle_vars_mean_tmp(len,n_o_array_elements,STR_POST_count) = zeros;
-
-            % STR_POST_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
-            loc_end = find(STR_POST_angle_vars{1,STR_POST_count}(:,1) >= (STR_POST_common_ROM - 0.00001), 1, 'first'); % using last subject (STR_POST_count) - could use any, angle is the same in all
-            for i = 1:STR_POST_count
-                STR_POST_angle_vars_mean_tmp(:,:,i) = STR_POST_angle_vars{i}(1:loc_end,:);
-            end
-            STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
-            %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
-
-            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-            % preallocate
-            STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
-
-            % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-            for i = 1:STR_POST_count
-                STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
-            end
-            STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
-
-            %%% clean up
-
-            clear STR_POST_angle_vars_mean_tmp STR_POST_angle_vars_norm_mean_tmp
-        end
-        
-        
-        if CON_PRE_count > 0
-            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
-            
-            % preallocate
-            len = 10000;
-            for i = 1:CON_PRE_count
-                if length(CON_PRE_angle_vars{:,i}) < len
-                    len = length(CON_PRE_angle_vars{:,i});
-                end
-            end
-            CON_PRE_angle_vars_mean_tmp(len,n_o_array_elements,CON_PRE_count) = zeros;
-
-            % CON_PRE_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
-            loc_end = find(CON_PRE_angle_vars{1,CON_PRE_count}(:,1) >= (CON_PRE_common_ROM - 0.00001), 1, 'first'); % using last subject (CON_PRE_count) - could use any, angle is the same in all
-            for i = 1:CON_PRE_count
-                CON_PRE_angle_vars_mean_tmp(:,:,i) = CON_PRE_angle_vars{i}(1:loc_end,:);
-            end
-            CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
-            %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
-            
-            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-            
-            % preallocate
-            CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
-
-            % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-            for i = 1:CON_PRE_count
-                CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
-            end
-            CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
-            
-            %%% clean up
-            clear CON_PRE_angle_vars_mean_tmp CON_PRE_angle_vars_norm_mean_tmp
         end
 
         
@@ -3681,6 +3607,42 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             clear CON_POST_angle_vars_mean_tmp CON_POST_angle_vars_norm_mean_tmp
         end
 
+        
+        if STR_POST_count > 0
+            %%% average ABSOLUTE arrays, up to all subjects' COMMON MAX ROM, for force, elong, EMG
+
+            % preallocate
+            len = 10000;
+            for i = 1:STR_POST_count
+                if length(STR_POST_angle_vars{:,i}) < len
+                    len = length(STR_POST_angle_vars{:,i});
+                end
+            end
+            STR_POST_angle_vars_mean_tmp(len,n_o_array_elements,STR_POST_count) = zeros;
+
+            % STR_POST_angle_vars has same angles (column 1) for all subjects, so max common ROM will be on the same line for all subjects
+            loc_end = find(STR_POST_angle_vars{1,STR_POST_count}(:,1) >= (STR_POST_common_ROM - 0.00001), 1, 'first'); % using last subject (STR_POST_count) - could use any, angle is the same in all
+            for i = 1:STR_POST_count
+                STR_POST_angle_vars_mean_tmp(:,:,i) = STR_POST_angle_vars{i}(1:loc_end,:);
+            end
+            STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
+            %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
+
+            %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+
+            % preallocate
+            STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
+
+            % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+            for i = 1:STR_POST_count
+                STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
+            end
+            STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
+
+            %%% clean up
+
+            clear STR_POST_angle_vars_mean_tmp STR_POST_angle_vars_norm_mean_tmp
+        end
         %%
     end
     %% GROUP CALCULATIONS - ARRAYS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4964,7 +4926,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             end
             
 
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 1');
                 figure('Name',plottitle)
@@ -5028,7 +4990,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
                 figure('Name',plottitle)
@@ -5076,7 +5038,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_BD ',plottitle),'-dpng')
             end
             
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE / GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if BD_count > 1 && CON_count > 1 && plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 1');
                 figure('Name',plottitle)
@@ -5136,8 +5098,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_ROM_SD, 'b.')
                 errorbar(BD_ROM_mean, BD_length_GMfas_licht_mean, BD_length_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 errorbar(CON_ROM_mean, CON_length_GMfas_licht_mean, CON_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMapo_and_faslen_and_faslen),'ro')     
-                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMapo_and_faslen),'bo')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMapo),'ro') % GMapo contains faslen
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMapo),'bo')
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -5157,7 +5119,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMapo_and_faslen),'o')    
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMapo),'o') % GMapo contains faslen
                 end
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
@@ -5177,7 +5139,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_count
-                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMapo_and_faslen),'o')
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMapo),'o') % GMapo contains faslen
                 end
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
@@ -5296,8 +5258,8 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_ROM_SD, 'b.')
                 errorbar(BD_ROM_mean, BD_pennation_GMfas_licht_mean, BD_pennation_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 errorbar(CON_ROM_mean, CON_pennation_GMfas_licht_mean, CON_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMFAS_and_penn_ang),'ro')
-                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMFAS_and_penn_ang),'bo')
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_GMFAS),'ro') % GMfas contains penn angle
+                plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_GMFAS),'bo')
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
@@ -5317,7 +5279,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMFAS_and_penn_ang),'o')
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_GMFAS),'o') % GMfas contains penn angle
                 end
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
@@ -5337,7 +5299,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_count
-                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMFAS_and_penn_ang),'o')
+                    plot(CON_prone(i,col_angle_MTU),CON_prone(i,col_GMFAS),'o') % GMfas contains penn angle
                 end
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
@@ -5362,7 +5324,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 errorbar(CON_ROM_mean, CON_L_MTU_mean, CON_L_MTU_SD, 'b.', 'MarkerFaceColor', 'b')
                 herrorbar(BD_ROM_mean, BD_L_MTU_mean, BD_ROM_SD, 'r.')
                 herrorbar(CON_ROM_mean, CON_L_MTU_mean, CON_ROM_SD, 'b.')
-                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_leg),'ro')    
+                plot(BD_prone_mean(col_angle_MTU),BD_prone_mean(col_leg),'ro')
                 plot(CON_prone_mean(col_angle_MTU),CON_prone_mean(col_leg),'bo')
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
@@ -5382,7 +5344,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:BD_count
-                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_leg),'o')   
+                    plot(BD_prone(i,col_angle_MTU),BD_prone(i,col_leg),'o')
                 end
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
@@ -5463,8 +5425,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             end
             
             %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % MTU strain plots simply show the Grieve calculation factor
-            % removed from output through toggle "plot_old"
+            % commenting out MTU strain plots since they simply show the Grieve calculation factor
             if BD_count > 1 && CON_count > 1 && plot_check && plot_old
                 plottitle = horzcat('MTU strain vs angle - 4 NORMALIZED');
                 figure('Name',plottitle)
@@ -5851,11 +5812,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % the following plots require that trials are analysed in systematic order (does not check which subject-numbers to group)
-            % - but will not be plot unless equal amount of 4 legs/timepoints - rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('force vs angle - SUBJECT ', CON_PRE_ID{i}, ' PRE-POST');
+                    plottitle = horzcat('force vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5956,10 +5917,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND torque vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND torque vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6041,10 +6003,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT length vs angle - SUBJECT ',CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6126,10 +6089,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6211,10 +6175,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6296,10 +6261,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6381,10 +6347,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6466,10 +6433,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6551,10 +6519,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6636,10 +6605,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6721,10 +6691,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6806,10 +6777,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6891,10 +6863,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6976,10 +6949,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7061,10 +7035,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7146,10 +7121,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7231,10 +7207,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7272,11 +7249,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMmsc_Fukunaga),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMmsc_Fukunaga),'bo')
-                
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7296,15 +7268,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,36))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMmsc_Fukunaga),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMmsc_Fukunaga),'o')
-                end
-
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7323,15 +7286,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,36))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMmsc_Fukunaga),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMmsc_Fukunaga),'o')
-                end
-                
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7340,10 +7294,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7425,10 +7380,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7510,10 +7466,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7530,7 +7487,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
             end
             
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% GM TENDON Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 1');
                 figure('Name',plottitle)
@@ -7550,11 +7507,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_SEE_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_SEE_Fukunaga),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_SEE_Fukunaga),'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_SEE_Fukunaga),'bo')
-
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7574,15 +7526,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,37))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_SEE_Fukunaga),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_SEE_Fukunaga),'o')
-                end
-                
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7601,15 +7544,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,37))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_SEE_Fukunaga),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_SEE_Fukunaga),'o')
-                end
-                
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
@@ -7618,10 +7552,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7629,16 +7564,16 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                     plot(STR_POST_angle_vars{1,i}(:,1), STR_POST_angle_vars{1,i}(:,37),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,1), CON_PRE_angle_vars{1,i}(:,37),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,1), CON_POST_angle_vars{1,i}(:,37),'b','LineStyle','-','LineWidth',1)
-                    axis(axis_len_SEE_arch)
-                    xlabel(txt_gonio)
-                    ylabel(txt_elong)
+                axis(axis_len_SEE_arch)
+                xlabel(txt_gonio)
+                ylabel(txt_elong)
                     title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
 
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% GM TENDON Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
                 figure('Name',plottitle)
@@ -7703,10 +7638,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7723,7 +7659,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
             end
 
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% GM TENDON Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 1');
                 figure('Name',plottitle)
@@ -7788,10 +7724,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7829,11 +7766,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMapo_and_faslen), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMapo_and_faslen),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMapo_and_faslen), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMapo_and_faslen),'bo')
-
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -7853,15 +7785,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,32))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMapo_and_faslen),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMapo_and_faslen),'o')
-                end
-                
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -7880,15 +7803,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,32))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMapo_and_faslen),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMapo_and_faslen),'o')
-                end
-                
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -7897,10 +7811,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7982,10 +7897,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8067,10 +7983,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8107,11 +8024,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMFAS_and_penn_ang), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMFAS_and_penn_ang),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMFAS_and_penn_ang), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMFAS_and_penn_ang),'bo')
-                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
@@ -8131,15 +8043,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,33))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMFAS_and_penn_ang),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMFAS_and_penn_ang),'o')
-                end
-                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
@@ -8158,15 +8061,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,33))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMFAS_and_penn_ang),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMFAS_and_penn_ang),'o')
-                end
-                
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
@@ -8175,10 +8069,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM pennation angle vs ankle angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM pennation angle vs ankle angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8217,11 +8112,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 herrorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_leg), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_leg),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_leg), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_leg),'bo')
-
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -8241,15 +8131,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,1),STR_POST_angle_vars{1,i}(:,14))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_leg),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_leg),'o')
-                end
-                
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -8268,15 +8149,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,1),CON_POST_angle_vars{1,i}(:,14))
                 end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_leg),'square')
-                end
-                set(gca,'ColorOrderIndex',1)
-                for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_leg),'o')
-                end
-                
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
@@ -8285,10 +8157,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU length vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8370,10 +8243,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU elongation vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8390,10 +8264,10 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 end
             end
             
+            % commenting out MTU strain plots since they simply show the Grieve calculation factor
+            
             %% Full MTU: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % MTU strain plots simply show the Grieve calculation factor
-            % removed from output through toggle "plot_old"
-            if plot_check && plot_old
+            if plot_check
                 plottitle = horzcat('MTU strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
@@ -8420,7 +8294,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            if plot_check && plot_old
+            if plot_check
                 plottitle = horzcat('MTU strain vs angle - 2 STRETCH PRE-POST');
                 figure('Name',plottitle)
                 hold on
@@ -8438,7 +8312,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 %legend
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
-            if plot_check && plot_old
+            if plot_check
                 plottitle = horzcat('MTU strain vs angle - 3 CONTROL PRE-POST');
                 figure('Name',plottitle)
                 hold on
@@ -8457,10 +8331,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
-            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8542,10 +8417,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND displacement GMFAS vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND displacement GMFAS vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8563,7 +8439,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             end
             
             %% Length +- SD, 3 MTU components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % add LATER if needed - already done for BD study
+            % LATER if needed?
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -8630,10 +8506,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.med. vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG gas.med. vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8715,10 +8592,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.lat. vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG gas.lat. vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -8800,10 +8678,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
-            % rough coding
+            % the following plots require that trials are analysed in
+            % systematic order, and all subjects have all 4 legs/timepoints
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG soleus vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG soleus vs angle - SUBJECT ', num2str(CON_PRE_subject_ID(i)) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

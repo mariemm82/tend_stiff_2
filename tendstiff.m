@@ -2,11 +2,12 @@
 % main file for tendon stiffness
 % Marie Moltubakk 17.5.2013
 % 
-% Run for all trials for which stiffness should be computed at common
-% level + force-elongation plot, together.
-% Separates SOL from GM trials.
+% Computes tendon stiffness at indidividual + common (across all trials) 
+% force level, creates force-elongation plots.
+% Analyses two sets of data in parallell:
+%    "SOL" = free achilles tendon
+%    "GM"  = whole achilles tendon (up to GM MTJ)
 % 
-% Note 1:
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
@@ -18,6 +19,8 @@
 function [] = tendstiff(input_project, input_plot)
     close all
 
+    forceintervals = 50; %VAR - Average stiffness across X N
+    
 
 
     %% PLOTS - determine which plots to display
@@ -43,12 +46,10 @@ function [] = tendstiff(input_project, input_plot)
     plot_us = 0;
     plot_emg = 0;  % RMS 3 EMG channels per trial
 
+    
 
     %% Set constants and globals % PROJECTSPECIFIC
 
-    % Average stiffness across X N
-    forceintervals = 50; %VAR
-    
     % declare for later use:
     % variables for NORM conversion factors calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b % convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
@@ -74,10 +75,10 @@ function [] = tendstiff(input_project, input_plot)
     emg_rms_ms = 100; % milliseconds RMS window, must be divisible by 4 - ref Basmajian 1985 = 50 ms, ref Aagaard paper Passive tensile stress = 200 ms
     mvc_window_ms = 500; % milliseconds window for determining MVC torque and EMG
     global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
-    angle_cutoff = 20/(noraxonfreq/2); % 9/(noraxonfreq/2); % cutoff freq, Norm angle PASSIVE - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
-    angle_cutoff_active = 20/(noraxonfreq/2); %  20/(noraxonfreq/2);
-    velocity_cutoff = 20/(noraxonfreq/2); %  12/(noraxonfreq/2);
-    velocity_cutoff_active = 20/(noraxonfreq/2); %  12/(noraxonfreq/2);
+    angle_cutoff = 10/(noraxonfreq/2); % cutoff freq, Norm angle PASSIVE - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
+    angle_cutoff_active = 20/(noraxonfreq/2); 
+%    velocity_cutoff = 20/(noraxonfreq/2);
+    velocity_cutoff_active = 20/(noraxonfreq/2); 
     torque_cutoff_bandstop = [0.36/(noraxonfreq/2) 0.42/(noraxonfreq/2)]; % bandstop freq to eliminate noise from Norm engine
     torque_cutoff_active = 10/(noraxonfreq/2); % cutoff freq, Norm filtering - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
 
@@ -101,22 +102,23 @@ function [] = tendstiff(input_project, input_plot)
     column_achilles = 15;
 
 
+    
     %% Read datamaster file, to connect corresponding data files
     % Produces arrays with file names and variables per trial, to be retrieved later
 
-    global dm_subjectno dm_timepoint dm_side dm_trial 
+    global dm_subjectno dm_timepoint dm_side dm_trial dm_group
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_leg_length
     global dm_cutforce %new2014-04-14
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
-    dm_columns = 29; % number of data columns entered per subject % PROJECTSPECIFIC %new2014-04-14 - was 28
-    linestotal = read_datamaster(dm_filename,dm_columns);
+    linestotal = read_datamaster_stiff(dm_filename);
 
+    
 
     %% preallocate
-    %preallocate output arrays
+    % common arrays for all subjects:
     all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
         'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
         'Ramp force cutoff (N)', 'Ramp force max (N)', 'PF MVC (N)', ...
@@ -128,8 +130,9 @@ function [] = tendstiff(input_project, input_plot)
     if input_project == 1 % BD study
         BD_SOL_count = 0; % # of ballet dancer subjects
         CON_SOL_count = 0; % # of controls = intervention study subjects
-        BD_GM_count = 0; % # of ballet dancer subjects
-        CON_GM_count = 0; % # of controls = intervention study subjects
+        BD_GM_count = 0;
+        CON_GM_count = 0;
+        
         BD_SOL_no(ceil(linestotal)) = zeros;
         CON_SOL_no(ceil(linestotal)) = zeros;
         BD_GM_no(ceil(linestotal)) = zeros;
@@ -139,12 +142,47 @@ function [] = tendstiff(input_project, input_plot)
         force_elong_SOL_CON = cell(1,ceil(linestotal));
         force_elong_GM_BD = cell(1,ceil(linestotal));
         force_elong_GM_CON = cell(1,ceil(linestotal));
+        
         stiffness_SOL_BD(1:ceil(linestotal),1:5) = NaN;
         stiffness_SOL_CON(1:ceil(linestotal),1:5) = NaN;
         stiffness_GM_BD(1:ceil(linestotal),1:5) = NaN;
         stiffness_GM_CON(1:ceil(linestotal),1:5) = NaN;
-    else
-        %LATER
+    else % intervention
+        STR_PRE_SOL_count = 0;
+        STR_POST_SOL_count = 0;
+        CON_PRE_SOL_count = 0;
+        CON_POST_SOL_count = 0;
+        STR_PRE_GM_count = 0;
+        STR_POST_GM_count = 0;
+        CON_PRE_GM_count = 0;
+        CON_POST_GM_count = 0;
+        
+        STR_PRE_SOL_ID{ceil(linestotal)} = [];
+        STR_POST_SOL_ID{ceil(linestotal)} = [];
+        CON_PRE_SOL_ID{ceil(linestotal)} = [];
+        CON_POST_SOL_ID{ceil(linestotal)} = [];
+        STR_PRE_GM_ID{ceil(linestotal)} = [];
+        STR_POST_GM_ID{ceil(linestotal)} = [];
+        CON_PRE_GM_ID{ceil(linestotal)} = [];
+        CON_POST_GM_ID{ceil(linestotal)} = [];
+        
+        force_elong_STR_PRE_SOL = cell(1,ceil(linestotal));
+        force_elong_STR_POST_SOL = cell(1,ceil(linestotal));
+        force_elong_CON_PRE_SOL = cell(1,ceil(linestotal));
+        force_elong_CON_POST_SOL = cell(1,ceil(linestotal));
+        force_elong_STR_PRE_GM = cell(1,ceil(linestotal));
+        force_elong_STR_POST_GM = cell(1,ceil(linestotal));
+        force_elong_CON_PRE_GM = cell(1,ceil(linestotal));
+        force_elong_CON_POST_GM = cell(1,ceil(linestotal));
+        
+        stiffness_STR_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
+        stiffness_STR_POST_SOL(1:ceil(linestotal),1:5) = NaN;
+        stiffness_CON_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
+        stiffness_CON_POST_SOL(1:ceil(linestotal),1:5) = NaN;
+        stiffness_STR_PRE_GM(1:ceil(linestotal),1:5) = NaN;
+        stiffness_STR_POST_GM(1:ceil(linestotal),1:5) = NaN;
+        stiffness_CON_PRE_GM(1:ceil(linestotal),1:5) = NaN;
+        stiffness_CON_POST_GM(1:ceil(linestotal),1:5) = NaN;
     end
 
     
@@ -161,42 +199,48 @@ function [] = tendstiff(input_project, input_plot)
                 subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
                 if strcmp(dm_trial{line},'SOL')
                     BD_SOL_count = BD_SOL_count + 1;
-                    BD_SOL_no(BD_SOL_count) = str2double(dm_subjectno{line});
+                    BD_SOL_no(BD_SOL_count) = trial_subjectno;
                 else % GM
                     BD_GM_count = BD_GM_count + 1;
-                    BD_GM_no(BD_GM_count) = str2double(dm_subjectno{line});
+                    BD_GM_no(BD_GM_count) = trial_subjectno;
                 end
             else
                 filepath = 'data\';
                 subject_id = horzcat('Control ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
                 if strcmp(dm_trial{line},'SOL')
                     CON_SOL_count = CON_SOL_count + 1;
-                    CON_SOL_no(CON_SOL_count) = str2double(dm_subjectno{line});
+                    CON_SOL_no(CON_SOL_count) = trial_subjectno;
                 else % GM
                     CON_GM_count = CON_GM_count + 1;
-                    CON_GM_no(CON_GM_count) = str2double(dm_subjectno{line});
+                    CON_GM_no(CON_GM_count) = trial_subjectno;
                 end
             end
+
         elseif input_project == 2 % intervention
+            trial_subjectno = str2double(dm_subjectno{line});
+            trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
+            trial_leg = strcmp(dm_side{line},'L'); % 0 = RIGHT, 1 = LEFT
+            trial_location = strcmp(dm_trial{line},'GM'); % 0 = SOL, 1 = GM
+            trial_group = strcmp(dm_group{line},'STR'); % 0 = CON, 1 = STR
             filepath = 'data\';
-            subject_id = horzcat('Intervent ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
-            %LATER
-%             if trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-%                 CON_PRE_count = CON_PRE_count + 1;
-%                 CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
-%                 CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
-%             elseif trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-%                 STR_PRE_count = STR_PRE_count + 1;
-%                 STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
-%             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-%                 CON_POST_count = CON_POST_count + 1;
-%                 CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
-%             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-%                 STR_POST_count = STR_POST_count + 1;
-%                 STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
-%             end
+            subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_group{line}, '_', dm_side{line});
+            
+            % MMM TODO GOON add separation SOL vs GM
+            if trial_timepoint == 0 && trial_location == 1 % PRE, STR
+                STR_PRE_count = STR_PRE_count + 1;
+                STR_PRE_ID{STR_PRE_count} = subject_id;
+            elseif trial_timepoint == 1 && trial_location == 1 % POST, STR
+                STR_POST_count = STR_POST_count + 1;
+                STR_POST_ID{STR_POST_count} = subject_id;
+            elseif trial_timepoint == 0 && trial_location == 0 % PRE, CON
+                CON_PRE_count = CON_PRE_count + 1;
+                CON_PRE_ID{CON_PRE_count} = subject_id;
+            elseif trial_timepoint == 1 && trial_location == 0 % POST, CON
+                CON_POST_count = CON_POST_count + 1;
+                CON_POST_ID{CON_POST_count} = subject_id;
+            end
+            
         end
-        
         cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
 
         

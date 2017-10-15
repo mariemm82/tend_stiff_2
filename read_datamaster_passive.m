@@ -1,6 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % read_datamaster_passive - for combining passive dorsiflexion with US data
 % Marie Moltubakk 4.2.2015
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function out = read_datamaster_passive(file)

@@ -83,13 +83,13 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     % cutoff frequencies for filters
     global emg_bandpass emg_rms_ms mvc_window_ms 
     emg_bandpass = [10/(noraxonfreq/2) 500/(noraxonfreq/2)]; % cutoff frequencies for EMG butterworth bandpass filter
-    emg_rms_ms = 500; % milliseconds RMS window, must be divisible by 4 - ref Basmajian 1985 = 50 ms, ref Aagaard paper Passive tensile stress = 200 ms
+    emg_rms_ms = 100; % milliseconds RMS window, must be divisible by 4 - ref Basmajian 1985 = 50 ms, ref Aagaard paper Passive tensile stress = 200 ms
     mvc_window_ms = 500; % milliseconds window for determining MVC torque and EMG
     global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
-    angle_cutoff = 10/(noraxonfreq/2); % 9/(noraxonfreq/2); % cutoff freq, Norm angle PASSIVE - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
-    angle_cutoff_active = 20/(noraxonfreq/2); %  20/(noraxonfreq/2);
-    velocity_cutoff = 20/(noraxonfreq/2); %  12/(noraxonfreq/2);
-    velocity_cutoff_active = 20/(noraxonfreq/2); %  12/(noraxonfreq/2);
+    angle_cutoff = 10/(noraxonfreq/2); % cutoff freq, Norm angle PASSIVE - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
+    angle_cutoff_active = 20/(noraxonfreq/2);
+    velocity_cutoff = 20/(noraxonfreq/2);
+    velocity_cutoff_active = 20/(noraxonfreq/2);
     torque_cutoff_bandstop = [0.36/(noraxonfreq/2) 0.42/(noraxonfreq/2)]; % bandstop freq to eliminate noise from Norm engine
     torque_cutoff_active = 10/(noraxonfreq/2); % cutoff freq, Norm filtering - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
 

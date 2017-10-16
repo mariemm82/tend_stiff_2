@@ -2,15 +2,16 @@
 % main file for analysis of strength trials (isometric and isokinetic)
 % Marie Moltubakk 26.10.2016
 % 
-% Note 1:
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
 % modified. These lines are marked % PROJECTSPECIFIC
 % 
-% 16.09.15: adapted to read datamaster including "Lichtwark" file names
+% The scripts assume a certain structure for input files from Tracker and
+% Noraxon. I.e. number of and order of EMG and other channels. If these
+% scripts are to be used for other projects, some of the code must be
+% modified. These lines are marked % PROJECTSPECIFIC
 %
-% 03.08.16: INPUT ARGUMENT: pass 0/1/2 for amount of plots (see below)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

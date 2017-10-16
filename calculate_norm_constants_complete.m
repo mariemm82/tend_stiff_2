@@ -99,25 +99,26 @@ if strcmpi(type_of_test,'passive') == 1
     
     
 elseif strcmpi(type_of_test,'stiffness') == 1
-    %% STIFFNESS trials
-    % stiffness analyses only need ANGLE data. Using two CPM trials (from scans on SOL and CALC) for conversion.
+    % NOT USED:
+    % main script for stiffness calls "calculate_angle_constants" directly to
+    % analyse CPM calc + CPM sol.
     
-    % trial 1
-    [convert_ind_angle_a1, convert_ind_angle_b1] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_calc_NX{line}), side);
-    % trial 2
-    [convert_ind_angle_a2, convert_ind_angle_b2] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_sol_NX{line}), side);
-    % average
-    convert_norm_angle_a = mean([convert_ind_angle_a1 convert_ind_angle_a2]);
-    convert_norm_angle_b = mean([convert_ind_angle_b1 convert_ind_angle_b2]);
-    
-    %%% variables that are not needed for stiffness trials:
-    convert_norm_torque_a = 0;
-    convert_norm_torque_b = 0;
-    convert_norm_velocity_a = 0;
-    convert_norm_velocity_b = 0;
-    convert_norm_direction_b = 0;
-    
-    
+%     % stiffness analyses only need ANGLE data. Using two CPM trials (from scans on SOL and CALC) for conversion.
+%     
+%     % trial 1
+%     [convert_ind_angle_a1, convert_ind_angle_b1] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_calc_NX{line}), side);
+%     % trial 2
+%     [convert_ind_angle_a2, convert_ind_angle_b2] = calculate_angle_constants(angle_cutoff, horzcat(filepath, dm_CPM_sol_NX{line}), side);
+%     % average
+%     convert_norm_angle_a = mean([convert_ind_angle_a1 convert_ind_angle_a2]);
+%     convert_norm_angle_b = mean([convert_ind_angle_b1 convert_ind_angle_b2]);
+%     
+%     %%% variables that are not needed for stiffness trials:
+%     convert_norm_torque_a = 0;
+%     convert_norm_torque_b = 0;
+%     convert_norm_velocity_a = 0;
+%     convert_norm_velocity_b = 0;
+%     convert_norm_direction_b = 0;
     
 else
     %% ACTIVE trials

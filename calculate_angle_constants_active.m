@@ -1,6 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculate_angle_constants_active
 % Marie Moltubakk 1.12.2014 / 2.11.2016
+% 
 % Read raw torque data from Norm, filter
 % Produce individual conversion factors for ANGLE from ISOMETRIC trials
 %

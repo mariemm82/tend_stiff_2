@@ -2,15 +2,15 @@
 % main file for analysis of passive dorsiflexion with US
 % Marie Moltubakk 4.2.2015
 % 
+% input argument 1 = project selection (1 = BD, 2 = intervent)
+% input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
+% input argument 3 = but set in beginning of function: toggle_normalization (0 = absolute, 1 = normalized)
+%
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
 % modified. These lines are marked % PROJECTSPECIFIC
 % 
-% input argument 1 = project selection (1 = BD, 2 = intervent)
-% input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
-% input argument 3 = but set in beginning of function: toggle_normalization (0 = absolute, 1 = normalized)
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % MMM TODO!!! change tendon lengths to be based on prone length, not zero angle length?

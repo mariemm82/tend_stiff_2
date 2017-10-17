@@ -6,6 +6,7 @@
 % 
 % PLOTS show elongation up to the common force of 6 trials (to force_array_full)
 % CALCULATIONS - force_elong_array - uses only 90% of lowest force (to force_array_cut, eventually to manual cutoff point set in datamaster)
+% STIFFNESS FIT - uses zero to force_array_cut (eventually manual)
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,8 +32,8 @@ commonforce = min(force_max_trials);
 force_cutoff = 0.9; %VAR - cut off force at 90% of common max
 
 % create array of force values to use for averaging
-force_array_full = (0:forceintervals:commonforce)'; % MMM TODO used for
-force_array_cut = (0:forceintervals:(commonforce*force_cutoff))'; % used for...
+force_array_full = (0:forceintervals:commonforce)';
+force_array_cut = (0:forceintervals:(commonforce*force_cutoff))';
 
 % print to screen: max force from each trial + final cut force
 cprintf('*black', horzcat('Ramps, trials max force: '))
@@ -336,8 +337,8 @@ force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
 
 
 %% curve fitting for stiffness %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % currently stiff fit is NOT forced through zero, but saving plots also through zero
+% sending force_array_full, but utilizing for the fit, only up until loc_cutoff
 [fitresult, gof] = fit_stiffness(tend_elong, force_array_full, loc_cutoff, displ_mtj_mean, displ_otj_mean);
 
 % write stiffness coefficients to screen

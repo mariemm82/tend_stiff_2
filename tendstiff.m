@@ -10,6 +10,7 @@
 % 
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
+% input argument 3 = resume running of loop (0 = start over, 1 = resume)
 % 
 % Stiffness cutoff rules:
 %   1. 6 trials, find lowest produced force
@@ -26,7 +27,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     
-function [] = tendstiff(input_project, input_plot)
+function [] = tendstiff(input_project, input_plot, input_resumerun)
     close all
 
     forceintervals = 50; %VAR - Average stiffness across X N
@@ -47,7 +48,7 @@ function [] = tendstiff(input_project, input_plot)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_conversion = 1;
+        plot_conversion = 0;
         plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
     else
         plot_conversion = 0;
@@ -56,7 +57,6 @@ function [] = tendstiff(input_project, input_plot)
     plot_us = 0;
     plot_emg = 0;  % RMS 3 EMG channels per trial
 
-    
 
     %% Set constants and globals % PROJECTSPECIFIC
 
@@ -111,15 +111,17 @@ function [] = tendstiff(input_project, input_plot)
     column_norm_direction = 14;
     column_achilles = 15;
 
+    % preallocate "line", for reloading if "input_resumerun" == 1
+    line = 0;
     
+
     %% set AXES etc for plots
     col_lightblue = [0.6 0.8 1];
     col_lightred = [1 0.6 0.8];
 
-    
-    %% Read datamaster file, to connect corresponding data files
-    % Produces arrays with file names and variables per trial, to be retrieved later
 
+    %% Read datamaster file (connect corresponding data files) EVENTUALLY resume running of loop
+    % Produces arrays with file names and variables per trial, to be retrieved later
     global dm_subjectno dm_timepoint dm_side dm_trial dm_group
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
@@ -127,86 +129,94 @@ function [] = tendstiff(input_project, input_plot)
     global dm_cutforce %new2014-04-14
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
+    if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
+        load all_data_stiff_inloop
+        line_start = line+1; % all_data_stiff_inloop ended on a line - resume with next line
+        input_resumerun = 1; % overwrite original from all_data_stiff_inloop
+    else
+        line_start = 1;
+    end
     linestotal = read_datamaster_stiff(dm_filename);
 
-    
     %% preallocate
     % common arrays for all subjects:
-    all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
-        'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
-        'Ramp force cutoff (N)', 'Ramp force max (N)', 'PF MVC (N)', ...
-        'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', 'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
-         'AT moment arm (m)', 'Rotation correction (mm/deg)', 'Common force cutoff', 'Common force max'}; % PROJECTSPECIFIC
-    all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
-    all_stiff_output_txt = cell(ceil(linestotal),4);
-
-    if input_project == 1 % BD study
-        BD_SOL_count = 0; % # of ballet dancer subjects
-        CON_SOL_count = 0; % # of controls = intervention study subjects
-        BD_GM_count = 0;
-        CON_GM_count = 0;
-        
-        BD_SOL_no(ceil(linestotal)) = zeros;
-        CON_SOL_no(ceil(linestotal)) = zeros;
-        BD_GM_no(ceil(linestotal)) = zeros;
-        CON_GM_no(ceil(linestotal)) = zeros;
-        
-        force_elong_SOL_BD = cell(1,ceil(linestotal));
-        force_elong_SOL_CON = cell(1,ceil(linestotal));
-        force_elong_GM_BD = cell(1,ceil(linestotal));
-        force_elong_GM_CON = cell(1,ceil(linestotal));
-        
-        stiffness_SOL_BD(1:ceil(linestotal),1:5) = NaN;
-        stiffness_SOL_CON(1:ceil(linestotal),1:5) = NaN;
-        stiffness_GM_BD(1:ceil(linestotal),1:5) = NaN;
-        stiffness_GM_CON(1:ceil(linestotal),1:5) = NaN;
-    else % intervention
-        STR_PRE_SOL_count = 0;
-        STR_POST_SOL_count = 0;
-        CON_PRE_SOL_count = 0;
-        CON_POST_SOL_count = 0;
-        STR_PRE_GM_count = 0;
-        STR_POST_GM_count = 0;
-        CON_PRE_GM_count = 0;
-        CON_POST_GM_count = 0;
-        
-        STR_PRE_SOL_ID{ceil(linestotal)} = [];
-        STR_POST_SOL_ID{ceil(linestotal)} = [];
-        CON_PRE_SOL_ID{ceil(linestotal)} = [];
-        CON_POST_SOL_ID{ceil(linestotal)} = [];
-        STR_PRE_GM_ID{ceil(linestotal)} = [];
-        STR_POST_GM_ID{ceil(linestotal)} = [];
-        CON_PRE_GM_ID{ceil(linestotal)} = [];
-        CON_POST_GM_ID{ceil(linestotal)} = [];
-        
-        force_elong_STR_PRE_SOL = cell(1,ceil(linestotal));
-        force_elong_STR_POST_SOL = cell(1,ceil(linestotal));
-        force_elong_CON_PRE_SOL = cell(1,ceil(linestotal));
-        force_elong_CON_POST_SOL = cell(1,ceil(linestotal));
-        force_elong_STR_PRE_GM = cell(1,ceil(linestotal));
-        force_elong_STR_POST_GM = cell(1,ceil(linestotal));
-        force_elong_CON_PRE_GM = cell(1,ceil(linestotal));
-        force_elong_CON_POST_GM = cell(1,ceil(linestotal));
-        
-        stiffness_STR_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
-        stiffness_STR_POST_SOL(1:ceil(linestotal),1:5) = NaN;
-        stiffness_CON_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
-        stiffness_CON_POST_SOL(1:ceil(linestotal),1:5) = NaN;
-        stiffness_STR_PRE_GM(1:ceil(linestotal),1:5) = NaN;
-        stiffness_STR_POST_GM(1:ceil(linestotal),1:5) = NaN;
-        stiffness_CON_PRE_GM(1:ceil(linestotal),1:5) = NaN;
-        stiffness_CON_POST_GM(1:ceil(linestotal),1:5) = NaN;
+    if input_resumerun == 0
+        all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
+            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
+            'Ramp force cutoff (N)', 'Ramp force max (N)', 'PF MVC (N)', ...
+            'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', 'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
+             'AT moment arm (m)', 'Rotation correction (mm/deg)', 'Common force cutoff', 'Common force max'}; % PROJECTSPECIFIC
+        all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
+        all_stiff_output_txt = cell(ceil(linestotal),4);
+    
+        if input_project == 1 % BD study
+            BD_SOL_count = 0; % # of ballet dancer subjects
+            CON_SOL_count = 0; % # of controls = intervention study subjects
+            BD_GM_count = 0;
+            CON_GM_count = 0;
+            
+            BD_SOL_no(ceil(linestotal)) = zeros;
+            CON_SOL_no(ceil(linestotal)) = zeros;
+            BD_GM_no(ceil(linestotal)) = zeros;
+            CON_GM_no(ceil(linestotal)) = zeros;
+            
+            force_elong_SOL_BD = cell(1,ceil(linestotal));
+            force_elong_SOL_CON = cell(1,ceil(linestotal));
+            force_elong_GM_BD = cell(1,ceil(linestotal));
+            force_elong_GM_CON = cell(1,ceil(linestotal));
+            
+            stiffness_SOL_BD(1:ceil(linestotal),1:5) = NaN;
+            stiffness_SOL_CON(1:ceil(linestotal),1:5) = NaN;
+            stiffness_GM_BD(1:ceil(linestotal),1:5) = NaN;
+            stiffness_GM_CON(1:ceil(linestotal),1:5) = NaN;
+        else % intervention
+            STR_PRE_SOL_count = 0;
+            STR_POST_SOL_count = 0;
+            CON_PRE_SOL_count = 0;
+            CON_POST_SOL_count = 0;
+            STR_PRE_GM_count = 0;
+            STR_POST_GM_count = 0;
+            CON_PRE_GM_count = 0;
+            CON_POST_GM_count = 0;
+            
+            STR_PRE_SOL_ID{ceil(linestotal)} = [];
+            STR_POST_SOL_ID{ceil(linestotal)} = [];
+            CON_PRE_SOL_ID{ceil(linestotal)} = [];
+            CON_POST_SOL_ID{ceil(linestotal)} = [];
+            STR_PRE_GM_ID{ceil(linestotal)} = [];
+            STR_POST_GM_ID{ceil(linestotal)} = [];
+            CON_PRE_GM_ID{ceil(linestotal)} = [];
+            CON_POST_GM_ID{ceil(linestotal)} = [];
+            
+            force_elong_STR_PRE_SOL = cell(1,ceil(linestotal));
+            force_elong_STR_POST_SOL = cell(1,ceil(linestotal));
+            force_elong_CON_PRE_SOL = cell(1,ceil(linestotal));
+            force_elong_CON_POST_SOL = cell(1,ceil(linestotal));
+            force_elong_STR_PRE_GM = cell(1,ceil(linestotal));
+            force_elong_STR_POST_GM = cell(1,ceil(linestotal));
+            force_elong_CON_PRE_GM = cell(1,ceil(linestotal));
+            force_elong_CON_POST_GM = cell(1,ceil(linestotal));
+            
+            stiffness_STR_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
+            stiffness_STR_POST_SOL(1:ceil(linestotal),1:5) = NaN;
+            stiffness_CON_PRE_SOL(1:ceil(linestotal),1:5) = NaN;
+            stiffness_CON_POST_SOL(1:ceil(linestotal),1:5) = NaN;
+            stiffness_STR_PRE_GM(1:ceil(linestotal),1:5) = NaN;
+            stiffness_STR_POST_GM(1:ceil(linestotal),1:5) = NaN;
+            stiffness_CON_PRE_GM(1:ceil(linestotal),1:5) = NaN;
+            stiffness_CON_POST_GM(1:ceil(linestotal),1:5) = NaN;
+        end
     end
-
+    
     
     %% Loop through all lines in datamaster file (except header line)
-    for line = 1:linestotal
+    for line = line_start:linestotal
 
 
         %% subject/trial identifier
-        trial_subjectno = str2double(dm_subjectno{line});
         
         if input_project == 1 % BD study
+            trial_subjectno = str2double(dm_subjectno{line});
             if trial_subjectno > 100
                 filepath = 'data\BD\';
                 subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
@@ -380,14 +390,10 @@ function [] = tendstiff(input_project, input_plot)
         %% Final stiffness
         % Read time-force-displacement data
         %    sending 3+3 trials + max forces from trials + manually set cutoff force
-        % Produce stiffness equation (upon full data set) +
+        % Produce stiffness equation (based on CUT data set) +
         %    force-elong-array (up to defined force level of 90% of 6-trial-common-force or 90% of manual cutoff)
         [stiff_eq, stiff_gof, force_elong_array] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max);
-        % MMM TODO - is it right that stiff equation is made upon FULL
-        % dataset (up to 100% of common force or cutoff force), while
-        % stiffness is calculated in defined regions up to 90% of the
-        % common/cutoff force? E.g. stiffness at 90-100% of 90% of manual
-        % cutoff force
+
 
         %% calculate stiffness for last 10 and 20% of ind max:
         force_cutoff_ind = force_elong_array(end,2); % defined cutoff point of 90% of 6-trial-common-force or 90% of manually set force
@@ -465,6 +471,7 @@ function [] = tendstiff(input_project, input_plot)
             end
          end
          save all_data_stiff_inloop
+         close all
     end
     %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -616,7 +623,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 -100 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_freeAT.jpg'))
         end
@@ -652,7 +659,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 -100 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_entireAT.jpg'))
         end
@@ -688,7 +695,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 -100 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_freeAT.jpg'))
         end
@@ -724,7 +731,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 -100 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_entireAT.jpg'))
         end
@@ -753,7 +760,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 22 0 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'BD free AT', 'BD entire AT', 'CON free AT', 'CON entire AT', 'Location','Southeast')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_all.jpg'))
 
@@ -774,7 +781,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 12 0 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h3], 'BD free AT', 'CON free AT', 'Location','Southeast')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_freeAT.jpg'))
 
@@ -794,7 +801,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 22 0 3600])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h2 h4], 'BD entire AT', 'CON entire AT', 'Location','Southeast')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_entireAT.jpg'))
         end
@@ -833,7 +840,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -869,7 +876,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -905,7 +912,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -941,7 +948,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -978,7 +985,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1014,7 +1021,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1050,7 +1057,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1086,7 +1093,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1113,7 +1120,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 14 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'STR PRE', 'STR POST', 'CON PRE', 'CON POST', 'Location','Southeast')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1140,7 +1147,7 @@ function [] = tendstiff(input_project, input_plot)
             axis([0 24 0 4000])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'STR PRE', 'STR POST', 'CON PRE', 'CON POST', 'Location','Southeast')
             print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
         end
@@ -1502,7 +1509,7 @@ function [] = tendstiff(input_project, input_plot)
             %axis(axis_force)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if CON_SOL_count > 0 && BD_SOL_count > 0
                 legend([bd1 con1 bd2 con2],fig_f_e_legend, 'Location','Northwest')
             elseif BD_SOL_count > 0
@@ -1542,7 +1549,7 @@ function [] = tendstiff(input_project, input_plot)
             %axis(axis_force)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if CON_GM_count > 0 && BD_GM_count > 0
                 legend([bd1 con1 bd2 con2],fig_f_e_legend, 'Location','Northwest')
             elseif BD_GM_count > 0
@@ -1557,7 +1564,7 @@ function [] = tendstiff(input_project, input_plot)
         % Free AT (SOL), STR PRE-POST:
         if (STR_PRE_SOL_count > 0 || STR_POST_SOL_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Free AT, force-elongation (data, no fit)');
+            plottitle = horzcat('Free AT STR, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if STR_PRE_SOL_count > 0
@@ -1580,7 +1587,7 @@ function [] = tendstiff(input_project, input_plot)
             end
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if STR_POST_SOL_count > 0 && STR_PRE_SOL_count > 0
                 legend([fig_pre_1 fig_post_1 fig_pre_2 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             elseif STR_PRE_SOL_count > 0
@@ -1588,13 +1595,13 @@ function [] = tendstiff(input_project, input_plot)
             else
                 legend([fig_post_1 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         % Free AT (SOL), CON PRE-POST:
         if (CON_PRE_SOL_count > 0 || CON_POST_SOL_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Free AT, force-elongation (data, no fit)');
+            plottitle = horzcat('Free AT CON, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if CON_PRE_SOL_count > 0
@@ -1617,7 +1624,7 @@ function [] = tendstiff(input_project, input_plot)
             end
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if CON_POST_SOL_count > 0 && CON_PRE_SOL_count > 0
                 legend([fig_pre_1 fig_post_1 fig_pre_2 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             elseif CON_PRE_SOL_count > 0
@@ -1625,14 +1632,14 @@ function [] = tendstiff(input_project, input_plot)
             else
                 legend([fig_post_1 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
 
         % Entire AT (GM), STR PRE-POST:
         if (STR_PRE_GM_count > 0 || STR_POST_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Entire AT, force-elongation (data, no fit)');
+            plottitle = horzcat('whole AT STR, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if STR_PRE_GM_count > 0
@@ -1655,7 +1662,7 @@ function [] = tendstiff(input_project, input_plot)
             end
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if STR_POST_GM_count > 0 && STR_PRE_GM_count > 0
                 legend([fig_pre_1 fig_post_1 fig_pre_2 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             elseif STR_PRE_GM_count > 0
@@ -1663,13 +1670,13 @@ function [] = tendstiff(input_project, input_plot)
             elseif STR_POST_GM_count
                 legend([fig_post_1 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         % Entire AT (GM), CON PRE-POST:
         if (CON_PRE_GM_count > 0 || CON_POST_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Entire AT, force-elongation (data, no fit)');
+            plottitle = horzcat('Whole AT CON, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if CON_PRE_GM_count > 0
@@ -1692,7 +1699,7 @@ function [] = tendstiff(input_project, input_plot)
             end
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
-            title(plottitle)
+            title(plottitle,'Interpreter', 'none')
             if CON_POST_GM_count > 0 && CON_PRE_GM_count > 0
                 legend([fig_pre_1 fig_post_1 fig_pre_2 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             elseif CON_PRE_GM_count > 0
@@ -1700,7 +1707,7 @@ function [] = tendstiff(input_project, input_plot)
             elseif CON_POST_GM_count
                 legend([fig_post_1 fig_post_2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
     end

@@ -32,13 +32,13 @@ noraxon_rot(:,column_gonio) = noraxon_rot(:,column_gonio) - gonio_offset;
 norm_angle_filtered = noraxon_rot(:,column_norm_angle);
 
 % Identify movement phases and stop phases, from NORM machine angles
-angle_goingdown = find(norm_angle_filtered<-2.0,1,'first'); %find moment of large dorsi - more than 2 degrees
-angle_goingup = angle_goingdown - 1 + find(norm_angle_filtered(angle_goingdown:end)>-1.5,1,'first'); %find subsequent movement towards plantar
+angle_goingdown = find(norm_angle_filtered<-1.0,1,'first'); %find moment of large dorsi - more than 2 degrees
+angle_goingup = angle_goingdown - 1 + find(norm_angle_filtered(angle_goingdown:end)>-0.5,1,'first'); %find subsequent movement towards plantar
 
 % below limits are only used to identify peaks:
 %   fit between angle and displacement is done from 0 to 6 degrees of
 %   plantar flexion (6 = stopangle)
-peak_df = 9; %VAR
+peak_df = 8; %VAR
 peak_pf = -4; %VAR
 
 ten_plateau_1_start = find(norm_angle_filtered(angle_goingup:end)>peak_df,1,'first');
@@ -73,12 +73,14 @@ angle2 = noraxon_rot(five_plateau_stop:ten_plateau_2_start,column_gonio);
 
 if plot_check && plot_norm
     plottitle = horzcat('Ankle rotation correction check 2 for ', subject_id);
-    figure('Name',plottitle);
+    figure('Name',plottitle)
     plot(angle0, displ0, 'g.'); % plantar direction first phase
     hold on
     plot(angle1, displ1, 'r.'); % dorsi direction
     plot(angle2, displ2, 'b.'); % plantar direction second phase (default)
-    xlabel('<--dorsiflex --- Goniometer ankle angle (deg) --- plantarflex-->'),ylabel('Calcaneus displacement (mm)'),title(plottitle);
+    xlabel('<--dorsiflex --- Goniometer ankle angle (deg) --- plantarflex-->')
+    ylabel('Calcaneus displacement (mm)')
+    title(plottitle,'Interpreter', 'none')
     legend('Plantarflex onset (-2 to 10)', 'Dorsiflex (10 to -5)', 'Plantarflex (-5 to 10)', 'Location','Northeast');
 end
 
@@ -175,9 +177,9 @@ if plot_check && plot_achilles
     
     xlabel('Time (s)')
     ylabel('Angle (deg)')
-    title(plottitle);
-    legend('Norm angle', 'Goniometer', 'Phases','Location','Northeast');
-    text(0.2, 8.2, horzcat('Displ/deg = ', num2str(at_rotation_const)), 'Color', 'k');
+    title(plottitle,'Interpreter', 'none')
+    legend('Norm angle', 'Goniometer', 'Phases','Location','Northeast')
+    text(0.2, 8.2, horzcat('Displ/deg = ', num2str(at_rotation_const)), 'Color', 'k')
     saveas(fig_anklerot, strcat('data_plots_stiff/IND_ankle_rot_', subject_id), 'png')
 end
 

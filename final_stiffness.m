@@ -117,7 +117,7 @@ if plot_achilles
     % visual
     xlabel('Time (s)')
     ylabel('Force (N)')
-    title(plottitle)
+    title(plottitle,'Interpreter', 'none')
     saveas(gcf, strcat('data_plots_stiff/IND_force_onset_', subject_id), 'png')
     [latestonset,loc_latestonset] = (max([loc_MTJ_onset loc_OTJ_onset]));
     if loc_latestonset > 3
@@ -265,7 +265,7 @@ if plot_achilles
         end
     end
     % visual
-    xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
+    xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle,'Interpreter', 'none');
     axis([-1 Inf -100 Inf])
     legend('trial 1 to max','trial 2 to max','trial 3 to max','mean, to cutoff','trial 1 raw','Location','Northwest');
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_avg_MTJ_', subject_id), 'png')
@@ -313,7 +313,7 @@ if plot_achilles
         end
     end
     % visual
-    xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle);
+    xlabel('Displacement (mm)'),ylabel('Tendon force (N)'),title(plottitle,'Interpreter', 'none');
     axis([-1 Inf -100 Inf])
     legend('trial 1 to max','trial 2 to max','trial 3 to max','mean, to cutoff','trial 1 raw','Location','Northwest');
     saveas(gcf, strcat('data_plots_stiff/IND_stiff_avg_OTJ_', subject_id), 'png')

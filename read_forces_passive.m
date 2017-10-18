@@ -1,6 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % read_forces_passive
 % Marie Moltubakk 5.8.2016
+% 
+% used by passiveUS to import pre-generated angle data across subjects
+% (generated in create_angles_passive)
+% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function read_forces_passive(file)

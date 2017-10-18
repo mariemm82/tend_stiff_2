@@ -39,36 +39,36 @@ if plot_check
     % Label axes
     xlabel( 'Tendon elongation (mm)' );
     ylabel( 'Tendon force (N)' );
-    title(plottitle);
+    title(plottitle,'Interpreter', 'none');
     loc_text_x = max(displ_MTJ)*0.6;
     loc_text_y = force(end)*0.25;
     text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
     saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_zero'), 'png')
 end
 
-% %% version 2, NOT through zero  - ONLY USED for plots, not for numeric calculations and outpu
-% opts.Lower = [-Inf -Inf -Inf]; % last variable 0 <- require fit through origo
-% opts.Upper = [Inf Inf Inf]; % last variable 0
-% 
-% % Fit model to data.
-% [fitresult1, gof1] = fit( xData, yData, ft, opts );
-% coeffvals = coeffvalues(fitresult1);
-% 
-% % Plot fit with data.
-% plottitle = horzcat('FIT PLOT, tendon stiffness free onset, ', subject_id);
-% fignavn = figure('Name', plottitle);
-% hold on
-% h = plot(fitresult1, xData, yData);
-% plot(displ_MTJ,force,'g.','DisplayName','MTJ displacement')
-% plot(displ_OTJ,force,'g.','DisplayName','OTJ displacement')
-% plot(elongation(loc_cut+1:end),force(loc_cut+1:end),'y.','DisplayName','Elongation in cut off range')
-% legend( h, 'Force-elongation', 'Stiffness fit', 'Location', 'SouthEast' );
-% % Label axes
-% xlabel( 'Tendon elongation (mm)' );
-% ylabel( 'Tendon force (N)' );
-% title(plottitle);
-% loc_text_x = max(displ_MTJ)*0.6;
-% loc_text_y = force(end)*0.25;
-% text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
-% 
-% saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_free'), 'png')
+%% version 2, NOT through zero  - ONLY USED for plots, not for numeric calculations and output
+opts.Lower = [-Inf -Inf -Inf]; % last variable 0 <- require fit through origo
+opts.Upper = [Inf Inf Inf]; % last variable 0
+
+% Fit model to data.
+[fitresult1, gof1] = fit( xData, yData, ft, opts );
+coeffvals = coeffvalues(fitresult1);
+
+% Plot fit with data.
+plottitle = horzcat('FIT PLOT, tendon stiffness free onset, ', subject_id);
+fignavn = figure('Name', plottitle);
+hold on
+h = plot(fitresult1, xData, yData);
+plot(displ_MTJ,force,'g.','DisplayName','MTJ displacement')
+plot(displ_OTJ,force,'g.','DisplayName','OTJ displacement')
+plot(elongation(loc_cut+1:end),force(loc_cut+1:end),'y.','DisplayName','Elongation in cut off range')
+legend( h, 'Force-elongation', 'Stiffness fit', 'Location', 'SouthEast' );
+% Label axes
+xlabel( 'Tendon elongation (mm)' );
+ylabel( 'Tendon force (N)' );
+title(plottitle,'Interpreter', 'none');
+loc_text_x = max(displ_MTJ)*0.6;
+loc_text_y = force(end)*0.25;
+text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
+
+saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_free'), 'png')

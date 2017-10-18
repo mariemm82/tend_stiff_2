@@ -29,6 +29,8 @@
     
 function [] = tendstiff(input_project, input_plot, input_resumerun)
     close all
+    warning('off','MATLAB:xlswrite:AddSheet')
+    
 
     forceintervals = 50; %VAR - Average stiffness across X N
     
@@ -132,23 +134,39 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
         load all_data_stiff_inloop
         line_start = line+1; % all_data_stiff_inloop ended on a line - resume with next line
-        input_resumerun = 1; % overwrite original from all_data_stiff_inloop
+        input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
     else
         line_start = 1;
     end
     linestotal = read_datamaster_stiff(dm_filename);
 
+    
     %% preallocate
     % common arrays for all subjects:
     if input_resumerun == 0
         all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
-            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ...
-            'Ramp force cutoff (N)', 'Ramp force max (N)', 'PF MVC (N)', ...
-            'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', 'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
-             'AT moment arm (m)', 'Rotation correction (mm/deg)', 'Common force cutoff', 'Common force max'}; % PROJECTSPECIFIC
+            'AT moment arm (m)', 'Rotation correction (mm/deg)', ...
+            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R^2', ...
+            'Ramp force cutoff (N)', 'Ramp force max', 'PF MVC (N)', ...
+            'Common ramp force cutoff 90', 'Common ramp force max',...
+            'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', ...
+            'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
+            'Elong @ ind 90/cut (mm)', 'Elong MAX (mm)', 'Elong common cut90 (mm)', 'Elong common max (mm)'}; % PROJECTSPECIFIC
+        loc_ind_force_cut = 7;
+        loc_ind_force_max = 8;
+        loc_common_force_cut = 10;
+        loc_common_force_max = 11;
+        loc_stiff_common_cut_80 = 14;
+        loc_stiff_common_cut_90 = 15;
+        loc_stiff_common_max_80 = 16;
+        loc_stiff_common_max_90 = 17;
+        loc_elong_common_cut = 20;
+        loc_elong_common_max = 21;
         all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
         all_stiff_output_txt = cell(ceil(linestotal),4);
     
+        force_elong_ALL = cell(1,ceil(linestotal));
+        
         if input_project == 1 % BD study
             BD_SOL_count = 0; % # of ballet dancer subjects
             CON_SOL_count = 0; % # of controls = intervention study subjects
@@ -399,28 +417,28 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         force_cutoff_ind = force_elong_array(end,2); % defined cutoff point of 90% of 6-trial-common-force or 90% of manually set force
         stiff_ind_80 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.8, 1.0, 'ind max'); % last two variables are percent range, from 0.00 to 1.00
         stiff_ind_90 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.9, 1.0, 'ind max');
-
-
-        %% Other calculations? %LATER
-        % strain_rate = calculate_strain_rate(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3);
-        % tendon elongation (mm)?
-        % young's modulus?
-        
+       
         
         %% save individual data to common array
         % add all individual variables to a common array for all subjects    
         all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
-        % add NaN at locations for stiffness at force levels common to all subjects
-        all_stiff_output(line,:) = [coeffvalues(stiff_eq) stiff_gof.rsquare ...
-            force_elong_array(end,2) min(trial_force_max) plantflex_max_torque ... % 90%-of-common/manual-force / 100%-common-force / MVC-force
-            stiff_ind_80 stiff_ind_90 NaN NaN NaN NaN at_momentarm at_rotation_const NaN NaN];
+        all_stiff_output(line,:) = [...
+            at_momentarm at_rotation_const ...
+            coeffvalues(stiff_eq) stiff_gof.rsquare ... % 3x coeffisients + R^2
+            force_elong_array(end,2) min(trial_force_max) plantflex_max_torque ... % INDIVIDUAL 90%-of-6-trial-common/manual-force / 100%-6-trial-force / MVC-force
+            NaN NaN ... % COMMON force cutoff / common force max
+            stiff_ind_80 stiff_ind_90 ...
+            NaN NaN NaN NaN ... % NaN for 4x stiffness at force levels common to all subjects
+            force_elong_array(end,1) max(force_elong_array(:,1)) NaN NaN ... % NaN for 2x elong at force levels common to all subjects
+            ];
         
         
-        %% add force-elongation arrays to cell for future averaging
-        % add stiffness fits to array for future averaging, containing:
+        %% save stiffness fits and force-elongation arrays to groupwise cells, for future averaging
+        % contents of stiffness_(((SOL_BD))): 
         %     2nd order equation coeffs / elongation max (= xlim for plots) / force max
 
-
+        force_elong_ALL{line} = force_elong_array;
+        
          if input_project == 1 % BD study
             if trial_subjectno > 100 % BD subject
                 if strcmp(dm_trial{line}, 'SOL')
@@ -511,17 +529,14 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     end
     
     
-    %% IND: calculate stiffness at group common force levels
-    
+    %% IND data: calculate stiffness at group COMMON FORCE
     % select common force (maximal force reached by all subjects)
-    all_stiff_col = 5; % 5 for cutoff force level
-    stiff_common_force = min(all_stiff_output(:,all_stiff_col));
-    all_stiff_col = 6; % 6 for max force level
-    stiff_common_force_max = min(all_stiff_output(:,all_stiff_col));
+    stiff_common_force = min(all_stiff_output(:,loc_ind_force_cut));
+    stiff_common_force_max = min(all_stiff_output(:,loc_ind_force_max));
     
     % create stiffness equation as cfit
     f = fittype('a*x^2+b*x+c');
-    a = 0; % temporary values, will be filled/replaced inside for loop
+    a = 0; % temporary values, will be filled/replaced inside loop
     b = 0;
     c = 0;
     stiff_eq_group = cfit(f, a, b, c);
@@ -538,17 +553,51 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         stiff_common_90_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); %VAR
 
         % add to array across subjects
-        all_stiff_output(i,10) = stiff_common_80;
-        all_stiff_output(i,11) = stiff_common_90;
-        all_stiff_output(i,12) = stiff_common_80_max;
-        all_stiff_output(i,13) = stiff_common_90_max;
-        all_stiff_output(i,16) = stiff_common_force;
-        all_stiff_output(i,17) = stiff_common_force_max;
+        all_stiff_output(i,loc_stiff_common_cut_80) = stiff_common_80;
+        all_stiff_output(i,loc_stiff_common_cut_90) = stiff_common_90;
+        all_stiff_output(i,loc_stiff_common_max_80) = stiff_common_80_max;
+        all_stiff_output(i,loc_stiff_common_max_90) = stiff_common_90_max;
+        all_stiff_output(i,loc_common_force_cut) = stiff_common_force;
+        all_stiff_output(i,loc_common_force_max) = stiff_common_force_max;
     end
     
     cprintf('blue*',horzcat('Stiffness: Common cutoff force = ', num2str(stiff_common_force), ' N, common max force = ', num2str(round(stiff_common_force_max,0)), ' N.\n'))
 
- 
+    
+    
+    %% IND data: calculate STRAIN/ELONGATION at COMMON force levels
+    % re-use force levels from stiffness:
+    %    stiff_common_force - 90%/cutoff
+    %    stiff_common_force_max - common max
+    
+    for i = 1:size(all_stiff_output,1)
+        % extract ELONGATION from force-elong-cell containing all subjects:
+        loc_force_90 = find(force_elong_ALL{i}(:,2)>=stiff_common_force,1,'first');
+        if isempty(loc_force_90)
+            elong_common_90 = NaN;
+            cprintf('red',horzcat('WARNING: Line ', num2str(i), '/subj ', all_stiff_output_txt(i,1), ' Elongation @ 90% common force not found.\n'))
+        else
+            elong_common_90 = force_elong_ALL{i}(loc_force_90,1);
+        end
+        % the below variable will not be extracted (will be NaN) for many subjects, since
+        % force_elong_ALL contains force-elongation only up to individual 90%/manual-cut force level
+        % Not deleted from data analysis, just to save time
+        loc_force_max = find(force_elong_ALL{i}(:,2)>=stiff_common_force_max,1,'first');
+        if isempty(loc_force_max)
+            elong_common_max = NaN;
+            % cprintf('red',horzcat('WARNING: Elongation @ MAX common force not found.\n'))
+        else
+            elong_common_max = force_elong_ALL{i}(loc_force_max,1);
+        end
+        
+        % for STRAIN: % of intial length (at 0 degrees) - MMM TODO
+
+        % add to array across subjects
+        all_stiff_output(i,loc_elong_common_cut) = elong_common_90;
+        all_stiff_output(i,loc_elong_common_max) = elong_common_max;
+    end
+    
+    
     %% IND: save array with individual variables to file
 
     % write xls
@@ -564,22 +613,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
       
     
     %% GRP: plot stiff FIT lines per subject (groupwise)
-    % ind: plot the fit up until ind cutoff force/cutoff elong
-    % grp: mean fit curve, up until weakest subject
+    % ind: plot the fit up until IND cutoff ELONGATION (x axis determines)
+    % grp: mean fit curve, up until weakest subject FORCE
+    %      reusing variable: stiff_common_force
     
     fit_elong_guess = 4; %VAR guessing approximate elongation (X value) for 2nd order stiffness fit Y values
-    
-    if input_project == 1 % BD study
-        % 5 for cutoff force level
-        allgroups_force_common = min( [min(stiffness_SOL_BD(:,5)) min(stiffness_GM_BD(:,5)) min(stiffness_SOL_CON(:,5)) min(stiffness_GM_CON(:,5))] );
-    else % intervention
-        allgroups_force_common = min( [...
-            min(stiffness_STR_PRE_SOL(:,5)) min(stiffness_STR_PRE_GM(:,5)) min(stiffness_CON_PRE_SOL(:,5)) min(stiffness_CON_PRE_GM(:,5)) ...
-            min(stiffness_STR_POST_SOL(:,5)) min(stiffness_STR_POST_GM(:,5)) min(stiffness_CON_POST_SOL(:,5)) min(stiffness_CON_POST_GM(:,5)) ...
-            ] );
-        tmp_forcelevels = [min(stiffness_STR_PRE_SOL(:,5)) min(stiffness_STR_PRE_GM(:,5)) min(stiffness_CON_PRE_SOL(:,5)) min(stiffness_CON_PRE_GM(:,5)) ...
-            min(stiffness_STR_POST_SOL(:,5)) min(stiffness_STR_POST_GM(:,5)) min(stiffness_CON_POST_SOL(:,5)) min(stiffness_CON_POST_GM(:,5))]% TMP MMM;
-    end
     
     % create stiffness equation as cfit
     f = fittype('a*x^2+b*x+c');
@@ -588,13 +626,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     c = 0;
     stiff_eq_group2 = cfit(f, a, b, c);
     
-    
-    
     if input_project == 1 
         %% PLOTS - BD study
         if BD_SOL_count > 0
             % prepare data
-            BD_SOL_force_common = allgroups_force_common; % min(stiffness_SOL_BD(:,5));
+            BD_SOL_force_common = stiff_common_force; % min(stiffness_SOL_BD(:,5));
             BD_SOL_force_array = (0:forceintervals:BD_SOL_force_common)';
             BD_SOL_elong_fit(1:length(BD_SOL_force_array),1:BD_SOL_count) = NaN;
             BD_SOL_elongmax_mean = mean(stiffness_SOL_BD(:,4));
@@ -630,7 +666,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if BD_GM_count > 0
             % prepare data
-            BD_GM_force_common = allgroups_force_common;
+            BD_GM_force_common = stiff_common_force;
             BD_GM_force_array = (0:forceintervals:BD_GM_force_common)';
             BD_GM_elong_fit(1:length(BD_GM_force_array),1:BD_GM_count) = NaN;
             BD_GM_elongmax_mean = mean(stiffness_GM_BD(:,4));
@@ -666,7 +702,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if CON_SOL_count > 0
             % prepare data
-            CON_SOL_force_common = allgroups_force_common;
+            CON_SOL_force_common = stiff_common_force;
             CON_SOL_force_array = (0:forceintervals:CON_SOL_force_common)';
             CON_SOL_elong_fit(1:length(CON_SOL_force_array),1:CON_SOL_count) = NaN;
             CON_SOL_elongmax_mean = mean(stiffness_SOL_CON(:,4));
@@ -702,7 +738,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if CON_GM_count > 0
             % prepare data
-            CON_GM_force_common = allgroups_force_common; 
+            CON_GM_force_common = stiff_common_force; 
             CON_GM_force_array = (0:forceintervals:CON_GM_force_common)';
             CON_GM_elong_fit(1:length(CON_GM_force_array),1:CON_GM_count) = NaN;
             CON_GM_elongmax_mean = mean(stiffness_GM_CON(:,4));
@@ -811,7 +847,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
         if STR_PRE_SOL_count > 0
             % prepare data
-            STR_PRE_SOL_force_common = allgroups_force_common;
+            STR_PRE_SOL_force_common = stiff_common_force;
             STR_PRE_SOL_force_array = (0:forceintervals:STR_PRE_SOL_force_common)';
             STR_PRE_SOL_elong_fit(1:length(STR_PRE_SOL_force_array),1:STR_PRE_SOL_count) = NaN;
             STR_PRE_SOL_elongmax_mean = mean(stiffness_STR_PRE_SOL(:,4));
@@ -830,9 +866,12 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_STR_PRE_SOL(i,4)]);
                 plot(stiff_eq_group2)
                 STR_PRE_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_STR_PRE_SOL(i,1), stiffness_STR_PRE_SOL(i,2), stiffness_STR_PRE_SOL(i,3), 0, STR_PRE_SOL_force_common, forceintervals, fit_elong_guess);
-            end
+                if isnan(STR_PRE_SOL_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', STR_PRE_SOL_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             % mean data
-            STR_PRE_SOL_elong_fit_mean = nanmean(STR_PRE_SOL_elong_fit,2); % nanmean if fits through zero, mean if firt not through zero (4 places in total)
+            STR_PRE_SOL_elong_fit_mean = nanmean(STR_PRE_SOL_elong_fit,2); % nanmean if fits through zero, mean if fit not through zero (4 places in total)
+            end
             h1 = plot(STR_PRE_SOL_elong_fit_mean,STR_PRE_SOL_force_array,'k','Linewidth',2); % average curve
             h2 = errorbar(STR_PRE_SOL_elongmax_mean,STR_PRE_SOL_forcemax_mean,STR_PRE_SOL_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(STR_PRE_SOL_elongmax_mean,STR_PRE_SOL_forcemax_mean,STR_PRE_SOL_elongmax_SD, 'k.')
@@ -847,7 +886,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if STR_POST_SOL_count > 0
             % prepare data
-            STR_POST_SOL_force_common = allgroups_force_common;
+            STR_POST_SOL_force_common = stiff_common_force;
             STR_POST_SOL_force_array = (0:forceintervals:STR_POST_SOL_force_common)';
             STR_POST_SOL_elong_fit(1:length(STR_POST_SOL_force_array),1:STR_POST_SOL_count) = NaN;
             STR_POST_SOL_elongmax_mean = mean(stiffness_STR_POST_SOL(:,4));
@@ -866,6 +905,10 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_STR_POST_SOL(i,4)]);
                 plot(stiff_eq_group2)
                 STR_POST_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_STR_POST_SOL(i,1), stiffness_STR_POST_SOL(i,2), stiffness_STR_POST_SOL(i,3), 0, STR_POST_SOL_force_common, forceintervals, fit_elong_guess);
+                if isnan(STR_POST_SOL_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', STR_POST_SOL_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
+
             end
             % mean data
             STR_POST_SOL_elong_fit_mean = nanmean(STR_POST_SOL_elong_fit,2);
@@ -883,7 +926,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
         if CON_PRE_SOL_count > 0
             % prepare data
-            CON_PRE_SOL_force_common = allgroups_force_common;
+            CON_PRE_SOL_force_common = stiff_common_force;
             CON_PRE_SOL_force_array = (0:forceintervals:CON_PRE_SOL_force_common)';
             CON_PRE_SOL_elong_fit(1:length(CON_PRE_SOL_force_array),1:CON_PRE_SOL_count) = NaN;
             CON_PRE_SOL_elongmax_mean = mean(stiffness_CON_PRE_SOL(:,4));
@@ -902,6 +945,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_CON_PRE_SOL(i,4)]);
                 plot(stiff_eq_group2)
                 CON_PRE_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_CON_PRE_SOL(i,1), stiffness_CON_PRE_SOL(i,2), stiffness_CON_PRE_SOL(i,3), 0, CON_PRE_SOL_force_common, forceintervals, fit_elong_guess);
+                if isnan(CON_PRE_SOL_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', CON_PRE_SOL_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             CON_PRE_SOL_elong_fit_mean = nanmean(CON_PRE_SOL_elong_fit,2);
@@ -919,7 +965,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if CON_POST_SOL_count > 0
             % prepare data
-            CON_POST_SOL_force_common = allgroups_force_common;
+            CON_POST_SOL_force_common = stiff_common_force;
             CON_POST_SOL_force_array = (0:forceintervals:CON_POST_SOL_force_common)';
             CON_POST_SOL_elong_fit(1:length(CON_POST_SOL_force_array),1:CON_POST_SOL_count) = NaN;
             CON_POST_SOL_elongmax_mean = mean(stiffness_CON_POST_SOL(:,4));
@@ -938,6 +984,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_CON_POST_SOL(i,4)]);
                 plot(stiff_eq_group2)
                 CON_POST_SOL_elong_fit(:,i) = solve_sec_poly(stiffness_CON_POST_SOL(i,1), stiffness_CON_POST_SOL(i,2), stiffness_CON_POST_SOL(i,3), 0, CON_POST_SOL_force_common, forceintervals, fit_elong_guess);
+                if isnan(CON_POST_SOL_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', CON_POST_SOL_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             CON_POST_SOL_elong_fit_mean = nanmean(CON_POST_SOL_elong_fit,2);
@@ -956,7 +1005,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if STR_PRE_GM_count > 0
             % prepare data
-            STR_PRE_GM_force_common = allgroups_force_common;
+            STR_PRE_GM_force_common = stiff_common_force;
             STR_PRE_GM_force_array = (0:forceintervals:STR_PRE_GM_force_common)';
             STR_PRE_GM_elong_fit(1:length(STR_PRE_GM_force_array),1:STR_PRE_GM_count) = NaN;
             STR_PRE_GM_elongmax_mean = mean(stiffness_STR_PRE_GM(:,4));
@@ -975,6 +1024,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_STR_PRE_GM(i,4)]);
                 plot(stiff_eq_group2)
                 STR_PRE_GM_elong_fit(:,i) = solve_sec_poly(stiffness_STR_PRE_GM(i,1), stiffness_STR_PRE_GM(i,2), stiffness_STR_PRE_GM(i,3), 0, STR_PRE_GM_force_common, forceintervals, fit_elong_guess);
+                if isnan(STR_PRE_GM_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', STR_PRE_GM_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             STR_PRE_GM_elong_fit_mean = nanmean(STR_PRE_GM_elong_fit,2);
@@ -992,7 +1044,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if STR_POST_GM_count > 0
             % prepare data
-            STR_POST_GM_force_common = allgroups_force_common;
+            STR_POST_GM_force_common = stiff_common_force;
             STR_POST_GM_force_array = (0:forceintervals:STR_POST_GM_force_common)';
             STR_POST_GM_elong_fit(1:length(STR_POST_GM_force_array),1:STR_POST_GM_count) = NaN;
             STR_POST_GM_elongmax_mean = mean(stiffness_STR_POST_GM(:,4));
@@ -1011,6 +1063,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_STR_POST_GM(i,4)]);
                 plot(stiff_eq_group2)
                 STR_POST_GM_elong_fit(:,i) = solve_sec_poly(stiffness_STR_POST_GM(i,1), stiffness_STR_POST_GM(i,2), stiffness_STR_POST_GM(i,3), 0, STR_POST_GM_force_common, forceintervals, fit_elong_guess);
+                if isnan(STR_POST_GM_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', STR_POST_GM_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             STR_POST_GM_elong_fit_mean = nanmean(STR_POST_GM_elong_fit,2);
@@ -1028,7 +1083,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
         if CON_PRE_GM_count > 0
             % prepare data
-            CON_PRE_GM_force_common = allgroups_force_common;
+            CON_PRE_GM_force_common = stiff_common_force;
             CON_PRE_GM_force_array = (0:forceintervals:CON_PRE_GM_force_common)';
             CON_PRE_GM_elong_fit(1:length(CON_PRE_GM_force_array),1:CON_PRE_GM_count) = NaN;
             CON_PRE_GM_elongmax_mean = mean(stiffness_CON_PRE_GM(:,4));
@@ -1047,6 +1102,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_CON_PRE_GM(i,4)]);
                 plot(stiff_eq_group2)
                 CON_PRE_GM_elong_fit(:,i) = solve_sec_poly(stiffness_CON_PRE_GM(i,1), stiffness_CON_PRE_GM(i,2), stiffness_CON_PRE_GM(i,3), 0, CON_PRE_GM_force_common, forceintervals, fit_elong_guess);
+                if isnan(CON_PRE_GM_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', CON_PRE_GM_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             CON_PRE_GM_elong_fit_mean = nanmean(CON_PRE_GM_elong_fit,2);
@@ -1064,7 +1122,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         if CON_POST_GM_count > 0
             % prepare data
-            CON_POST_GM_force_common = allgroups_force_common;
+            CON_POST_GM_force_common = stiff_common_force;
             CON_POST_GM_force_array = (0:forceintervals:CON_POST_GM_force_common)';
             CON_POST_GM_elong_fit(1:length(CON_POST_GM_force_array),1:CON_POST_GM_count) = NaN;
             CON_POST_GM_elongmax_mean = mean(stiffness_CON_POST_GM(:,4));
@@ -1083,6 +1141,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
                 xlim([0,stiffness_CON_POST_GM(i,4)]);
                 plot(stiff_eq_group2)
                 CON_POST_GM_elong_fit(:,i) = solve_sec_poly(stiffness_CON_POST_GM(i,1), stiffness_CON_POST_GM(i,2), stiffness_CON_POST_GM(i,3), 0, CON_POST_GM_force_common, forceintervals, fit_elong_guess);
+                if isnan(CON_POST_GM_elong_fit(3,i)) % checking 3rd value of force-elongation (normally @ 100N)
+                    cprintf('red', horzcat('WARNING: ', CON_POST_GM_ID{i}, ' force-elong curve fit gives NaN after first value.\n Average across subjects will be corrupted.\n'))
+                end
             end
             % mean data
             CON_POST_GM_elong_fit_mean = nanmean(CON_POST_GM_elong_fit,2);

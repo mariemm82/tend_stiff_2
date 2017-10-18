@@ -1,17 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% main file for analysis of passive dorsiflexion with US
+% generate max ROM angles and torques across all subjects, for loading into passiveUS script
+%    basis = main file for analysis of passive dorsiflexion with US
 % Marie Moltubakk 4.2.2015
 % 
-% Note 1:
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
 % modified. These lines are marked % PROJECTSPECIFIC
 %
-% 
-% 16.09.15: adapted to read datamaster including "Lichtwark" file names
-%
-% 03.08.16: INPUT ARGUMENT: pass 'dancer' or 'stretcher'. Then, 1 for checkup plots or 0 for no plots. e.g. create_angles_passive(stretcher,1). 
+% INPUT ARGUMENT: 1 for checkup plots or 0 for no plots. e.g. create_angles_passive(1). 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -57,7 +54,7 @@ function []=create_angles_passive(input_plot)
     % cutoff frequencies for filters
     global emg_bandpass emg_rms_ms mvc_window_ms 
     emg_bandpass = [10/(noraxonfreq/2) 500/(noraxonfreq/2)]; % cutoff frequencies for EMG butterworth bandpass filter
-    emg_rms_ms = 500; % milliseconds RMS window, must be divisible by 4 - ref Basmajian 1985 = 50 ms, ref Aagaard paper Passive tensile stress = 200 ms
+    emg_rms_ms = 100; % milliseconds RMS window, must be divisible by 4 - ref Basmajian 1985 = 50 ms, ref Aagaard paper Passive tensile stress = 200 ms
     mvc_window_ms = 500; % milliseconds window for determining MVC torque and EMG
     global angle_cutoff velocity_cutoff torque_cutoff_bandstop torque_cutoff_active angle_cutoff_active velocity_cutoff_active
     angle_cutoff = 10/(noraxonfreq/2); % 9/(noraxonfreq/2); % cutoff freq, Norm angle PASSIVE - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
@@ -66,9 +63,6 @@ function []=create_angles_passive(input_plot)
     velocity_cutoff_active = 20/(noraxonfreq/2); %  12/(noraxonfreq/2);
     torque_cutoff_bandstop = [0.36/(noraxonfreq/2) 0.42/(noraxonfreq/2)]; % bandstop freq to eliminate noise from Norm engine
     torque_cutoff_active = 10/(noraxonfreq/2); % cutoff freq, Norm filtering - ref Winter 1990 = 15 hz. Kongsgaard = 8hz
-
-%    % Average stiffness across X N
-%    forceintervals = 100; 
 
     % column placement in Noraxon data
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles

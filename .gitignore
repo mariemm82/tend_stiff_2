@@ -1,8 +1,7 @@
 data_*
-misc*
-backup*
 \!*
 data/\!*
+all_data_*.mat
 data/01_POST_CPM_5L_trial1.tsv
 data/01_POST_CPM_5L_trial2.tsv
 data/01_POST_CPM_5R_trial3.tsv

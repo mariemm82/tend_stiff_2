@@ -152,6 +152,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', ...
             'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
             'Elong @ ind 90/cut (mm)', 'Elong MAX (mm)', 'Elong common cut90 (mm)', 'Elong common max (mm)'}; % PROJECTSPECIFIC
+        loc_stiff_a = 3;
+        loc_stiff_b = 4;
+        loc_stiff_c = 5;
         loc_ind_force_cut = 7;
         loc_ind_force_max = 8;
         loc_common_force_cut = 10;
@@ -421,7 +424,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
         %% save individual data to common array
         % add all individual variables to a common array for all subjects    
-        all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
+        all_stiff_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_group(line) dm_trial(line)];
         all_stiff_output(line,:) = [...
             at_momentarm at_rotation_const ...
             coeffvalues(stiff_eq) stiff_gof.rsquare ... % 3x coeffisients + R^2
@@ -542,15 +545,15 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     stiff_eq_group = cfit(f, a, b, c);
 
     for i = 1:size(all_stiff_output,1)
-        stiff_eq_group.a = all_stiff_output(i,1); % a 
-        stiff_eq_group.b = all_stiff_output(i,2); % b
-        stiff_eq_group.c = all_stiff_output(i,3); % c
+        stiff_eq_group.a = all_stiff_output(i,loc_stiff_a); % a 
+        stiff_eq_group.b = all_stiff_output(i,loc_stiff_b); % b
+        stiff_eq_group.c = all_stiff_output(i,loc_stiff_c); % c
 
         % calculate stiffness
-        stiff_common_80 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); % last two = percent of submitted force - %VAR
-        stiff_common_90 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common cutoff force')); %VAR
-        stiff_common_80_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.8, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); % last two = percent of submitted force - %VAR
-        stiff_common_90_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.9, 1.0, horzcat('FP', all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' common max force')); %VAR
+        stiff_common_80 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.8, 1.0, horzcat(all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' ', all_stiff_output_txt{i,2}, ' ', all_stiff_output_txt{i,3}, ' common cutoff force')); % last two = percent of submitted force - %VAR
+        stiff_common_90 = calculate_stiffness(stiff_eq_group, stiff_common_force, 0.9, 1.0, horzcat( all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' ', all_stiff_output_txt{i,2}, ' ', all_stiff_output_txt{i,3}, ' common cutoff force')); %VAR
+        stiff_common_80_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.8, 1.0, horzcat(all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' ', all_stiff_output_txt{i,2}, ' ', all_stiff_output_txt{i,3}, ' common max force')); % last two = percent of submitted force - %VAR
+        stiff_common_90_max = calculate_stiffness(stiff_eq_group, stiff_common_force_max, 0.9, 1.0, horzcat(all_stiff_output_txt{i,1}, ' ', all_stiff_output_txt{i,4}, ' ', all_stiff_output_txt{i,2}, ' ', all_stiff_output_txt{i,3}, ' common max force')); %VAR
 
         % add to array across subjects
         all_stiff_output(i,loc_stiff_common_cut_80) = stiff_common_80;

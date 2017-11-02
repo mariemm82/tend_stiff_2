@@ -31,9 +31,29 @@ noraxon_rot(:,column_gonio) = noraxon_rot(:,column_gonio) - gonio_offset;
 % extract Norm machine angle series
 norm_angle_filtered = noraxon_rot(:,column_norm_angle);
 
+
+% trials normally start with "going down" before "going up" to the first 10 degrees (dorsiflexed) peak
+
 % Identify movement phases and stop phases, from NORM machine angles
 angle_goingdown = find(norm_angle_filtered<-1.0,1,'first'); %find moment of large dorsi - more than 2 degrees
 angle_goingup = angle_goingdown - 1 + find(norm_angle_filtered(angle_goingdown:end)>-0.5,1,'first'); %find subsequent movement towards plantar
+
+% IF trial is started too late, first data are already "going up" to 10:
+if max(norm_angle_filtered(1:angle_goingup)) > 8 %VAR: look for a DF peak
+    % adjust angle_goingup
+    angle_goingup = 1;
+    
+    plottitle = horzcat('Recording started late - CHECK first >8 peak: ', subject_id);
+    figure('Name',plottitle)
+    plot(norm_angle_filtered)
+    hold on
+    plot(noraxon_rot(:,column_gonio))
+    xlabel('Frame (time)')
+    ylabel('Angle (deg)')
+    title(plottitle,'Interpreter', 'none')
+    legend('Norm angle', 'Gonio angle', 'Location','Northeast');
+end
+
 
 % below limits are only used to identify peaks:
 %   fit between angle and displacement is done from 0 to 6 degrees of

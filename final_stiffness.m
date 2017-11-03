@@ -341,8 +341,16 @@ force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
 % sending force_array_full, but utilizing for the fit, only up until loc_cutoff
 [fitresult, gof] = fit_stiffness(tend_elong, force_array_full, loc_cutoff, displ_mtj_mean, displ_otj_mean);
 
-% write stiffness coefficients to screen
-cprintf('*blue', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
+% check if first coefficient is negative --> red text
+coeffs = coeffvalues(fitresult);
 
+% write stiffness coefficients to screen
+if coeffs(1) < 0
+    cprintf('*red', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
+elseif coeffs(1) > 70
+    cprintf('*red', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
+else
+    cprintf('*blue', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
+end
 
 end

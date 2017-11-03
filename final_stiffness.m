@@ -213,11 +213,15 @@ end
 % average displacement trials
 displ_mtj_mean = nanmean(displ_MTJ,2); % nanmean averages 2 values if 3rd is NaN
 displ_otj_mean = nanmean(displ_OTJ,2);
+% set elong == 0 at force == 0
+displ_mtj_mean(1) = 0;
+displ_otj_mean(1) = 0;
 
 % tweak for special trials
-if strcmp(subject_id, 'Control 13 L PRE GM') || strcmp(subject_id,'INT_13_GM_PRE_STR_L')
-    displ_mtj_mean(1) = 0;
-end
+% not needed when setting elong == 0 above
+%if strcmp(subject_id, 'Control 13 L PRE GM') || strcmp(subject_id,'INT_13_GM_PRE_STR_L')
+%    displ_mtj_mean(1) = 0;
+%end
 
 % calculate elongation
 tend_elong = displ_mtj_mean - displ_otj_mean;
@@ -347,7 +351,7 @@ coeffs = coeffvalues(fitresult);
 % write stiffness coefficients to screen
 if coeffs(1) < 0
     cprintf('*red', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
-elseif coeffs(1) > 70
+elseif coeffs(1) > 70 %VAR
     cprintf('*red', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))
 else
     cprintf('*blue', horzcat('Stiffness coeffs = ', regexprep(num2str(coeffvalues(fitresult)),' +',' '), '. R2 = ', num2str(gof.rsquare), '\n'))

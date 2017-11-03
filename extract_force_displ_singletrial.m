@@ -149,14 +149,12 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     % Plot synchronization check US vs Norm
     if plot_check && plot_norm
         plottitle = horzcat('SYNC check for ', subject_id, ' ', trial_name);
-        figure('Name',plottitle);
+        fignavn = figure('Name',plottitle);
+        title(plottitle,'Interpreter', 'none')
         [AX,H1,H2] = plotyy(usdata_corrected(:,1),usdata_corrected(:,2),noraxon_prepped(:,1),tendon_force_offset,'plot');
         hold on
         plot(noraxon_prepped(:,1),noraxon_prepped(:,column_gonio),'m')
-%        %%% Force cutting method 2, april 2004
-%        if strcmp(trial_name(1),'M') == 1 % MTJ trial - plot cutoff
-%            plot([time1 time1], [min(usdata_prepped(:,2)) max(usdata_prepped(:,2))],'k');
-%        end
+
         set(get(AX(1),'Ylabel'),'String','Displacement (mm)')
         set(get(AX(2),'Ylabel'),'String','Force (N)')
         set(AX,{'ycolor'},{'r';'b'})
@@ -167,8 +165,9 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
         set(AX(1),'box','off')
         set(AX(2),'YLim',[min(tendon_force_offset) max(tendon_force_offset)])
         set(AX(2),'YTick',0:500:max(tendon_force_offset))
-        xlabel('Time (s)'),title(plottitle);
-        legend('Displ corr (mm)','Gonio (deg)','Force (N)','Location','Southeast');
+        xlabel('Time (s)')
+        legend('Displ corr (mm)','Gonio (deg)','Force (N)','Location','Southeast')
+        saveas(fignavn, strcat('data_plots_stiff/IND_datasync_', subject_id, '_', trial_name), 'png')
     end
 
 

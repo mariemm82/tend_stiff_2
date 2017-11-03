@@ -50,12 +50,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_conversion = 0;
         plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
     else
-        plot_conversion = 0;
         plot_norm = 0; % show torque before and after initial lowpass filter / ankle rotation fit plots
     end
+    plot_conversion = 0;
     plot_us = 0;
     plot_emg = 0;  % RMS 3 EMG channels per trial
 
@@ -347,10 +346,13 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
         % REUSING us file from moment arm
         % REUSING noraxon file from moment arm
-        if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R')
-            % rough coding, manually calculated for this trial
-            at_rotation_const = -0.14;
-        else %normally
+        if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R') || strcmp(subject_id,'INT_4_GM_PRE_STR_R')
+            % ROUGH coding, manually calculated for below subjects
+            at_rotation_const = -0.04496; % BD predefined = -0.14; % auto-calculated value = -0.61/-0.35
+        elseif strcmp(subject_id,'INT_10_SOL_PRE_CON_L') || strcmp(subject_id,'INT_10_GM_PRE_CON_L')
+            at_rotation_const = -0.091707; % auto-calculated value = positive
+        else
+            % NORMALLY
             at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
             % MMM TODO - same rot const pre and post??
         end
@@ -1181,7 +1183,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             herrorbar(CON_POST_SOL_elongmax_mean,CON_POST_SOL_forcemax_mean,CON_POST_SOL_elongmax_SD, 'b.')
             errorbar(CON_POST_SOL_elongmax_mean,CON_POST_SOL_forcemax_mean,CON_POST_SOL_forcemax_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
             % visual
-            axis([0 14 0 4000])
+            axis([0 12 0 3500])
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')

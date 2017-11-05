@@ -31,11 +31,11 @@ if plot_norm
     plottitle = horzcat('FIT PLOT for ankle rotation correction for ', subject_id);
     fignavn = figure( 'Name', plottitle);
     h = plot( fitresult, xData, yData );
-    legend( h, horzcat('angle vs. displ ', phasename), horzcat('Linear fit: displ/deg = ', num2str(coeffvalues(fitresult))), 'Location', 'NorthEast' );
+    legend( h, horzcat('angle vs. displ ', phasename), horzcat('Linear fit: displ/deg = ', num2str(coeffvalues(fitresult))), 'Location', 'NorthEast' )
     % Label axes
-    xlabel( 'Goniometer ankle angle (deg)' );
-    ylabel( 'Calcaneus displacement (mm)' );
-    title(plottitle);
+    xlabel( 'Goniometer ankle angle (deg)' )
+    ylabel( 'Calcaneus displacement (mm)' )
+    title(plottitle,'Interpreter', 'none')
     grid on
     saveas(fignavn, strcat('data_plots_stiff/IND_ankle_rot_FIT_', subject_id, phasename), 'png')
 end

@@ -2,7 +2,7 @@
 % calculate_rotation_correction
 % Marie Moltubakk 17.6.2013
 % Read complete, prepared noraon array + prepared us array
-% Produce ???? AT moment arm constant, by tendon excursion method
+% Produce correction for calcaneus displacement due to ankle rotation
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_rot)
@@ -11,12 +11,11 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     %% preparations
 
     % angle to which gonio data should be collected (find NEXT frame where gonio goes above x degrees, in plantarflexion series)
+    startangle = 0; %VAR
     stopangle = 6; %VAR
 
-    global plot_norm plot_check plot_achilles subject_id
+    global plot_norm plot_achilles subject_id
     global column_gonio column_norm_angle
-
-
 
 
     %% secondary zero offset for GONIOMETER data (primary offset during data collection, only before 1st of 3 trials)
@@ -27,32 +26,37 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     noraxon_rot(:,column_gonio) = noraxon_rot(:,column_gonio) - gonio_offset;
 
 
-
-
     %% extract Norm machine angle series, divide in 3 movement phases
     norm_angle_filtered = noraxon_rot(:,column_norm_angle);
-
     % trials normally start with "going down" before "going up" to the first 10 degrees (dorsiflexed) peak
-
-    % Identify movement phases and stop phases, from NORM machine angles
-    angle_goingdown = find(norm_angle_filtered<-1.0,1,'first'); %find moment of large dorsi - more than 2 degrees
-    angle_goingup = angle_goingdown - 1 + find(norm_angle_filtered(angle_goingdown:end)>-0.5,1,'first'); %find subsequent movement towards plantar
-
-    % IF trial is started too late, first data are already "going up" to 10:
-    if max(norm_angle_filtered(1:angle_goingup)) > 8 %VAR: look for a DF peak
-        % adjust angle_goingup
-        angle_goingup = 1;
-
-        plottitle = horzcat('Rec started late: Check peak >8: ', subject_id);
-        figure('Name',plottitle)
-        plot(norm_angle_filtered)
-        hold on
-        plot(noraxon_rot(:,column_gonio))
-        xlabel('Frame (time)')
-        ylabel('Angle (deg)')
-        title(plottitle,'Interpreter', 'none')
-        legend('Norm angle', 'Gonio angle', 'Location','Northeast');
-    end
+    
+    % differentiate, running average: positive value = "going up" to dorsiflex
+    stig_limit = 0.1; %VAR - hvor positivt må stigningstallet være
+    stig_mean_frames = 9; %VAR - hvor lenge må stign være positivt
+    stig = diff(norm_angle_filtered);
+    stig_mean = movingmean(stig,stig_mean_frames);
+    angle_goingup = find(stig_mean >= stig_limit, 1, 'first');
+    
+%     % OLD identification of movement phases:
+%     % Identify movement phases and stop phases, from NORM machine angles
+%     angle_goingdown = find(norm_angle_filtered<-1.0,1,'first'); %find moment of large dorsi - more than 2 degrees
+%     angle_goingup = angle_goingdown - 1 + find(norm_angle_filtered(angle_goingdown:end)>-0.5,1,'first'); %find subsequent movement towards plantar
+% 
+%     % IF trial is started too late, first data are already "going up" to 10:
+%     if max(norm_angle_filtered(1:angle_goingup)) > 8 %VAR: look for a DF peak
+%         % adjust angle_goingup
+%         angle_goingup = 1;
+% 
+%         plottitle = horzcat('Rec started late: Check peak >8: ', subject_id);
+%         figure('Name',plottitle)
+%         plot(norm_angle_filtered)
+%         hold on
+%         plot(noraxon_rot(:,column_gonio))
+%         xlabel('Frame (time)')
+%         ylabel('Angle (deg)')
+%         title(plottitle,'Interpreter', 'none')
+%         legend('Norm angle', 'Gonio angle', 'Location','Northeast');
+%     end
 
     % below limits are only used to identify peaks:
     %   fit between angle and displacement is done from 0 to 6 degrees of
@@ -90,7 +94,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     displ2 = usdata_rot(five_plateau_stop:ten_plateau_2_start,2);
     angle2 = noraxon_rot(five_plateau_stop:ten_plateau_2_start,column_gonio);
 
-    if plot_check && plot_norm
+    if plot_norm
         plottitle = horzcat('Ankle rotation correction DISPL, ', subject_id);
         fignavn = figure('Name',plottitle);
         plot(angle0, displ0, 'g.'); % plantar direction first phase
@@ -107,7 +111,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     
     %% calculation based on second plantar flexion phase (default)
     % find first frame where gonio passes zero degrees, in plantarflexion series
-    zeroangle = find(angle2>=0,1,'first');
+    zeroangle = find(angle2>=startangle,1,'first');
     % we want to start from the frame right BEFORE zero, not after zero
     if zeroangle > 1
         zeroangle = zeroangle-1;
@@ -125,6 +129,8 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     [fitresult, ~] = fit_ankle_rotation(angle2(zeroangle:fiveangle), displ2(zeroangle:fiveangle),'2nd');
     coeffvals_2nd = coeffvalues(fitresult);
 
+    
+    %% calculation based on first plantar flexion phase
     % check if the first plantar flexion phase (startup) may also be used
     first_plantar_usable = 1;
     if angle_goingup > ten_plateau_1_start % 1st plantarflex phase does not start from dorsiflex angle (no neg angle)
@@ -132,15 +138,15 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     end
 
     if first_plantar_usable
-        % calculation based on FIRST plantar flexion phase (to be used in case of crisis)
+        % calculation based on FIRST plantar flexion phase
         % find first frame where gonio passes zero degrees, in plantarflexion series
-        zeroangle = find(angle0>=0,1,'first');
+        zeroangle = find(angle0>=startangle,1,'first');
         % we want to start from the frame right BEFORE zero, not after zero
-        if zeroangle > 1 %don't go to frame 0 if the gonio does not start lower than zero
+        if zeroangle > 1 % ELSE - avoid going to frame 0 if the gonio does not start lower than zero
             zeroangle = zeroangle-1;
         end
 
-        % find NEXT frame where gonio goes above 8 degrees, in plantarflexion series
+        % find NEXT frame where gonio goes above X degrees, in plantarflexion series
         fiveangle = find(angle0(zeroangle:end)>stopangle,1,'first');
         if isempty(fiveangle) % if goniometer doesn't go to X degrees
             fiveangle = length(angle0); % then use maximal gonio angle
@@ -156,19 +162,18 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     end
 
 
-
     %% select the best rotation constant: 
     % = the lowest value (note: should preferably be negative - some movements result in positive constants)
     at_rotation_const = min(coeffvals_1st(1),coeffvals_2nd(1));
 
     % plot norm angle, gonio angle, displacement, zone lines
-    if plot_check && plot_achilles
+    if plot_achilles
         % check for matlab version, do not use yyaxis on home computer (2015)
         mat_version = version('-release');
 
         plottitle = horzcat('Ankle rotation sync check, ', subject_id);
         fig_anklerot = figure('Name', plottitle);
-        plot(noraxon_rot(1:ten_plateau_2_stop,1),norm_angle_filtered(1:ten_plateau_2_stop),'b'); % norm angle
+        plot(noraxon_rot(1:ten_plateau_2_stop,1),norm_angle_filtered(1:ten_plateau_2_stop),'c'); % norm angle
         hold on
         % left axis
         if strcmp(mat_version,'2015b') == 0
@@ -182,21 +187,28 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
             ylabel('Calc insertion displacement (mm)')
             set(gca,'YDir','Reverse')
         end
-        plot(usdata_rot(1:ten_plateau_2_stop,1),usdata_rot(1:ten_plateau_2_stop,2)); % displacement
+        plot(usdata_rot(1:ten_plateau_2_stop,1),usdata_rot(1:ten_plateau_2_stop,2),'b','Linewidth',2); % displacement
         % left axis
         if strcmp(mat_version,'2015b') == 0
             yyaxis left
         end
-        plot([noraxon_rot(ten_plateau_1_start,1) noraxon_rot(ten_plateau_1_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
-        plot([noraxon_rot(ten_plateau_1_stop,1) noraxon_rot(ten_plateau_1_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
-        plot([noraxon_rot(five_plateau_start,1) noraxon_rot(five_plateau_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
+        % horizontal lines
+        plot([min(noraxon_rot(:,1)) max(noraxon_rot(:,1))], [startangle startangle], 'g') 
+        plot([min(noraxon_rot(:,1)) max(noraxon_rot(:,1))], [stopangle stopangle], 'r') 
+        % vertical lines
+        plot([noraxon_rot(ten_plateau_1_start,1) noraxon_rot(ten_plateau_1_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'r');
+        plot([noraxon_rot(ten_plateau_1_stop,1) noraxon_rot(ten_plateau_1_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'y');
+        plot([noraxon_rot(five_plateau_start,1) noraxon_rot(five_plateau_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'y');
         plot([noraxon_rot(five_plateau_stop,1) noraxon_rot(five_plateau_stop,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
-        plot([noraxon_rot(ten_plateau_2_start,1) noraxon_rot(ten_plateau_2_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
+        plot([noraxon_rot(ten_plateau_2_start,1) noraxon_rot(ten_plateau_2_start,1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'r');
+        if first_plantar_usable
+            plot([noraxon_rot((angle_goingup+zeroangle-1),1) noraxon_rot((angle_goingup+zeroangle-1),1)], [min(norm_angle_filtered(1:ten_plateau_2_stop)) max(norm_angle_filtered(1:ten_plateau_2_stop))],'g');
+        end
 
         xlabel('Time (s)')
         ylabel('Angle (deg)')
         title(plottitle,'Interpreter', 'none')
-        legend('Norm angle', 'Goniometer', 'Phases','Location','Northeast')
+        legend('Norm angle', 'Goniometer', 'Displace', 'Phases','Location','Northeast')
         text(0.2, 8.2, horzcat('Displ/deg = ', num2str(at_rotation_const)), 'Color', 'k')
         saveas(fig_anklerot, strcat('data_plots_stiff/IND_ankle_rot_sync_', subject_id), 'png')
     end

@@ -1,6 +1,8 @@
-data_*
 \!*
 data/\!*
+data_output/
+data_plots/
+data_plots_stiff/\!*
 all_data_*.mat
 data/01_POST_CPM_5L_trial1.tsv
 data/01_POST_CPM_5L_trial2.tsv
@@ -1800,7 +1802,6 @@ data/29_PRE_ROM_2R_trial3.tsv
 data/29_PRE_ROM_2R_trial4.tsv
 data/29_PRE_ROM_2R_trial5.tsv
 data/29_PRE_ROM_2R_trial6.tsv
-data/29_PRE_ROM_GMmtj_2R_0041.txt
 data/29_PRE_stiff_calc_2L_trial1.tsv
 data/29_PRE_stiff_calc_2L_trial4.tsv
 data/29_PRE_stiff_calc_2L_trial5.tsv

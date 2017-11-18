@@ -19,8 +19,6 @@ function [] = strength_analysis(input_project, input_plot)
     close all
  
     
-    % tmp
-    load all_data_strength_INT_all_but_8
     
     
     %% PLOTS: Determine which plots to output 
@@ -168,7 +166,7 @@ function [] = strength_analysis(input_project, input_plot)
     end
         
     % below variables will be deleted and again preallocated within the loop
-    isokinetic_torque_angle_work(1:5,1:4) = nan;
+    isokinetic_torque_angle_work(1:5,1:4) = NaN;
     isokinetic_arrays{5} = [];
     isokinetic_intervals{5} = [];
     
@@ -275,78 +273,83 @@ function [] = strength_analysis(input_project, input_plot)
         
         
         %% calculations for ISOKINETIC trials
-        
+
         % identify files
         isokinetic_data = {dm_isokinD30{line} dm_isokinP30{line} dm_isokinP45{line} dm_isokinP60{line} dm_isokinP90{line}};
-        
+
         % preallocate
         clear isokinetic_torque_angle_work isokinetic_arrays isokinetic_intervals
-        isokinetic_torque_angle_work(1:length(isokinetic_data),1:4) = nan;
+        isokinetic_torque_angle_work(1:length(isokinetic_data),1:4) = NaN;
         isokinetic_arrays{length(isokinetic_data)} = [];
         isokinetic_intervals{length(isokinetic_data)} = [];
-        
-        % extract data from Noraxon files
-        for i = 1:length(isokinetic_data)
-            if(strcmpi(isokinetic_data{i}, 'null'))
-                % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
-                isokinetic_torque_angle_work(i,1:4) = NaN;
-            else 
-                [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}, isokinetic_intervals{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i}, subject_id);
-                % torque, angle, velocity, work, data arrays
-            end
-        end
-        
-        % plot torque-angle curves
-        if plot_individual
-            plottitle = horzcat('ISOKINETIC torque-angle trials, ', subject_id);
-            figure('Name',plottitle)
-            hold on
-            for i = 1:length(isokinetic_data)
-                if ~isempty(isokinetic_arrays{i})
-                    plot(isokinetic_arrays{i}(:,2),isokinetic_arrays{i}(:,1))
-                else
-                    % no data for particular velocity
-                    isokinetic_labels(i) = [];
-                end
-            end
-            ax = gca;
-            ax.ColorOrderIndex = 1;
-            for i = 1:length(isokinetic_data)
-                if ~isempty(isokinetic_arrays{i})
-                    plot(isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,1), '*') %torque/angle of peak torque
-                end
-            end
-            axis([-15 35 -10 Inf])
-            % set(ax, 'xdir','reverse')
-            xlabel('Ankle angle (°)')
-            ylabel('Isokinetic torque (Nm)')
-            title(plottitle,'Interpreter', 'none')
-            legend(isokinetic_labels)
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        
-        % plot torque-velocity summary
-        if plot_individual
-            plottitle = horzcat('ISOKINETIC torque-velocity, ', subject_id);
-            figure('Name',plottitle)
-            if isokinetic_torque_angle_work(1,3) > 0 % trial exists
-                plot(isokinetic_torque_angle_work(1,3), isokinetic_torque_angle_work(1,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto') % dorsiflexion - tweak to get colors of remaining lines to match other plots
-            end
-            hold on
-            for i = 2:length(isokinetic_torque_angle_work) % not including first entry (dorsiflexion)
-                plot(isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
-            end
-             axis([20 100 -10 max(isokinetic_torque_angle_work(2:end,1))*1.1]) %VAR
-%            ax = gca;
-%            set(ax, 'xdir','reverse')
-            xlabel('Velocity (°/s)')
-            ylabel('Isokinetic peak torque (Nm)')
-            title(plottitle,'Interpreter', 'none')
-            legend(isokinetic_labels(1:end),'location','SouthEast')
 
-            print(horzcat('data_plots/',plottitle),'-dpng')
+        if strcmp(dm_isokinD30{line},'null')
+            % true: No isokinetic analysis to be run
+        else
+            % false: run analyses
+
+            % extract data from Noraxon files
+            for i = 1:length(isokinetic_data)
+                if(strcmpi(isokinetic_data{i}, 'null'))
+                    % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case later
+                    isokinetic_torque_angle_work(i,1:4) = NaN;
+                else 
+                    [isokinetic_torque_angle_work(i,1), isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,4), isokinetic_arrays{i}, isokinetic_intervals{i}] = extract_isokinetic(isokinetic_data{i}, dm_side{line}, isokinetic_labels{i}, subject_id);
+                    % torque, angle, velocity, work, data arrays
+                end
+            end
+
+            % plot torque-angle curves
+            if plot_individual
+                plottitle = horzcat('ISOKINETIC torque-angle trials, ', subject_id);
+                figure('Name',plottitle)
+                hold on
+                for i = 1:length(isokinetic_data)
+                    if ~isempty(isokinetic_arrays{i})
+                        plot(isokinetic_arrays{i}(:,2),isokinetic_arrays{i}(:,1))
+                    else
+                        % no data for particular velocity
+                        isokinetic_labels(i) = [];
+                    end
+                end
+                ax = gca;
+                ax.ColorOrderIndex = 1;
+                for i = 1:length(isokinetic_data)
+                    if ~isempty(isokinetic_arrays{i})
+                        plot(isokinetic_torque_angle_work(i,2), isokinetic_torque_angle_work(i,1), '*') %torque/angle of peak torque
+                    end
+                end
+                axis([-15 35 -10 Inf])
+                % set(ax, 'xdir','reverse')
+                xlabel('Ankle angle (°)')
+                ylabel('Isokinetic torque (Nm)')
+                title(plottitle,'Interpreter', 'none')
+                legend(isokinetic_labels)
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+
+            % plot torque-velocity summary
+            if plot_individual
+                plottitle = horzcat('ISOKINETIC torque-velocity, ', subject_id);
+                figure('Name',plottitle)
+                if isokinetic_torque_angle_work(1,3) > 0 % trial exists
+                    plot(isokinetic_torque_angle_work(1,3), isokinetic_torque_angle_work(1,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto') % dorsiflexion - tweak to get colors of remaining lines to match other plots
+                end
+                hold on
+                for i = 2:length(isokinetic_torque_angle_work) % not including first entry (dorsiflexion)
+                    plot(isokinetic_torque_angle_work(i,3), isokinetic_torque_angle_work(i,1), 'LineStyle','none','Marker','o','MarkerSize',6,'MarkerFaceColor','auto')
+                end
+                 axis([20 100 -10 max(isokinetic_torque_angle_work(2:end,1))*1.1]) %VAR
+    %            ax = gca;
+    %            set(ax, 'xdir','reverse')
+                xlabel('Velocity (°/s)')
+                ylabel('Isokinetic peak torque (Nm)')
+                title(plottitle,'Interpreter', 'none')
+                legend(isokinetic_labels(1:end),'location','SouthEast')
+
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
         end
-        
         
         
         %% calculations for ISOMETRIC trials
@@ -356,7 +359,7 @@ function [] = strength_analysis(input_project, input_plot)
         isometric_labels = {'P10 trial 1' 'P10 trial 2' 'D00 trial 1' 'D00 trial 2' 'D05 trial 1' 'D05 trial 2' 'D10 trial 1' 'D10 trial 2' 'D15 trial 1' 'D15 trial 2'};
 
         % preallocate
-        isometric_torque_angle(1:10,1:2) = nan;
+        isometric_torque_angle(1:10,1:2) = NaN;
         isometric_arrays = []; % clear previous content
         isometric_arrays{length(isometric_data)} = [];
 
@@ -371,7 +374,7 @@ function [] = strength_analysis(input_project, input_plot)
         end
         
         % plot torque-time curves
-        if plot_individual && plot_conversion
+        if plot_conversion
             plottitle = horzcat('ISOMETRIC angle checkup, ', subject_id);
             figure('Name',plottitle)
             hold on
@@ -628,17 +631,6 @@ function [] = strength_analysis(input_project, input_plot)
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     %% HEADERS FOR DATA SAVED PER SUBJECT
 
     % isokinetic @ common angles
@@ -692,16 +684,13 @@ function [] = strength_analysis(input_project, input_plot)
     
     
     
-    %%% average isokinetic arrays
-    
-    
-    
+    %% average isokinetic arrays BD
     if input_project == 1 % BD study
         
         % find common angles across all subjects
         if BD_count > 0
-            BD_angle_max(1:5,1:BD_count) = nan;
-            BD_angle_min(1:5,1:BD_count) = nan;
+            BD_angle_max(1:5,1:BD_count) = NaN;
+            BD_angle_min(1:5,1:BD_count) = NaN;
             for i = 1:BD_count
                 for n = 1:5 %5 trials
                     if ~isempty(BD_angle_vars{i}{n})
@@ -718,8 +707,8 @@ function [] = strength_analysis(input_project, input_plot)
             BD_angle_min = -100;
         end
         if CON_count > 0
-            CON_angle_max(1:5,1:CON_count) = nan;
-            CON_angle_min(1:5,1:CON_count) = nan;
+            CON_angle_max(1:5,1:CON_count) = NaN;
+            CON_angle_min(1:5,1:CON_count) = NaN;
             for i = 1:CON_count
                 for n = 1:5 %5 trials
                     if ~isempty(CON_angle_vars{i}{n})
@@ -754,8 +743,8 @@ function [] = strength_analysis(input_project, input_plot)
                 end
             end
             % average
-            BD_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            BD_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            BD_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            BD_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(BD_angle_vars_common{n})
                     BD_angle_vars_mean(:,n) = nanmean(BD_angle_vars_common{n}, 2);
@@ -776,8 +765,8 @@ function [] = strength_analysis(input_project, input_plot)
                 end
             end
             % average
-            CON_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            CON_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            CON_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            CON_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(CON_angle_vars_common{n})
                     CON_angle_vars_mean(:,n) = nanmean(CON_angle_vars_common{n}, 2);
@@ -789,13 +778,13 @@ function [] = strength_analysis(input_project, input_plot)
         % end BD study
         
         
-        
+    %% average isokinetic arrays intervention   
     else % intervention
         
         % find common angles across all subjects
         if STR_PRE_count > 0
-            STR_PRE_angle_max(1:5,1:STR_PRE_count) = nan;
-            STR_PRE_angle_min(1:5,1:STR_PRE_count) = nan;
+            STR_PRE_angle_max(1:5,1:STR_PRE_count) = NaN;
+            STR_PRE_angle_min(1:5,1:STR_PRE_count) = NaN;
             for i = 1:STR_PRE_count
                 for n = 1:5 %5 trials
                     if ~isempty(STR_PRE_angle_vars{i}{n})
@@ -812,8 +801,8 @@ function [] = strength_analysis(input_project, input_plot)
             STR_PRE_angle_min = -100;
         end
         if CON_PRE_count > 0
-            CON_PRE_angle_max(1:5,1:CON_PRE_count) = nan;
-            CON_PRE_angle_min(1:5,1:CON_PRE_count) = nan;
+            CON_PRE_angle_max(1:5,1:CON_PRE_count) = NaN;
+            CON_PRE_angle_min(1:5,1:CON_PRE_count) = NaN;
             for i = 1:CON_PRE_count
                 for n = 1:5 %5 trials
                     if ~isempty(CON_PRE_angle_vars{i}{n})
@@ -830,8 +819,8 @@ function [] = strength_analysis(input_project, input_plot)
             CON_PRE_angle_min = -100;
         end
         if STR_POST_count > 0
-            STR_POST_angle_max(1:5,1:STR_POST_count) = nan;
-            STR_POST_angle_min(1:5,1:STR_POST_count) = nan;
+            STR_POST_angle_max(1:5,1:STR_POST_count) = NaN;
+            STR_POST_angle_min(1:5,1:STR_POST_count) = NaN;
             for i = 1:STR_POST_count
                 for n = 1:5 %5 trials
                     if ~isempty(STR_POST_angle_vars{i}{n})
@@ -848,8 +837,8 @@ function [] = strength_analysis(input_project, input_plot)
             STR_POST_angle_min = -100;
         end
         if CON_POST_count > 0
-            CON_POST_angle_max(1:5,1:CON_POST_count) = nan;
-            CON_POST_angle_min(1:5,1:CON_POST_count) = nan;
+            CON_POST_angle_max(1:5,1:CON_POST_count) = NaN;
+            CON_POST_angle_min(1:5,1:CON_POST_count) = NaN;
             for i = 1:CON_POST_count
                 for n = 1:5 %5 trials
                     if ~isempty(CON_POST_angle_vars{i}{n})
@@ -881,13 +870,14 @@ function [] = strength_analysis(input_project, input_plot)
                 for i = 1:STR_PRE_count
                     if ~isempty(STR_PRE_angle_vars{i}{n})
                         STR_PRE_angle_vars_common{n}(:,i) = spline(STR_PRE_angle_vars{i}{n}(:,2), STR_PRE_angle_vars{i}{n}(:,1), angle_array);
-                        % else - array will remain empty
+                    else
+                        STR_PRE_angle_vars_common{n}(1:length(angle_array),i) = NaN;
                     end
                 end
             end
             % average
-            STR_PRE_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            STR_PRE_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            STR_PRE_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            STR_PRE_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(STR_PRE_angle_vars_common{n})
                     STR_PRE_angle_vars_mean(:,n) = nanmean(STR_PRE_angle_vars_common{n}, 2);
@@ -903,13 +893,14 @@ function [] = strength_analysis(input_project, input_plot)
                 for i = 1:CON_PRE_count
                     if ~isempty(CON_PRE_angle_vars{i}{n})
                         CON_PRE_angle_vars_common{n}(:,i) = spline(CON_PRE_angle_vars{i}{n}(:,2), CON_PRE_angle_vars{i}{n}(:,1), angle_array);
-                        % else - array will remain empty
+                    else
+                        CON_PRE_angle_vars_common{n}(1:length(angle_array),i) = NaN;
                     end
                 end
             end
             % average
-            CON_PRE_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            CON_PRE_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            CON_PRE_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            CON_PRE_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(CON_PRE_angle_vars_common{n})
                     CON_PRE_angle_vars_mean(:,n) = nanmean(CON_PRE_angle_vars_common{n}, 2);
@@ -925,13 +916,14 @@ function [] = strength_analysis(input_project, input_plot)
                 for i = 1:STR_POST_count
                     if ~isempty(STR_POST_angle_vars{i}{n})
                         STR_POST_angle_vars_common{n}(:,i) = spline(STR_POST_angle_vars{i}{n}(:,2), STR_POST_angle_vars{i}{n}(:,1), angle_array);
-                        % else - array will remain empty
+                    else
+                        STR_POST_angle_vars_common{n}(1:length(angle_array),i) = NaN;
                     end
                 end
             end
             % average
-            STR_POST_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            STR_POST_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            STR_POST_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            STR_POST_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(STR_POST_angle_vars_common{n})
                     STR_POST_angle_vars_mean(:,n) = nanmean(STR_POST_angle_vars_common{n}, 2);
@@ -947,13 +939,14 @@ function [] = strength_analysis(input_project, input_plot)
                 for i = 1:CON_POST_count
                     if ~isempty(CON_POST_angle_vars{i}{n})
                         CON_POST_angle_vars_common{n}(:,i) = spline(CON_POST_angle_vars{i}{n}(:,2), CON_POST_angle_vars{i}{n}(:,1), angle_array);
-                        % else - array will remain empty
+                    else
+                        CON_POST_angle_vars_common{n}(1:length(angle_array),i) = NaN;
                     end
                 end
             end
             % average
-            CON_POST_angle_vars_mean(1:length(angle_array),1:5) = nan;
-            CON_POST_angle_vars_SD(1:length(angle_array),1:5) = nan;
+            CON_POST_angle_vars_mean(1:length(angle_array),1:5) = NaN;
+            CON_POST_angle_vars_SD(1:length(angle_array),1:5) = NaN;
             for n=1:5
                 if ~isempty(CON_POST_angle_vars_common{n})
                     CON_POST_angle_vars_mean(:,n) = nanmean(CON_POST_angle_vars_common{n}, 2);

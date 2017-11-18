@@ -2,7 +2,9 @@
 % read_datamaster file for TENDON STIFFNESS
 % Marie Moltubakk 17.5.2013
 % 
-% NB 2017-10-15: BD study has only 29 columns, must add dummy column for leg's group (stretching or control)
+% NB 2017-10-15: BD study has only 29? columns. If going back, must add dummy columns:
+%      dm_group = leg's group (stretching or control)
+%      dm_tendonlength = tendon length at 0 deg ankle angle
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -11,14 +13,14 @@ function out = read_datamaster_stiff(file)
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_leg_length
-    global dm_cutforce %new2014-04-14
+    global dm_tendonlength dm_cutforce %new2014-04-14 + 207-11-15
 
     
     % import datamaster file
     data = fileread(file);
     datamaster = textscan(data, '%q','Delimiter','\t');
     
-    datamaster_columns = 31; % number of data columns entered per subject % PROJECTSPECIFIC
+    datamaster_columns = 32; % number of data columns entered per subject % PROJECTSPECIFIC
     
     % restructure imported data into multiple columns
     % n o lines = 1 header + 1 per subject entry
@@ -61,7 +63,8 @@ function out = read_datamaster_stiff(file)
         dm_CPM_sol_NX{i-1,1}=datamaster{1,1}{delta+29,1};
         
         dm_leg_length{i-1,1}=datamaster{1,1}{delta+30,1};
-        dm_cutforce{i-1,1}=datamaster{1,1}{delta+31,1}; %new2014-04-14
+        dm_tendonlength{i-1,1}=datamaster{1,1}{delta+31,1}; % new 2017-11-15
+        dm_cutforce{i-1,1}=datamaster{1,1}{delta+32,1}; %new2014-04-14
     end
 
     out = nolines-1; % lines in datamaster to be analysed, minus header

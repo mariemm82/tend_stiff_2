@@ -13,7 +13,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% MMM TODO!!! change tendon lengths to be based on prone length, not zero angle length?
+% MMM TODO!!! change tendon length calculations to be based on prone length, not zero angle length?
 % --- length, pennation and angle angle in input data = prone position
 % --- for LICHT:
 %            % version 2 - length PRONE is zero elong, zero strain

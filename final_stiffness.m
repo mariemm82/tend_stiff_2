@@ -10,7 +10,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [fitresult, gof, force_elong_array] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials) %new2014-04-14
+function [fitresult, gof, force_elong_array, strain] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt) %new 2017-11-15
 global plot_achilles subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
@@ -166,7 +166,7 @@ for i = 1:length(OTJ_trials)
 end
 
 
-%% calculate tendon ELONGATION
+%% calculate tendon ELONGATION and STRAIN
 
 % preallocate
 displ_MTJ(1:length(force_array_full),1:length(MTJ_trials)) = NaN;
@@ -226,6 +226,12 @@ displ_otj_mean(1) = 0;
 % calculate elongation
 tend_elong = displ_mtj_mean - displ_otj_mean;
 % tend_elong(1) = NaN; % do not include point in stiffness fit
+
+% calculate maximal STRAIN
+max_tend_elong = max(tend_elong);
+tendon_length = str2double(tendon_length_txt);
+strain = max_tend_elong / tendon_length;
+cprintf('blue', horzcat('Maximal strain: ', num2str(round(max_tend_elong,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain*100,2)), '%% strain.', '\n'))
 
 if plot_achilles
     % MTJ force-disp x 3
@@ -328,7 +334,7 @@ end
 % keep data up to 90% of 6-trials-common-force  OR  use manually set cutoff (datamster)
 
 if force_array_cut(end) > str2double(force_cutoff_manual)
-    cprintf('red',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'));
+    cprintf('red',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
     loc_cutoff = find(force_array_cut>str2double(force_cutoff_manual),1,'first') - 1;
 else % 90% of 6-trials-common-force
     loc_cutoff = length(force_array_cut);

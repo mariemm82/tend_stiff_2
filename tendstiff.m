@@ -127,7 +127,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_leg_length
-    global dm_cutforce %new2014-04-14
+    global dm_tendonlength dm_cutforce %new2014-04-14
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
@@ -150,7 +150,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             'Common ramp force cutoff 90', 'Common ramp force max',...
             'Stiffness ind 80-100 (N/mm)', 'Stiff ind 90-100', ...
             'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ...
-            'Elong @ ind 90/cut (mm)', 'Elong MAX (mm)', 'Elong common cut90 (mm)', 'Elong common max (mm)'}; % PROJECTSPECIFIC
+            'Elong @ ind 90/cut (mm)', 'Elong MAX (mm)', 'Elong common cut90 (mm)', 'Elong common max (mm)', ...
+            'Strain (%)'}; % PROJECTSPECIFIC
         loc_stiff_a = 3;
         loc_stiff_b = 4;
         loc_stiff_c = 5;
@@ -415,7 +416,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         %    sending 3+3 trials + max forces from trials + manually set cutoff force
         % Produce stiffness equation (based on CUT data set) +
         %    force-elong-array (up to defined force level of 90% of 6-trial-common-force or 90% of manual cutoff)
-        [stiff_eq, stiff_gof, force_elong_array] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max);
+        [stiff_eq, stiff_gof, force_elong_array, strain] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, dm_tendonlength{line});
 
 
         %% calculate stiffness for last 10 and 20% of ind max:
@@ -435,6 +436,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             stiff_ind_80 stiff_ind_90 ...
             NaN NaN NaN NaN ... % NaN for 4x stiffness at force levels common to all subjects
             force_elong_array(end,1) max(force_elong_array(:,1)) NaN NaN ... % NaN for 2x elong at force levels common to all subjects
+            strain ...
             ];
         
         

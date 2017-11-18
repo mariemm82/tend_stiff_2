@@ -11,7 +11,7 @@
 
 
 function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_constants(freq_cutoff, inputfile, side)
-    global plot_conversion plot_check subject_id
+    global plot_conversion plot_check plot_achilles subject_id
     global column_norm_velocity
     global norm_volt_per_degree norm_volt_per_nm norm_volt_per_velocity norm_mv2nm_a norm_mv2nm_b
     

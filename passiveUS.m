@@ -199,22 +199,23 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
 
         axis_EMG = [-1 37 0 35];
         
-        axis_len_MTU = [-1 37 -0 550];
-        axis_el_MTU = [-1 37 -1 35];
+        axis_len_MTU = [-1 37 300 550];
+        axis_el_MTU = [-1 37 -1 50];
         axis_str_MTU = [-1 37 -0.5 8];
         axis_str_MTUP = [-5 100 0 8];
 
-        axis_penn_GMFAS = [-1 37 6 19];
-        axis_len_GMFAS = [-1 37 0 95];
-        axis_el_GMFAS = [-1 37 -0.5 13];
+        axis_penn_GMFAS = [-1 37 5 20];
+        axis_len_GMFAS = [-1 37 40 95];
+        axis_el_GMFAS = [-1 37 -2 45];
         axis_str_GMFAS = [-1 37 -1 22];
 
-        axis_el_SEE_arch = [-1 37 -1 22];
+        axis_el_SEE_arch = [-1 37 -1 40];
         axis_str_SEE_arch = [-1 37 -0.5 12];
-        axis_len_SEE_arch = [-1 37 0 450];
-        axis_el_GMmsc_arch = [-1 37 -0.5 15];
-        axis_str_GMmsc_arch = [-1 37 -0.5 6];
-        axis_len_GMmsc_arch = [-1 37 0 350];
+        axis_len_SEE_arch = [-1 37 250 500];
+        
+        axis_el_GMmsc_arch = [-1 37 -0.5 24];
+        axis_str_GMmsc_arch = [-1 37 -0.5 40];
+        axis_len_GMmsc_arch = [-1 37 40 70];
 
         axis_displ_GMFAS = [-1 37 -2 4.5];
         axis_displ_SOL = [-1 37 -3 11];
@@ -2430,6 +2431,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         %%
 
         save all_data_passive_inloop
+        close all
         
     end
     %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -655,7 +655,7 @@ function [] = passive_knee(input_plot)
             % create tables and save as file
             % pre and post values
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/intervention_arrays_KNEE_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
 %             out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
@@ -665,7 +665,7 @@ function [] = passive_knee(input_plot)
             % difference values
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
                 out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+                filename_output = strcat('data_output/intervention_arrays_KNEE_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
                 writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
 
 %                 out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);

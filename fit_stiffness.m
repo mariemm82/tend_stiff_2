@@ -1,5 +1,5 @@
 function [fitresult, gof] = fit_stiffness(elongation, force, loc_cut, displ_MTJ, displ_OTJ)
-global subject_id plot_check
+global subject_id plot_check plot_achilles
 % 0 = use fit through zero
 % 1 = use fit with free beginning
 choice_of_fit = 0; %VAR
@@ -31,7 +31,7 @@ opts.Upper = [Inf Inf 0]; % last variable 0
 [fitresult0, gof0] = fit( xData, yData, ft, opts );
 coeffvals = coeffvalues(fitresult0);
 
-if plot_check
+if plot_achilles
 % Plot fit with data.
     plottitle = horzcat('FIT PLOT, tendon stiffness through ZERO, ', subject_id);
     fignavn = figure('Name', plottitle);
@@ -61,7 +61,7 @@ opts.Upper = [Inf Inf Inf]; % last variable 0
 [fitresult1, gof1] = fit( xData, yData, ft, opts );
 coeffvals = coeffvalues(fitresult1);
 
-if plot_check
+if plot_achilles
 % Plot fit with data.
     plottitle = horzcat('FIT PLOT, tendon stiffness FREE onset, ', subject_id);
     fignavn = figure('Name', plottitle);

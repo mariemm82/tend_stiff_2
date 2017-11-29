@@ -10,7 +10,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [fitresult, gof, force_elong_array, strain] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt) %new 2017-11-15
+function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, elong_cut, force_cut, strain_cut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt) %new 2017-11-15
 global plot_achilles subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
@@ -22,18 +22,18 @@ loc_force = 2;
 loc_displ = 3;
 
 
-%% calculate 90% of max force (cutoff method 5, June 2017) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% calculate 90% of individual max force (cutoff method 5, June 2017) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % find common FORCE level, create common force array
 
 % find lowest common force between all 6 trials
-commonforce = min(force_max_trials);
+force_ind_max = min(force_max_trials);
 
 % define force cutoff level:
 force_cutoff = 0.9; %VAR - cut off force at 90% of common max
 
 % create array of force values to use for averaging
-force_array_full = (0:forceintervals:commonforce)';
-force_array_cut = (0:forceintervals:(commonforce*force_cutoff))';
+force_array_full = (0:forceintervals:force_ind_max)';
+force_array_cut = (0:forceintervals:(force_ind_max*force_cutoff))';
 
 % print to screen: max force from each trial + final cut force
 cprintf('*black', horzcat('Ramps, trials max force: '))
@@ -166,7 +166,7 @@ for i = 1:length(OTJ_trials)
 end
 
 
-%% calculate tendon ELONGATION and STRAIN
+%% calculate tendon ELONGATION 
 
 % preallocate
 displ_MTJ(1:length(force_array_full),1:length(MTJ_trials)) = NaN;
@@ -210,7 +210,7 @@ for i = 1:length(OTJ_trials)
     end
 end
 
-% average displacement trials
+% average DISPLACEMENT trials
 displ_mtj_mean = nanmean(displ_MTJ,2); % nanmean averages 2 values if 3rd is NaN
 displ_otj_mean = nanmean(displ_OTJ,2);
 % set elong == 0 at force == 0
@@ -223,16 +223,12 @@ displ_otj_mean(1) = 0;
 %    displ_mtj_mean(1) = 0;
 %end
 
-% calculate elongation
+% calculate ELONGATION array
 tend_elong = displ_mtj_mean - displ_otj_mean;
 % tend_elong(1) = NaN; % do not include point in stiffness fit
 
-% calculate maximal STRAIN
-max_tend_elong = max(tend_elong);
-tendon_length = str2double(tendon_length_txt);
-strain = max_tend_elong / tendon_length;
-cprintf('blue', horzcat('Maximal strain: ', num2str(round(max_tend_elong,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain*100,2)), '%% strain.', '\n'))
 
+%% checkpoint plots MTJ / OTJ
 if plot_achilles
     % MTJ force-disp x 3
     plottitle = horzcat('MTJ displacement check, 3 single trials, ', subject_id);
@@ -330,25 +326,49 @@ if plot_achilles
 end
 
 
-%% choose cutoff method %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% keep data up to 90% of 6-trials-common-force  OR  use manually set cutoff (datamster)
-
-if force_array_cut(end) > str2double(force_cutoff_manual)
-    cprintf('red',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
-    loc_cutoff = find(force_array_cut>str2double(force_cutoff_manual),1,'first') - 1;
-else % 90% of 6-trials-common-force
-    loc_cutoff = length(force_array_cut);
-end
+%% force-elong CUTOFF: manual or auto %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% manual = datamaster set
+% automatic = 90% of 6-trials-common-force
+%
 % loc_cutoff: KEEP all points up until and including this frame
 
-% create force-elongation array for later use
-force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
+if  str2double(force_cutoff_manual) < force_array_cut(end)
+    % manual cutoff
+    cprintf('red',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
+    loc_cutoff = find(force_array_cut>str2double(force_cutoff_manual),1,'first') - 1;
+else
+    % automatic cutoff: 90% of 6-trials-common-force
+    loc_cutoff = length(force_array_cut);
+end
+
+% create FULL force-elongation array - NOT cut at loc_cutoff
+force_elong_array = [tend_elong force_array_full];
+% old:
+% force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
+
+
+%% calculate output vars: tendon STRAIN, ELONG, FORCE
+tendon_length = str2double(tendon_length_txt);
+% elong_max, force_elongmax, strain_max, elong_cut, force_cut, strain_cut
+
+% highest achieved elong + corresponding strain and force:
+[elong_max, loc_elong_max] = max(force_elong_array(:,1));
+strain_max = elong_max / tendon_length * 100;
+force_elongmax = force_elong_array(loc_elong_max,2);
+
+% at cut force
+elong_cut = force_elong_array(loc_cutoff,1);
+strain_cut = elong_cut / tendon_length * 100;
+force_cut = force_elong_array(loc_cutoff,2);
+
+cprintf('blue', horzcat('Maximal/cut strain: ', num2str(round(elong_max,1)), '/', num2str(round(elong_cut,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain_max,2)), '/', num2str(round(strain_cut,2)), '%% strain.', '\n'))
 
 
 
 %% curve fitting for stiffness %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % currently stiff fit is NOT forced through zero, but saving plots also through zero
-% sending force_array_full, but utilizing for the fit, only up until loc_cutoff
+%   sending force_array_FULL
+%   utilizing for the fit, only up until cutoff force (loc_cutoff)
 [fitresult, gof] = fit_stiffness(tend_elong, force_array_full, loc_cutoff, displ_mtj_mean, displ_otj_mean);
 
 % check if first coefficient is negative --> red text

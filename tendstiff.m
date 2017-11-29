@@ -32,6 +32,9 @@
 % - catch error in solve_sec_poly with fzero when equation never reaches 0.0
 %   --- under header:   GRP: plot FIT, force-elong per subject (groupwise)
     
+
+
+
 function [] = tendstiff(input_project, input_plot, input_resumerun)
     close all
     warning('off','MATLAB:xlswrite:AddSheet')
@@ -518,7 +521,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-         close all
+%         close all
     end
     %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

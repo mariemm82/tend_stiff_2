@@ -11,12 +11,47 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, elong_cut, force_cut, strain_cut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt) %new 2017-11-15
-global plot_achilles subject_id % plot_conversion plot_check %plot_norm plot_emg
+global plot_achilles plot_norm subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
 %% convert input data to cells
-MTJ_trials = {time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3};
-OTJ_trials = {time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3};
+% moving mean with window of 5, to smooth datapoints before interpolation
+window = 5; %VAR
+
+if length(time_force_displ_mtj1) > 1
+    tfdm1 = movingmean(time_force_displ_mtj1,window);
+else
+    tfdm1 = time_force_displ_mtj1;
+end
+if length(time_force_displ_mtj2) > 1
+    tfdm2 = movingmean(time_force_displ_mtj2,window);
+else
+    tfdm2 = time_force_displ_mtj2;
+end
+if length(time_force_displ_mtj3) > 1
+    tfdm3 = movingmean(time_force_displ_mtj3,window);
+else
+    tfdm3 = time_force_displ_mtj3;
+end
+
+if length(time_force_displ_otj1) > 1
+    tfdo1 = movingmean(time_force_displ_otj1,window);
+else
+    tfdo1 = time_force_displ_otj1;
+end
+if length(time_force_displ_otj2) > 1
+    tfdo2 = movingmean(time_force_displ_otj2,window);
+else
+    tfdo2 = time_force_displ_otj2;
+end
+if length(time_force_displ_otj3) > 1
+    tfdo3 = movingmean(time_force_displ_otj3,window);
+else
+    tfdo3 = time_force_displ_otj3;
+end
+
+MTJ_trials = {tfdm1, tfdm2, tfdm3};
+OTJ_trials = {tfdo1, tfdo2, tfdo3};
 loc_time = 1;
 loc_force = 2;
 loc_displ = 3;
@@ -86,7 +121,7 @@ for i = 1:length(OTJ_trials)
 end
 
 % plot onset checkpoints
-if plot_achilles
+if plot_norm
     plottitle = horzcat('Force onset check, 6 trials, ', subject_id);
     figure('Name',plottitle)
     hold on
@@ -181,8 +216,19 @@ for i = 1:length(MTJ_trials)
         MTJ_trials{i}(loc_del_mtj+1:end,:) = [];
         % spline to get displacement values at common force levels
         displ_MTJ(:,i) = pchip(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array_full);
-        % ALTERNATIVE:   interp1(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array,'linear');
-        % ALTERNATIVE:   spline(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array);
+        % ALTERNATIVE: linear table lookup
+        % displ_MTJ2(:,i) = interp1(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array_full,'linear');
+        % ALTERNATIVE: spline
+        % displ_MTJ3(:,i) = spline(MTJ_trials{i}(:,loc_force),MTJ_trials{i}(:,loc_displ),force_array_full);
+
+% tmp plot to compare various averaging/interpolation options:        
+%         figure
+%         hold on
+%         plot(MTJ_trials{i}(:,loc_displ),MTJ_trials{i}(:,loc_force))
+%         plot(displ_MTJ(:,i),force_array_full,'o')
+%         plot(displ_MTJ2(:,i),force_array_full,'*')
+%         plot(displ_MTJ3(:,i),force_array_full,'.')
+        
         if abs(displ_MTJ(1,i)) > 0.05 % delete first value if spline function creates a point way off (will not be used anyway)
             displ_MTJ(1,i) = NaN;
         end

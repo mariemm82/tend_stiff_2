@@ -28,7 +28,8 @@
 
 
 % MMM TODO 
-% - same rot const pre and post??
+% - same rot const pre and post?? or ELIMINATE??
+%         at_rotation_const 
 % - catch error in solve_sec_poly with fzero when equation never reaches 0.0
 %   --- under header:   GRP: plot FIT, force-elong per subject (groupwise)
     
@@ -58,7 +59,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         plot_achilles = 0;
     end
     if input_plot >= 3
-        plot_norm = 1; % show torque before and after initial lowpass filter / ankle rotation fit plots
+        plot_norm = 1; % show torque before and after initial lowpass filter / onset force / ankle rotation fit plots
     else
         plot_norm = 0;
     end
@@ -372,7 +373,6 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         else
             % NORMALLY
             at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
-            % MMM TODO - same rot const pre and post??
         end
 
 

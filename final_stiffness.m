@@ -20,32 +20,38 @@ window = 5; %VAR
 
 if length(time_force_displ_mtj1) > 1
     tfdm1 = movingmean(time_force_displ_mtj1,window);
+    tfdm1(:,1) = time_force_displ_mtj1(:,1);
 else
     tfdm1 = time_force_displ_mtj1;
 end
 if length(time_force_displ_mtj2) > 1
     tfdm2 = movingmean(time_force_displ_mtj2,window);
+    tfdm2(:,1) = time_force_displ_mtj2(:,1);
 else
     tfdm2 = time_force_displ_mtj2;
 end
 if length(time_force_displ_mtj3) > 1
     tfdm3 = movingmean(time_force_displ_mtj3,window);
+    tfdm3(:,1) = time_force_displ_mtj3(:,1);
 else
     tfdm3 = time_force_displ_mtj3;
 end
 
 if length(time_force_displ_otj1) > 1
     tfdo1 = movingmean(time_force_displ_otj1,window);
+    tfdo1(:,1) = time_force_displ_otj1(:,1);
 else
     tfdo1 = time_force_displ_otj1;
 end
 if length(time_force_displ_otj2) > 1
     tfdo2 = movingmean(time_force_displ_otj2,window);
+    tfdo2(:,1) = time_force_displ_otj2(:,1);
 else
     tfdo2 = time_force_displ_otj2;
 end
 if length(time_force_displ_otj3) > 1
     tfdo3 = movingmean(time_force_displ_otj3,window);
+    tfdo3(:,1) = time_force_displ_otj3(:,1);
 else
     tfdo3 = time_force_displ_otj3;
 end

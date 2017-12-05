@@ -521,7 +521,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-%         close all
+         close all
     end
     %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

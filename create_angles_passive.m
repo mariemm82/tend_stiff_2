@@ -15,9 +15,12 @@
 function []=create_angles_passive(input_plot)
     close all
     
+    load forces_output 
+    load angles_output
     
     
-    %%% Determine which plots to produce during script running
+    
+    %% Determine which plots to produce during script running
     global plot_achilles plot_norm plot_emg plot_check plot_us subject_id plot_conversion
 
     plot_check = input_plot; % turn on/off main checkpoint plots
@@ -29,10 +32,7 @@ function []=create_angles_passive(input_plot)
     
 
 
-
-
-
-    %%% Set constants % PROJECTSPECIFIC
+    %% Set constants % PROJECTSPECIFIC
 
     % sampling frequencies
     global us_zerodispframes noraxonfreq freq_default
@@ -83,17 +83,10 @@ function []=create_angles_passive(input_plot)
     column_norm_direction = 14;
     column_achilles = 15;
 
-
-    
-    
-    
-    
-    
     
 
-
-    %%% Read datamaster file, to connect corresponding data files
-    %%% Produces arrays with file names and variables per trial, to be retrieved later
+    %% Read datamaster file, to connect corresponding data files
+    % Produces arrays with file names and variables per trial, to be retrieved later
 
     global dm_subjectno dm_timepoint dm_side dm_trial 
     global dm_ROM_sol1_NX dm_ROM_sol1_US dm_ROM_sol1_US_frame dm_ROM_sol2_NX dm_ROM_sol2_US dm_ROM_sol2_US_frame
@@ -109,22 +102,19 @@ function []=create_angles_passive(input_plot)
 
     
     
-    
-    %%% predefine output arrays
+    %% predefine output arrays
     % prepare output array for angles with values of 100, to avoid reporting zero angles when data are missing
     angles_output(1:subject_last, 1:13) = 100;
     % output array for forces
     forces_output(1:subject_last, 1:9) = 100000;
 
-
     
-
-    %%% Loop through all lines in datamaster file (except header line)
+    %% Loop through all lines in datamaster file (except header line)
     for line = 1:linestotal
 
 
 
-        %%% subject/trial identifier
+        %% subject/trial identifier
         subjectno = str2double(dm_subjectno{line});
         if subjectno > 100
             filepath = 'data\BD\';
@@ -137,7 +127,7 @@ function []=create_angles_passive(input_plot)
 
 
 
-%         %%% Calculate data for muscle activation (EMG)
+        %% Calculate data for muscle activation (EMG)
 % EMG not needed to create max angles and forces. Only used for output to
 % screen, and by setting EMG_max to 0, output will report "inf". Does not
 % affect data.
@@ -183,22 +173,17 @@ function []=create_angles_passive(input_plot)
 
 
 
-        %%% calculate norm conversion factors
+        %% calculate norm conversion factors
         % retrieve conversion constants for Norm data
         [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'passive');
 
 
 
-        %%% calculate achilles tendon moment arm
+        %% calculate achilles tendon moment arm
         at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
 
 
-
-
-
-
-
-        %%% Calculations for 2x GM MTJ trials
+        %% Calculations for 2x GM MTJ trials
 
         % extract force, gonio, angle, displacement
         if(strcmp(dm_ROM_gmmtj1_NX{line}, 'null'))
@@ -260,13 +245,7 @@ function []=create_angles_passive(input_plot)
 
 
 
-
-
-
-
-
-
-        %%% Calculations for 2x GM fascicle trials
+        %% Calculations for 2x GM fascicle trials
 
         % extract force, gonio, angle, displacement
         if(strcmp(dm_ROM_gmfas1_NX{line}, 'null'))
@@ -324,11 +303,7 @@ function []=create_angles_passive(input_plot)
         end
 
 
-
-
-
-
-        %%% Calculations for 2x SOL trials
+        %% Calculations for 2x SOL trials
 
         % extract force, gonio, angle, displacement
         if(strcmp(dm_ROM_sol1_NX{line}, 'null'))
@@ -387,14 +362,9 @@ function []=create_angles_passive(input_plot)
 
 
 
+        %% Combine SOL, GMMTJ, GMFAS
 
-
-        %%% Combine SOL, GMMTJ, GMFAS
-
- 
-        
-        
-        % all three displacements separately 
+         % all three displacements separately 
         if plot_check
             plottitle = horzcat('IND 3x force displacement, ', subject_id);
             figure('Name',plottitle);
@@ -429,14 +399,10 @@ function []=create_angles_passive(input_plot)
         
         % average data from the three scan sites
         data_force_gonio = average_passive_forces(data_sol, data_gmmtj, data_gmfas);
-
         
         
         
-
-        
-        
-        %%% extract max ROM angles per trial, ind max and common max, write to array all_output
+        %% extract max ROM angles per trial, ind max and common max, write to array all_output
 
         % determine output column (L/R, PRE/POST)
         if strcmp(dm_timepoint{line}, 'PRE') == 1
@@ -467,9 +433,7 @@ function []=create_angles_passive(input_plot)
         
         
         
-        
-        
-        %%% extract max FORCES per trial, ind max and common max, write to array all_output
+        %% extract max FORCES per trial, ind max and common max, write to array all_output
         
         % write max averaged FORCE to array
         forces_output(subjectno, 1) = subjectno;
@@ -481,13 +445,13 @@ function []=create_angles_passive(input_plot)
         
     end
     
-    %%%%%%%% loop finished
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% loop finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
     
     
 
-    %%% for all trials/subjects in datamaster, extract and store common and ind max
+    %% for all trials/subjects in datamaster, extract and store common and ind max
 
     % common max (across all subjects)
     angle_norm_common_max = min(min(angles_output(:, 2:5)));
@@ -507,11 +471,11 @@ function []=create_angles_passive(input_plot)
        forces_output(ind, 9) = min([forces_output(ind, 3) forces_output(ind, 5)]);    % FORCE_IND_L_MAX
     end
 
-    % output to TSV file to be read by matlab:
+    % output TSV file to be read by matlab
     dlmwrite('angles_output.tsv', angles_output, 'delimiter','\t', 'precision',10)
     dlmwrite('forces_output.tsv', forces_output, 'delimiter','\t', 'precision',10)
 
-    % output to XLS file with headers:
+    % output XLS file with headers
     if ispc 
         filename_output = 'angles_output.xls';
         angles_output_head = {'SUBJECT', 'ANG_PRE_R', 'ANG_PRE_L', 'ANG_POST_R', 'ANG_POST_L', 'ANG_IND_MAX', 'ANG_COMMON_MAX', ...
@@ -525,7 +489,8 @@ function []=create_angles_passive(input_plot)
         xlswrite(filename_output, forces_output_head, 1, 'A1')
         xlswrite(filename_output, forces_output, 1, 'A2')
     end 
-
+    
+    % output MAT files
     save angles_output angles_output
     save forces_output forces_output
 

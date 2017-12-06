@@ -10,7 +10,7 @@
 
 function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(noraxondata, usdata, usdata_frame, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, side, trial_name)
     global column_achilles column_gonio % noraxonfreq
-    global plot_norm plot_us plot_check subject_id % plot_achilles  plot_emg 
+    global plot_norm plot_achilles plot_check subject_id % plot_achilles  plot_emg 
     global filepath
     
     
@@ -126,7 +126,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
         rotation_correction = noraxon_prepped(1:commonlength,column_gonio) * at_rotation_const;
         usdata_corrected(:,2) = usdata_prepped(1:commonlength,2) + rotation_correction; % use DISPLACEMENT column, WITH applying correction
         % plot US data corrections, both for extmark and rotation
-        if plot_us
+        if plot_achilles
             plottitle = horzcat('US data correction check for ', subject_id, ' ', trial_name);
             figure('Name',plottitle)
             plot(usdata_prepped(:,1),usdata_prepped(:,3),'r')

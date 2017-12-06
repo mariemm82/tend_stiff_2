@@ -30,6 +30,7 @@
 % MMM TODO 
 % - same rot const pre and post?? or ELIMINATE??
 %         at_rotation_const 
+%      corrected only in extract_f_d_s for MTJ
 % - catch error in solve_sec_poly with fzero when equation never reaches 0.0
 %   --- under header:   GRP: plot FIT, force-elong per subject (groupwise)
     
@@ -129,7 +130,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     col_lightblue = [0.6 0.8 1];
     col_lightred = [1 0.6 0.8];
     axis_stiff_free = [0 14 -100 Inf];
-    axis_stiff_entire = [0 24 -100 Inf];
+    axis_stiff_whole = [0 24 -100 Inf];
     
 
 
@@ -346,11 +347,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
         % Read moment arm trial US data file, determine time stamps, set trigger frame as time = zero
         % Produce US sample frequency, create new US array containing time and displacement
-        [usdata_CPM, usfreq_CPM] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
+%        [usdata_CPM, usfreq_CPM] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM calcaneus');
 
         % Read moment arm noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
         % Produce a new noraxon data array
-        noraxon_CPM = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_CPM, dm_side{line}, 'CPM calcaneus');
+%        noraxon_CPM = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_CPM, dm_side{line}, 'CPM calcaneus');
 
         % above variables are no longer used for momentarm, but are (re-)used for ankle rotation below
         
@@ -363,17 +364,20 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         % Read complete, prepared noraxon array + prepared us array
         % Produce ankle rotation constant, mm/degree
         
-        % REUSING us file from moment arm
-        % REUSING noraxon file from moment arm
-        if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R') || strcmp(subject_id,'INT_4_GM_PRE_STR_R')
-            % ROUGH coding, manually calculated for below subjects
-            at_rotation_const = -0.04496; % BD predefined = -0.14; % auto-calculated value = -0.61/-0.35
-        elseif strcmp(subject_id,'INT_10_SOL_PRE_CON_L') || strcmp(subject_id,'INT_10_GM_PRE_CON_L')
-            at_rotation_const = -0.091707; % auto-calculated value = positive
-        else
-            % NORMALLY
-            at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
-        end
+        % no longer correcting for rotation - OTJ displacement covers this
+        at_rotation_const = 0; 
+        
+%         % REUSING us file from moment arm
+%         % REUSING noraxon file from moment arm
+%         if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R') || strcmp(subject_id,'INT_4_GM_PRE_STR_R')
+%             % ROUGH coding, manually calculated for below subjects
+%             at_rotation_const = -0.04496; % BD predefined = -0.14; % auto-calculated value = -0.61/-0.35
+%         elseif strcmp(subject_id,'INT_10_SOL_PRE_CON_L') || strcmp(subject_id,'INT_10_GM_PRE_CON_L')
+%             at_rotation_const = -0.091707; % auto-calculated value = positive
+%         else
+%             % NORMALLY
+%             at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
+%         end
 
 
         %% Calculate MVC for plantarflexion
@@ -521,7 +525,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-         close all
+        % close all
     end
     %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -715,7 +719,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             BD_GM_forcemax_mean = mean(stiffness_GM_BD(:,5));
             BD_GM_forcemax_SD = std(stiffness_GM_BD(:,5));
             % prepare plot
-            plottitle = horzcat('Entire AT, stiffness curve fit, dancers');
+            plottitle = horzcat('Whole AT, stiffness curve fit, dancers');
             figure('Name',plottitle)
             hold on
             % individual data
@@ -733,12 +737,12 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(BD_GM_elongmax_mean,BD_GM_forcemax_mean,BD_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_entireAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_wholeAT.jpg'))
         end
 
         if CON_SOL_count > 0
@@ -787,7 +791,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             CON_GM_forcemax_mean = mean(stiffness_GM_CON(:,5));
             CON_GM_forcemax_SD = std(stiffness_GM_CON(:,5));
             % prepare plot
-            plottitle = horzcat('Entire AT, stiffness curve fit, controls');
+            plottitle = horzcat('Whole AT, stiffness curve fit, controls');
             figure('Name',plottitle)
             hold on
             % individual data
@@ -805,12 +809,12 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_entireAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_wholeAT.jpg'))
         end
 
 
@@ -834,11 +838,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
             herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'b.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
-            legend([h1 h2 h3 h4], 'BD free AT', 'BD entire AT', 'CON free AT', 'CON entire AT', 'Location','Southeast')
+            legend([h1 h2 h3 h4], 'BD free AT', 'BD whole AT', 'CON free AT', 'CON whole AT', 'Location','Southeast')
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_all.jpg'))
 
 
@@ -863,7 +867,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_freeAT.jpg'))
 
 
-            plottitle = horzcat('Entire AT, mean stiffness curves');
+            plottitle = horzcat('Whole AT, mean stiffness curves');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -875,12 +879,12 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             errorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_forcemax_SD, 'bo', 'MarkerFaceColor', 'b', 'Markersize',4); % avg of ind max force/elong
             herrorbar(CON_GM_elongmax_mean,CON_GM_forcemax_mean,CON_GM_elongmax_SD, 'b.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
-            legend([h2 h4], 'BD entire AT', 'CON entire AT', 'Location','Southeast')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_entireAT.jpg'))
+            legend([h2 h4], 'BD whole AT', 'CON whole AT', 'Location','Southeast')
+            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_wholeAT.jpg'))
         end
         
     else
@@ -1075,7 +1079,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(STR_PRE_GM_elongmax_mean,STR_PRE_GM_forcemax_mean,STR_PRE_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(STR_PRE_GM_elongmax_mean,STR_PRE_GM_forcemax_mean,STR_PRE_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
@@ -1114,7 +1118,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(STR_POST_GM_elongmax_mean,STR_POST_GM_forcemax_mean,STR_POST_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(STR_POST_GM_elongmax_mean,STR_POST_GM_forcemax_mean,STR_POST_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
@@ -1153,7 +1157,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(CON_PRE_GM_elongmax_mean,CON_PRE_GM_forcemax_mean,CON_PRE_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(CON_PRE_GM_elongmax_mean,CON_PRE_GM_forcemax_mean,CON_PRE_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
@@ -1192,7 +1196,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             h2 = errorbar(CON_POST_GM_elongmax_mean,CON_POST_GM_forcemax_mean,CON_POST_GM_forcemax_SD, 'ko', 'MarkerFaceColor', 'k', 'Markersize',4); % avg of ind max force/elong
             herrorbar(CON_POST_GM_elongmax_mean,CON_POST_GM_forcemax_mean,CON_POST_GM_elongmax_SD, 'k.')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
@@ -1246,7 +1250,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             herrorbar(CON_POST_GM_elongmax_mean,CON_POST_GM_forcemax_mean,CON_POST_GM_elongmax_SD, 'b.')
             errorbar(CON_POST_GM_elongmax_mean,CON_POST_GM_forcemax_mean,CON_POST_GM_forcemax_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
             % visual
-            axis(axis_stiff_entire)
+            axis(axis_stiff_whole)
             xlabel('Tendon elongation (mm)')
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
@@ -1619,15 +1623,15 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             else
                 legend([con1 con2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_',plottitle,'.jpg'))
         end
 
 
 
-        % Entire AT (GM):
+        % WholeAT (GM):
         if (BD_GM_count > 0 || CON_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Entire AT, force-elongation (data, no fit)');
+            plottitle = horzcat('Whole AT, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if BD_GM_count > 0
@@ -1659,7 +1663,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             elseif CON_GM_count
                 legend([con1 con2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_',plottitle,'.jpg'))
         end
         
     else % intervention 
@@ -1738,10 +1742,10 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         end
 
 
-        % Entire AT (GM), STR PRE-POST:
+        % Whole AT (GM), STR PRE-POST:
         if (STR_PRE_GM_count > 0 || STR_POST_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('whole AT STR, force-elongation (data, no fit)');
+            plottitle = horzcat('Whole AT STR, force-elongation (data, no fit)');
             figure('Name',plottitle)
             hold on
             if STR_PRE_GM_count > 0
@@ -1775,7 +1779,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
-        % Entire AT (GM), CON PRE-POST:
+        % Whole AT (GM), CON PRE-POST:
         if (CON_PRE_GM_count > 0 || CON_POST_GM_count > 0)
             fig_f_e_legend = [];
             plottitle = horzcat('Whole AT CON, force-elongation (data, no fit)');

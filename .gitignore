@@ -4,6 +4,7 @@ data_output/
 data_plots/
 data_plots_stiff/\!*
 all_data_*.mat
+*.asv
 data/01_POST_CPM_5L_trial1.tsv
 data/01_POST_CPM_5L_trial2.tsv
 data/01_POST_CPM_5R_trial3.tsv

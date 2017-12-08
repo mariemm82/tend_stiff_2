@@ -150,23 +150,25 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     if plot_check && plot_norm
         plottitle = horzcat('SYNC check for ', subject_id, ' ', trial_name);
         fignavn = figure('Name',plottitle);
-        title(plottitle,'Interpreter', 'none')
         [AX,H1,H2] = plotyy(usdata_corrected(:,1),usdata_corrected(:,2),noraxon_prepped(:,1),tendon_force_offset,'plot');
         hold on
         plot(noraxon_prepped(:,1),noraxon_prepped(:,column_gonio),'m')
-
-        set(get(AX(1),'Ylabel'),'String','Displacement (mm)')
+        
+        axis_y_start = min([min(noraxon_prepped(:,column_gonio)) min(usdata_corrected(:,2))]);
+        
+        set(get(AX(1),'Ylabel'),'String','Displacement (mm) / gonio (deg)')
         set(get(AX(2),'Ylabel'),'String','Force (N)')
         set(AX,{'ycolor'},{'r';'b'})
         set(H1,'color','red')
         set(H2,'color','blue')
-        set(AX(1),'YLim',[min(usdata_corrected(:,2)) max(usdata_corrected(:,2))])
-        set(AX(1),'YTick',0:1:max(usdata_corrected(:,2)))
+        set(AX(1),'YLim',[axis_y_start max(usdata_corrected(:,2))])
+        set(AX(1),'YTick',round(axis_y_start,0):1:max(usdata_corrected(:,2)))
         set(AX(1),'box','off')
         set(AX(2),'YLim',[min(tendon_force_offset) max(tendon_force_offset)])
         set(AX(2),'YTick',0:500:max(tendon_force_offset))
         xlabel('Time (s)')
         legend('Displ corr (mm)','Gonio (deg)','Force (N)','Location','Southeast')
+        title(plottitle,'Interpreter', 'none')
         saveas(fignavn, strcat('data_plots_stiff/IND_datasync_', subject_id, '_', trial_name), 'png')
     end
 

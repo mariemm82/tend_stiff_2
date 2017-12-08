@@ -126,7 +126,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     end
 
     % create linear equation for plantarflex direction, starting from zero angle
-    [fitresult, ~] = fit_ankle_rotation(angle2(zeroangle:fiveangle), displ2(zeroangle:fiveangle),'2nd');
+    [fitresult, ~] = fit_ankle_rotation(angle2(zeroangle:fiveangle), displ2(zeroangle:fiveangle),'calc 2nd');
     coeffvals_2nd = coeffvalues(fitresult);
 
     
@@ -155,7 +155,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
         end
 
         % create linear equation for plantarflex direction, starting from zero angle
-        [fitresult, ~] = fit_ankle_rotation(angle0(zeroangle:fiveangle), displ0(zeroangle:fiveangle),'1st');
+        [fitresult, ~] = fit_ankle_rotation(angle0(zeroangle:fiveangle), displ0(zeroangle:fiveangle),'calc 1st');
         coeffvals_1st = coeffvalues(fitresult);
     else % will not calculate any realistic coeffvals:
         coeffvals_1st(1) = 10000;

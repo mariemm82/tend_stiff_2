@@ -141,6 +141,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_leg_length
     global dm_tendonlength dm_cutforce %new2014-04-14
+    global dm_rot_const
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
@@ -360,15 +361,16 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         at_momentarm = calculate_momentarm(0,0, dm_leg_length{line});
 
 
-        %% Calculate relationship between calc displacement and ANKLE ROTATION
+        %% ANKLE ROTATION from CALC CPM: calc displacement vs ankle angle
         % Read complete, prepared noraxon array + prepared us array
         % Produce ankle rotation constant, mm/degree
+        % 
+        % REUSING us file from moment arm
+        % REUSING noraxon file from moment arm
         
         % no longer correcting for rotation - OTJ displacement covers this
         at_rotation_const = 0; 
         
-%         % REUSING us file from moment arm
-%         % REUSING noraxon file from moment arm
 %         if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R') || strcmp(subject_id,'INT_4_GM_PRE_STR_R')
 %             % ROUGH coding, manually calculated for below subjects
 %             at_rotation_const = -0.04496; % BD predefined = -0.14; % auto-calculated value = -0.61/-0.35
@@ -415,21 +417,47 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
 
 
         %% Calculations for 3x ramp calcaneus scans
-        if(strcmp(dm_heel1_NX{line}, 'null'))
+        % 2017-12-08: using rotation correction for MTJ instead of OTJ displacement
+%         if(strcmp(dm_heel1_NX{line}, 'null'))
+%             time_force_displ_otj1 = zeros(0);
+%         else
+%             [time_force_displ_otj1,trial_force_max(4)] = extract_force_displ_singletrial(dm_heel1_NX{line}, dm_heel1_US{line}, dm_heel1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ1');
+%         end
+%         if(strcmp(dm_heel2_NX{line}, 'null'))
+%             time_force_displ_otj2 = zeros(0);
+%         else
+%             [time_force_displ_otj2,trial_force_max(5)] = extract_force_displ_singletrial(dm_heel2_NX{line}, dm_heel2_US{line}, dm_heel2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ2');
+%         end
+%         if(strcmp(dm_heel3_NX{line}, 'null'))
+%             time_force_displ_otj3 = zeros(0);
+%         else
+%             [time_force_displ_otj3,trial_force_max(6)] = extract_force_displ_singletrial(dm_heel3_NX{line}, dm_heel3_US{line}, dm_heel3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ3');
+%         end
+        
+        
+        %% ankle rotation correction per trial
+        % create time-force-displacement for 3 trials
+        % displacement is based on: dm_rot_const * gonio angle
+        % 
+        % reading 3 MTJ trials (can combine US displacement and ankle rotation from same trial)
+        % saving into OTJ variables for simplicity
+        % 
+        if(strcmp(dm_stiff1_NX{line}, 'null'))
             time_force_displ_otj1 = zeros(0);
-        else
-            [time_force_displ_otj1,trial_force_max(4)] = extract_force_displ_singletrial(dm_heel1_NX{line}, dm_heel1_US{line}, dm_heel1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ1');
+        else 
+            [time_force_displ_otj1,~] = extract_force_displ_singletrial_rotation(dm_stiff1_NX{line}, dm_stiff1_US{line}, dm_stiff1_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, dm_rot_const{line}, dm_side{line}, 'MTJ1-rotation');
         end
-        if(strcmp(dm_heel2_NX{line}, 'null'))
+        if(strcmp(dm_stiff2_NX{line}, 'null'))
             time_force_displ_otj2 = zeros(0);
         else
-            [time_force_displ_otj2,trial_force_max(5)] = extract_force_displ_singletrial(dm_heel2_NX{line}, dm_heel2_US{line}, dm_heel2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ2');
+            [time_force_displ_otj2,~] = extract_force_displ_singletrial_rotation(dm_stiff2_NX{line}, dm_stiff2_US{line}, dm_stiff2_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, dm_rot_const{line}, dm_side{line}, 'MTJ2-rotation');
         end
-        if(strcmp(dm_heel3_NX{line}, 'null'))
+        if(strcmp(dm_stiff3_NX{line}, 'null'))
             time_force_displ_otj3 = zeros(0);
         else
-            [time_force_displ_otj3,trial_force_max(6)] = extract_force_displ_singletrial(dm_heel3_NX{line}, dm_heel3_US{line}, dm_heel3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, 0, dm_side{line}, 'OTJ3');
+            [time_force_displ_otj3,~] = extract_force_displ_singletrial_rotation(dm_stiff3_NX{line}, dm_stiff3_US{line}, dm_stiff3_US_frame{line}, coact_max_torque, coact_max_EMG, at_momentarm, dm_rot_const{line}, dm_side{line}, 'MTJ3-rotation');
         end
+        
 
 
         %% Final stiffness
@@ -525,9 +553,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-        % close all
+         close all
     end
-    %% LOOP finished %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% LOOP finished --- loop end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     save all_data_stiff
     cprintf('*black', horzcat('----------------', ' Loop finished ', '------------------\n'))
@@ -706,7 +734,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_freeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_BD_freeAT.jpg'))
         end
 
         if BD_GM_count > 0
@@ -742,7 +770,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_BD_wholeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_BD_wholeAT.jpg'))
         end
 
         if CON_SOL_count > 0
@@ -778,7 +806,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_freeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_CON_freeAT.jpg'))
         end
 
         if CON_GM_count > 0
@@ -814,13 +842,13 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_CON_wholeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_CON_wholeAT.jpg'))
         end
 
 
 
         if BD_GM_count > 0 && BD_SOL_count > 0 && CON_GM_count > 0 && CON_SOL_count > 0 
-            plottitle = horzcat('Mean stiffness curves');
+            plottitle = horzcat('stiffness curves MEAN');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -843,11 +871,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'BD free AT', 'BD whole AT', 'CON free AT', 'CON whole AT', 'Location','Southeast')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_all.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_mean_all.jpg'))
 
 
 
-            plottitle = horzcat('Free AT, mean stiffness curves');
+            plottitle = horzcat('Free AT, stiffness curves MEAN');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -864,10 +892,10 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h3], 'BD free AT', 'CON free AT', 'Location','Southeast')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_freeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_mean_freeAT.jpg'))
 
 
-            plottitle = horzcat('Whole AT, mean stiffness curves');
+            plottitle = horzcat('Whole AT, stiffness curves MEAN');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -884,7 +912,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h2 h4], 'BD whole AT', 'CON whole AT', 'Location','Southeast')
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_fit_mean_wholeAT.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_mean_wholeAT.jpg'))
         end
         
     else
@@ -926,7 +954,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         if STR_POST_SOL_count > 0
@@ -966,7 +994,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
         if CON_PRE_SOL_count > 0
@@ -1005,7 +1033,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         if CON_POST_SOL_count > 0
@@ -1044,7 +1072,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
 
@@ -1084,7 +1112,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         if STR_POST_GM_count > 0
@@ -1123,7 +1151,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
         if CON_PRE_GM_count > 0
@@ -1162,7 +1190,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
 
         if CON_POST_GM_count > 0
@@ -1201,11 +1229,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2], 'Mean curve', 'Ind max', 'Location','Northwest')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
         if STR_PRE_SOL_count > 0 && STR_POST_SOL_count > 0 && CON_PRE_SOL_count > 0 && CON_POST_SOL_count > 0
-            plottitle = horzcat('Free AT, mean stiffness curves');
+            plottitle = horzcat('Free AT, stiffness curves MEAN');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -1228,11 +1256,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'STR PRE', 'STR POST', 'CON PRE', 'CON POST', 'Location','Southeast')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
         
         if STR_PRE_GM_count > 0 && STR_POST_GM_count > 0 && CON_PRE_GM_count > 0 && CON_POST_GM_count > 0
-            plottitle = horzcat('Whole AT, mean stiffness curves');
+            plottitle = horzcat('Whole AT, stiffness curves MEAN');
             figure('Name',plottitle)
             hold on
             % mean data
@@ -1255,7 +1283,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             ylabel('Force (N)')
             title(plottitle,'Interpreter', 'none')
             legend([h1 h2 h3 h4], 'STR PRE', 'STR POST', 'CON PRE', 'CON POST', 'Location','Southeast')
-            print(horzcat('data_plots_stiff/GRP_stiff_',plottitle),'-dpng')
+            print(horzcat('data_plots_stiff/GRP_',plottitle),'-dpng')
         end
                 
     end
@@ -1623,7 +1651,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             else
                 legend([con1 con2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
         end
 
 
@@ -1663,14 +1691,14 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             elseif CON_GM_count
                 legend([con1 con2],fig_f_e_legend, 'Location','Northwest')
             end
-            saveas(gcf, horzcat('data_plots_stiff/GRP_stiff_',plottitle,'.jpg'))
+            saveas(gcf, horzcat('data_plots_stiff/GRP_',plottitle,'.jpg'))
         end
         
     else % intervention 
         % Free AT (SOL), STR PRE-POST:
         if (STR_PRE_SOL_count > 0 || STR_POST_SOL_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Free AT STR, force-elongation (data, no fit)');
+            plottitle = horzcat('Free AT, force-elongation (data, no fit) STR');
             figure('Name',plottitle)
             hold on
             if STR_PRE_SOL_count > 0
@@ -1707,7 +1735,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         % Free AT (SOL), CON PRE-POST:
         if (CON_PRE_SOL_count > 0 || CON_POST_SOL_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Free AT CON, force-elongation (data, no fit)');
+            plottitle = horzcat('Free AT, force-elongation (data, no fit) CON');
             figure('Name',plottitle)
             hold on
             if CON_PRE_SOL_count > 0
@@ -1745,7 +1773,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         % Whole AT (GM), STR PRE-POST:
         if (STR_PRE_GM_count > 0 || STR_POST_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Whole AT STR, force-elongation (data, no fit)');
+            plottitle = horzcat('Whole AT, force-elongation (data, no fit) STR');
             figure('Name',plottitle)
             hold on
             if STR_PRE_GM_count > 0
@@ -1782,7 +1810,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         % Whole AT (GM), CON PRE-POST:
         if (CON_PRE_GM_count > 0 || CON_POST_GM_count > 0)
             fig_f_e_legend = [];
-            plottitle = horzcat('Whole AT CON, force-elongation (data, no fit)');
+            plottitle = horzcat('Whole AT, force-elongation (data, no fit) CON');
             figure('Name',plottitle)
             hold on
             if CON_PRE_GM_count > 0

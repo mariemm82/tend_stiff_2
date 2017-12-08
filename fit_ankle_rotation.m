@@ -26,9 +26,9 @@ opts = fitoptions( ft );
 % Fit model to data.
 [fitresult, gof] = fit( xData, yData, ft, opts );
 
-if plot_norm
+%if plot_norm
     % Plot fit with data.
-    plottitle = horzcat('FIT PLOT for ankle rotation correction for ', subject_id);
+    plottitle = horzcat('FIT PLOT, ankle rotation correction, ', subject_id, ' ', phasename);
     fignavn = figure( 'Name', plottitle);
     h = plot( fitresult, xData, yData );
     legend( h, horzcat('angle vs. displ ', phasename), horzcat('Linear fit: displ/deg = ', num2str(coeffvalues(fitresult))), 'Location', 'NorthEast' )
@@ -37,5 +37,5 @@ if plot_norm
     ylabel( 'Calcaneus displacement (mm)' )
     title(plottitle,'Interpreter', 'none')
     grid on
-    saveas(fignavn, strcat('data_plots_stiff/IND_ankle_rot_FIT_', subject_id, phasename), 'png')
-end
+    print(horzcat('data_plots_stiff/IND_ankle_rot_FIT_', subject_id, phasename),'-dpng')
+%end

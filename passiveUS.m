@@ -5857,7 +5857,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             % - but will not be plot unless equal amount of 4 legs/timepoints - rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('force vs angle - SUBJECT ', CON_PRE_ID{i}, ' PRE-POST');
+                    plottitle = horzcat('IND force vs angle - SUBJECT ', CON_PRE_ID{i}, ' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

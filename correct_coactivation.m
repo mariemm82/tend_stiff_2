@@ -28,7 +28,7 @@ function noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max
     noraxon_prepped_coact(:,column_achilles) = corrected_torque;
 
     % output coactivation numbers to screen, as text
-    if trial_name == 'MTJ1'
+    if strcmp(trial_name,'MTJ1')
         cprintf(horzcat('TA co-activation report: MVC dorsiflexion = ', num2str(coact_max_torque,4), ' Nm. EMG = ', num2str(coact_max_EMG,4),' µV.\n'));
     end
     cprintf(horzcat('    ', trial_name, ' TA max activ. = ', num2str(max(percent_activation),3), '%% -> max torque contrib. = ', num2str(max(TA_torque),3), ' Nm.\n'));

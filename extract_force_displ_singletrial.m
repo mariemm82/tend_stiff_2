@@ -167,7 +167,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
         set(AX(2),'YLim',[min(tendon_force_offset) max(tendon_force_offset)])
         set(AX(2),'YTick',0:500:max(tendon_force_offset))
         xlabel('Time (s)')
-        legend('Displ corr (mm)','Gonio (deg)','Force (N)','Location','Southeast')
+        legend('Displ corr (mm)','Gonio (deg)','Force (N)','Location','east')
         title(plottitle,'Interpreter', 'none')
         saveas(fignavn, strcat('data_plots_stiff/IND_datasync_', subject_id, '_', trial_name), 'png')
     end

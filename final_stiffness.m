@@ -147,12 +147,12 @@ if plot_norm
     set(gca,'ColorOrderIndex',1)
     for i = 1:length(MTJ_trials)
         if length(MTJ_trials{i}) > 1
-            plot([MTJ_trials{i}(loc_MTJ_onset(i),loc_time) MTJ_trials{i}(loc_MTJ_onset(i),loc_time)], [max([threshold_MTJ threshold_OTJ])*10 -20])
+            plot([MTJ_trials{i}(loc_MTJ_onset(i),loc_time) MTJ_trials{i}(loc_MTJ_onset(i),loc_time)], [max([threshold_MTJ threshold_OTJ])*10 -100])
         end
     end
     for i = 1:length(OTJ_trials)
         if length(OTJ_trials{i}) > 1
-            plot([OTJ_trials{i}(loc_OTJ_onset(i),loc_time) OTJ_trials{i}(loc_OTJ_onset(i),loc_time)], [max([threshold_MTJ threshold_OTJ])*10 -20])
+            plot([OTJ_trials{i}(loc_OTJ_onset(i),loc_time) OTJ_trials{i}(loc_OTJ_onset(i),loc_time)], [max([threshold_MTJ threshold_OTJ])*10 -100])
         end
     end
     % visual
@@ -162,9 +162,9 @@ if plot_norm
     saveas(gcf, strcat('data_plots_stiff/IND_force_onset_', subject_id), 'png')
     [latestonset,loc_latestonset] = (max([loc_MTJ_onset loc_OTJ_onset]));
     if loc_latestonset > 3
-        axis([0 0.2+OTJ_trials{loc_latestonset-3}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
+        axis([0 0.3+OTJ_trials{loc_latestonset-3}(latestonset,loc_time) -20 abs(max([threshold_MTJ threshold_OTJ])*10)])
     else
-        axis([0 0.2+MTJ_trials{loc_latestonset}(latestonset,loc_time) -20 max([threshold_MTJ threshold_OTJ])*10])
+        axis([0 0.3+MTJ_trials{loc_latestonset}(latestonset,loc_time) -20 abs(max([threshold_MTJ threshold_OTJ])*10)])
     end
     saveas(gcf, strcat('data_plots_stiff/IND_force_onset_', subject_id, '_ZOOM'), 'png')
 end

@@ -34,12 +34,12 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial_rot
     if strcmp(subject_id, 'INT_4_SOL_PRE_STR_R')
         % reverse goniometer data for all SOL trials
         noraxon_prepped(:,column_gonio) = -noraxon_prepped(:,column_gonio);
-    elseif strcmp(subject_id, 'INT_4_GM_PRE_STR_R')
-        if strcmp(trial_name, 'MTJ2-rotation')
-            % reverse goniometer data for GM trials EXCEPT GM MTJ2
-        else
-            noraxon_prepped(:,column_gonio) = -noraxon_prepped(:,column_gonio);
-        end
+%     elseif strcmp(subject_id, 'INT_4_GM_PRE_STR_R')
+%         if strcmp(trial_name, 'MTJ2-rotation')
+%             % reverse goniometer data for GM trials EXCEPT GM MTJ2
+%         else
+%             noraxon_prepped(:,column_gonio) = -noraxon_prepped(:,column_gonio);
+%         end
     end
     
     

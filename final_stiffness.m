@@ -413,7 +413,7 @@ elong_cut = force_elong_array(loc_cutoff,1);
 strain_cut = elong_cut / tendon_length * 100;
 force_cut = force_elong_array(loc_cutoff,2);
 
-cprintf('blue', horzcat('Maximal/cut strain: ', num2str(round(elong_max,1)), '/', num2str(round(elong_cut,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain_max,2)), '/', num2str(round(strain_cut,2)), '%% strain.', '\n'))
+cprintf('green', horzcat('Maximal/cut strain: ', num2str(round(elong_max,1)), '/', num2str(round(elong_cut,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain_max,2)), '/', num2str(round(strain_cut,2)), '%% strain.', '\n'))
 
 
 

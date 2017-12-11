@@ -48,6 +48,6 @@ function at_momentarm = calculate_momentarm(noraxon_prepped, usdata_prepped, leg
 
 
     % Output moment arm report
-    cprintf('blue', horzcat('AT moment arm = ', num2str(at_momentarm), ' m.\n'));
+    cprintf('magenta', horzcat('AT moment arm = ', num2str(at_momentarm), ' m.\n'));
 
 end

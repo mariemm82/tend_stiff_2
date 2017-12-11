@@ -386,7 +386,7 @@ end
 
 if  str2double(force_cutoff_manual) < force_array_cut(end)
     % manual cutoff
-    cprintf('red',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
+    cprintf('blue',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
     loc_cutoff = find(force_array_cut>str2double(force_cutoff_manual),1,'first') - 1;
 else
     % automatic cutoff: 90% of 6-trials-common-force

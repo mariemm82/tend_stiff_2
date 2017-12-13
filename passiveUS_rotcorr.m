@@ -183,7 +183,7 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
         
 
             filepath = 'data\';
-            subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+            subject_id = horzcat('INT', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
             if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
                 STR_PRE_count = STR_PRE_count + 1;
                 STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
@@ -247,6 +247,7 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
             SOL_gonio_1 = NaN;
             SOL_angle_1 = NaN;
             SOL_displ_1 = NaN;
+            SOL_rsquare_1 = NaN;
             SOL_at_rotation_const_1 = [NaN NaN];
         else 
             [SOL_at_rotation_const_1, SOL_rsquare_1, SOL_gonio_1, SOL_angle_1, SOL_displ_1] = extract_rot_corr(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, dm_side{line}, 'SOL1');
@@ -255,6 +256,7 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
             SOL_gonio_2 = NaN;
             SOL_angle_2 = NaN;
             SOL_displ_2 = NaN;
+            SOL_rsquare_2 = NaN;
             SOL_at_rotation_const_2 = [NaN NaN];
         else 
             [SOL_at_rotation_const_2, SOL_rsquare_2, SOL_gonio_2, SOL_angle_2, SOL_displ_2] = extract_rot_corr(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, dm_side{line}, 'SOL2');
@@ -292,6 +294,7 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
             GMMTJ_gonio_1 = NaN;
             GMMTJ_angle_1 = NaN;
             GMMTJ_displ_1 = NaN;
+            GMMTJ_rsquare_1 = NaN;
             GMMTJ_at_rotation_const_1 = [NaN NaN];
         else 
             [GMMTJ_at_rotation_const_1, GMMTJ_rsquare_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displ_1] = extract_rot_corr(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, dm_side{line}, 'GMMTJ1');
@@ -300,6 +303,7 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
             GMMTJ_gonio_2 = NaN;
             GMMTJ_angle_2 = NaN;
             GMMTJ_displ_2 = NaN;
+            GMMTJ_rsquare_2 = NaN;
             GMMTJ_at_rotation_const_2 = [NaN NaN];
         else 
             [GMMTJ_at_rotation_const_2, GMMTJ_rsquare_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displ_2] = extract_rot_corr(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, dm_side{line}, 'GMMTJ2');

@@ -28,9 +28,6 @@
 
 
 % MMM TODO 
-% - same rot const pre and post?? or ELIMINATE??
-%         at_rotation_const 
-%      corrected only in extract_f_d_s for MTJ
 % - catch error in solve_sec_poly with fzero when equation never reaches 0.0
 %   --- under header:   GRP: plot FIT, force-elong per subject (groupwise)
     
@@ -368,8 +365,13 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         % REUSING us file from moment arm
         % REUSING noraxon file from moment arm
         
-        % no longer correcting for rotation - OTJ displacement covers this
+        % no longer correcting for rotation at this point - instead, "3x OTJ" contains rotation correction
         at_rotation_const = 0; 
+
+% 3 lines below = enable to retrieve rotation constants from CPM files (i.e. SOL CPM trials). 2017-12-12
+%        [usdata_CPM, usfreq_CPM] = read_us_file(strcat(filepath, dm_CPM_calc_US{line}, '.txt'), str2double(dm_CPM_calc_US_frame{line}), 'CPM nowSOL');
+%        noraxon_CPM = read_noraxon_stiffness(strcat(filepath, dm_CPM_calc_NX{line}), usfreq_CPM, dm_side{line}, 'CPM nowSOL');
+%        at_rotation_const = calculate_rotation_correction(noraxon_CPM, usdata_CPM);
         
 %         if strcmp(subject_id,'Control 4 R PRE SOL') || strcmp(subject_id,'INT_4_SOL_PRE_STR_R') || strcmp(subject_id,'INT_4_GM_PRE_STR_R')
 %             % ROUGH coding, manually calculated for below subjects
@@ -553,7 +555,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-      %   close all
+         close all
     end
     %% LOOP finished --- loop end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

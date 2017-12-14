@@ -182,8 +182,13 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
 %         prone_GMfas_ankle = -str2double(dm_ankle_angle_rest{line}); % plantarflexed angle - input is positive value, but must be neg for plots
         
 
-            filepath = 'data\';
-            subject_id = horzcat('INT', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+            if input_project == 1
+                filepath = 'data\BD\';
+                subject_id = horzcat('BD', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+            else
+                filepath = 'data\';
+                subject_id = horzcat('INT', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+            end
             if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
                 STR_PRE_count = STR_PRE_count + 1;
                 STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});

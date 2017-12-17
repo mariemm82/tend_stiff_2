@@ -135,8 +135,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     % Produces arrays with file names and variables per trial, to be retrieved later
     global dm_subjectno dm_timepoint dm_side dm_trial dm_group
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
-    global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
-    global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_leg_length
+%    global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
+    global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_leg_length % dm_CPM_calc_US dm_CPM_calc_US_frame 
     global dm_tendonlength dm_cutforce %new2014-04-14
     global dm_rot_const
     global filepath
@@ -155,15 +155,15 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     % common arrays for all subjects:
     if input_resumerun == 0
         all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
-            'AT moment arm (m)', 'Rotation correction (mm/deg)', ... % 1-2
-            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R^2', ... % 3-6
-            'Ramp ind F cutoff (N)', 'Ramp ind F max', 'Ramp F @ max-elong', 'MVC F plantflex', ... % 7-10
+            'AT moment arm, m', 'Rotation correction, mm per deg', ... % 1-2
+            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ... % 3-6
+            'Ramp ind F cutoff, N', 'Ramp ind F max', 'Ramp F at max-elong', 'MVC F plantflex', ... % 7-10
             'Ramp common F cutoff', 'Ramp common F max',... % 11-12
-            'Stiff ind 80-100 (N/mm)', 'Stiff ind 90-100', ... % 13-14
+            'Stiff ind 80-100, N per mm', 'Stiff ind 90-100', ... % 13-14
             'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ... % 15-18
-            'Elong @ ind F cutoff (mm)', 'Elong ind max-elong', 'Elong @ common F cutoff', 'Elong @ common F max (not-all-have)', ... % 19-22
-            'Tend-length 0deg (mm)', ... % 23
-            'Strain @ inf F cutoff (%)', 'Strain ind max-elong', 'Strain @ common F cutoff', 'Strain @ common F max (not-all-have)', ... % 24-27
+            'Elong at ind F cutoff, mm', 'Elong ind max-elong', 'Elong at common F cutoff', 'Elong at common F max', ... % 19-22
+            'Tend-length 0deg, mm', ... % 23
+            'Strain at inf F cutoff, percent', 'Strain ind max-elong', 'Strain at common F cutoff', 'Strain at common F max', ... % 24-27
             }; % PROJECTSPECIFIC
         loc_stiff_a = 3;
         loc_stiff_b = 4;
@@ -673,9 +673,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     end
     
     
-    %% IND: save array with individual variables to file
+    %% IND: save array with individual variables to XLS
 
-    % write xls
     if ispc
         filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xlsx');
         xlswrite(filename_output, all_stiff_output_head, 1, 'A1')
@@ -685,7 +684,59 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
         csvwrite(filename_output, all_stiff_output)
     end
-      
+    
+    
+    
+    %% IND: write prism files
+    filename_basis = strcat('data_output/stiff_prism/all_stiff_', datestr(now, 'yyyy-mm-dd HH-MM'), '_');
+    
+    % TODO - split in GM vs SOL?
+    
+    % create output file header
+    j = 1;
+    prism_array_head2 = strcat(all_stiff_output_txt{j,2}, '_', all_stiff_output_txt{j,3});
+    prism_array_head3 = strcat(all_stiff_output_txt{j+1,2}, '_', all_stiff_output_txt{j+1,3});
+    prism_array_head4 = strcat(all_stiff_output_txt{j+2,2}, '_', all_stiff_output_txt{j+2,3});
+    prism_array_head5 = strcat(all_stiff_output_txt{j+3,2}, '_', all_stiff_output_txt{j+3,3});
+    prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
+    
+    % for each output variable (column):
+    loc_relevant_var = 7; % first column that has data for prism. 7 = start of force
+    for i = loc_relevant_var:length(all_stiff_output) %GOON
+        
+        % reset
+        prism_array(1:length(all_stiff_output)/4,1:5) = NaN;
+        write_line = 1;
+        
+        % filename with output variable
+        filename_variable = strcat(filename_basis, all_stiff_output_head{i+4}, '.xlsx');  % TODO change to CSV
+                
+        for j = 1:4:length(all_stiff_output_txt) % number of lines / trials
+
+            % column 1 = subject no
+            prism_array(write_line,1) = str2double(all_stiff_output_txt{j,1});
+            
+            % column 2-5 = data
+            prism_array(write_line,2) = all_stiff_output(j,i);
+            prism_array(write_line,3) = all_stiff_output(j+1,i);
+            prism_array(write_line,4) = all_stiff_output(j+2,i);
+            prism_array(write_line,5) = all_stiff_output(j+3,i);
+            write_line = write_line + 1;
+        end
+        
+        % write header
+        xlswrite(filename_variable, prism_array_header, 1, 'A1') % TODO change to CSV
+        % write data
+        xlswrite(filename_variable, prism_array, 1, 'A2') % TODO change to CSV
+    end
+        
+    
+    
+    
+    
+    
+    
+    
     
     %% GRP: plot FIT, force-elong per subject (groupwise)
     % ind: plot the fit up until IND cutoff ELONGATION (x axis determines)

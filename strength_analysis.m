@@ -961,7 +961,7 @@ function [] = strength_analysis(input_project, input_plot)
     
 
     
-    %% OUTPUT individual trial data to file
+    %% OUTPUT individual trial data to XLS file
     % write xls
     if ispc
         filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyymmdd_HHMM'));
@@ -977,7 +977,57 @@ function [] = strength_analysis(input_project, input_plot)
     end
 
     
-    %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+
+    %% write graphpad prism files
+    
+    % merge all output + isokin angles
+    all_strength_output_ALL = [all_strength_output all_strength_isokin_angles];
+    all_strength_output_head_ALL = [all_strength_output_head all_strength_isokin_angles_head];
+    
+    filename_basis = strcat('data_output/prism_strength/all_strength_', datestr(now, 'yyyymmdd_HHMM'), '_');
+        
+    % create output file header
+    j = 1;
+    prism_array_head2 = strcat(all_strength_output_txt{j,2}, '_', all_strength_output_txt{j,4});
+    prism_array_head3 = strcat(all_strength_output_txt{j+1,2}, '_', all_strength_output_txt{j+1,4});
+    prism_array_head4 = strcat(all_strength_output_txt{j+2,2}, '_', all_strength_output_txt{j+2,4});
+    prism_array_head5 = strcat(all_strength_output_txt{j+3,2}, '_', all_strength_output_txt{j+3,4});
+    prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
+    
+    % for each output variable (column):
+    loc_relevant_var = 5; % first column that has data for prism. 7 = start of force
+    for i = loc_relevant_var:size(all_strength_output_ALL,2)
+        
+        % reset
+        prism_array(1:size(all_strength_output_txt,1)/4,1:5) = NaN;
+        write_line = 1;
+        
+        % filename with output variable
+        filename_variable = strcat(filename_basis, all_strength_output_head_ALL{i+4}, '.xlsx');
+                
+        for j = 1:4:size(all_strength_output_txt,1) % number of lines / trials
+
+            % column 1 = subject no
+            prism_array(write_line,1) = str2double(all_strength_output_txt{j,1});
+            
+            % column 2-5 = data
+            prism_array(write_line,2) = all_strength_output_ALL(j,i);
+            prism_array(write_line,3) = all_strength_output_ALL(j+1,i);
+            prism_array(write_line,4) = all_strength_output_ALL(j+2,i);
+            prism_array(write_line,5) = all_strength_output_ALL(j+3,i);
+            write_line = write_line + 1;
+        end
+        
+        % write header
+        xlswrite(filename_variable, prism_array_header, 1, 'A1')
+        % write data
+        xlswrite(filename_variable, prism_array, 1, 'A2')
+    end
+        
+    
+    
+    %% OUTPUT isokinetic torque/angle -- group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % variables to export to file
     out_arrays_input_cols = [1 16 31 46 61]; % locations in all_strength_isokin_angles
@@ -1041,7 +1091,7 @@ function [] = strength_analysis(input_project, input_plot)
 
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/BD_arrays_strength_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
+            filename_output = strcat('data_output/prism_strength/BD_isokin_torque_angle_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table
@@ -1103,7 +1153,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_strength_torque-angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
+            filename_output = strcat('data_output/prism_strength/isokin_torque_angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table

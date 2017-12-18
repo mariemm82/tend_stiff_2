@@ -2476,18 +2476,18 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             appendix = '_norm';
         end
     if ispc
-        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.xlsx');
+        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyymmdd_HHMM'), appendix, '.xlsx');
         
         xlswrite(filename_output, all_passive_output_head, 1, 'A1')
         xlswrite(filename_output, all_passive_output_txt, 1, 'A2')
         xlswrite(filename_output, all_passive_output, 1, 'E2')
     else
-        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
+        filename_output = strcat('data_output/all_passive_output_', datestr(now, 'yyyymmdd_HHMM'), appendix, '.csv');
         csvwrite(filename_output, all_passive_output)
     end
     
     % TEMP output fascicle data
-%    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyy-mm-dd HH-MM'), appendix, '.csv');
+%    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyymmdd_HHMM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
     %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -2608,11 +2608,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
             out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/BD_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
             
             clear out_arrays_abs_table out_arrays_norm_table
@@ -2785,21 +2785,21 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             % create tables and save as file
             % pre and post values
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
             out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
             
             % difference values
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
                 out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyymmdd_HHMM'));
                 writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
 
                 out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyy-mm-dd HH-MM'));
+                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyymmdd_HHMM'));
                 writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
             end
             clear out_arrays_abs_table out_arrays_norm_table out_arrays_abs_diff_table out_arrays_norm_diff_table

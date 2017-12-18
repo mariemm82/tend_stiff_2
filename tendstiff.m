@@ -558,8 +558,6 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
          close all
     end
     %% LOOP finished --- loop end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    save all_data_stiff
     cprintf('*black', horzcat('----------------', ' Loop finished ', '------------------\n'))
     
         
@@ -630,8 +628,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     
     cprintf('blue*',horzcat('Stiffness: Common cutoff force = ', num2str(stiff_common_force), ' N, common max force = ', num2str(round(stiff_common_force_max,0)), ' N.\n'))
 
-    
-    
+        
     %% IND data: calculate STRAIN/ELONGATION at COMMON force levels
     % re-use force levels from stiffness:
     %    stiff_common_force - 90%/cutoff
@@ -673,25 +670,29 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     end
     
     
+    %% save matlab workspace to file
+    delete all_data_stiff_inloop.mat
+    save all_data_stiff
+
+    
     %% IND: save array with individual variables to XLS
 
     if ispc
-        filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xlsx');
+        filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyymmdd_HHMM'), '.xlsx');
         xlswrite(filename_output, all_stiff_output_head, 1, 'A1')
         xlswrite(filename_output, all_stiff_output_txt, 1, 'A2')
         xlswrite(filename_output, all_stiff_output, 1, 'E2')
     else
-        filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
+        filename_output = strcat('data_output/all_stiff_output_', datestr(now, 'yyyymmdd_HHMM'), '.csv');
         csvwrite(filename_output, all_stiff_output)
     end
-    
-    
+        
     
     %% IND: write prism files
-    filename_basis = strcat('data_output/stiff_prism/all_stiff_', datestr(now, 'yyyy-mm-dd HH-MM'), '_');
-    
     % TODO - split in GM vs SOL?
-    
+
+    filename_basis = strcat('data_output/stiff_prism/all_stiff_', datestr(now, 'yyyymmdd_HHMM'), '_');
+        
     % create output file header
     j = 1;
     prism_array_head2 = strcat(all_stiff_output_txt{j,2}, '_', all_stiff_output_txt{j,3});
@@ -702,16 +703,16 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     
     % for each output variable (column):
     loc_relevant_var = 7; % first column that has data for prism. 7 = start of force
-    for i = loc_relevant_var:length(all_stiff_output) %GOON
+    for i = loc_relevant_var:size(all_stiff_output,2)
         
         % reset
-        prism_array(1:length(all_stiff_output)/4,1:5) = NaN;
+        prism_array(1:size(all_stiff_output_txt,1)/4,1:5) = NaN;
         write_line = 1;
         
         % filename with output variable
-        filename_variable = strcat(filename_basis, all_stiff_output_head{i+4}, '.xlsx');  % TODO change to CSV
+        filename_variable = strcat(filename_basis, all_stiff_output_head{i+4}, '.xlsx');
                 
-        for j = 1:4:length(all_stiff_output_txt) % number of lines / trials
+        for j = 1:4:size(all_stiff_output_txt,1) % number of lines / trials
 
             % column 1 = subject no
             prism_array(write_line,1) = str2double(all_stiff_output_txt{j,1});
@@ -725,18 +726,11 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         end
         
         % write header
-        xlswrite(filename_variable, prism_array_header, 1, 'A1') % TODO change to CSV
+        xlswrite(filename_variable, prism_array_header, 1, 'A1')
         % write data
-        xlswrite(filename_variable, prism_array, 1, 'A2') % TODO change to CSV
+        xlswrite(filename_variable, prism_array, 1, 'A2')
     end
         
-    
-    
-    
-    
-    
-    
-    
     
     %% GRP: plot FIT, force-elong per subject (groupwise)
     % ind: plot the fit up until IND cutoff ELONGATION (x axis determines)
@@ -1547,7 +1541,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
     %% IND: save individual force-elong arrays (to common force) to one file common to all subjects
     if ispc
-        filename_output = strcat('data_output/intervention_arrays_STIFF_force-elong_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xls');
+        filename_output = strcat('data_output/intervention_arrays_STIFF_force-elong_', datestr(now, 'yyyymmdd_HHMM'), '.xls');
         if input_project == 1 % bd study
             if BD_SOL_count > 0
                 filename_subj_BD_SOL = cellstr(num2str(BD_SOL_no'))';

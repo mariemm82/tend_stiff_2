@@ -964,7 +964,7 @@ function [] = strength_analysis(input_project, input_plot)
     %% OUTPUT individual trial data to file
     % write xls
     if ispc
-        filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyy-mm-dd HH-MM'));
+        filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyymmdd_HHMM'));
         
         xlswrite(filename_output, all_strength_output_head, 1, 'A1')
         xlswrite(filename_output, all_strength_isokin_angles_head, 1, 'Y1')
@@ -972,7 +972,7 @@ function [] = strength_analysis(input_project, input_plot)
         xlswrite(filename_output, all_strength_output, 1, 'E2')
         xlswrite(filename_output, all_strength_isokin_angles, 1, 'Y2')
     else
-        filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
+        filename_output = strcat('data_output/all_strength_output_', datestr(now, 'yyyymmdd_HHMM'), '.csv');
         csvwrite(filename_output, all_strength_output)
     end
 
@@ -1041,7 +1041,7 @@ function [] = strength_analysis(input_project, input_plot)
 
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/BD_arrays_strength_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/BD_arrays_strength_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table
@@ -1103,7 +1103,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_strength_torque-angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyy-mm-dd HH-MM'));
+            filename_output = strcat('data_output/intervention_arrays_strength_torque-angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table

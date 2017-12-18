@@ -380,13 +380,13 @@ function [] = passiveUS_rotcorr(input_project, input_plot)
     
     % write xls
     if ispc
-        filename_output = strcat('data_output/all_anklerot_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.xlsx');
+        filename_output = strcat('data_output/all_anklerot_output_', datestr(now, 'yyyymmdd_HHMM'), '.xlsx');
         
         xlswrite(filename_output, all_passive_output_head, 1, 'A1')
         xlswrite(filename_output, all_passive_output_txt, 1, 'A2')
         xlswrite(filename_output, all_passive_output, 1, 'E2')
     else
-        filename_output = strcat('data_output/all_anklerot_output_', datestr(now, 'yyyy-mm-dd HH-MM'), '.csv');
+        filename_output = strcat('data_output/all_anklerot_output_', datestr(now, 'yyyymmdd_HHMM'), '.csv');
         csvwrite(filename_output, all_passive_output)
     end
     

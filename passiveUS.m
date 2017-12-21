@@ -32,7 +32,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     close all
     
     % TMP
-    loadloop = 0;
+    loadloop = 1;
     
        
     

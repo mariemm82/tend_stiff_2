@@ -1,10 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% main file for analysis of passive dorsiflexion with US
-% Marie Moltubakk 4.2.2015
+% main file for passiveUS was TWEAKED in order to output ankle rotation
+% correction constants from ROM passive trials
+%
+% Marie Moltubakk x.12.2017
 % 
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
-% input argument 3 = but set in beginning of function: toggle_normalization (0 = absolute, 1 = normalized)
 %
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
@@ -12,13 +13,6 @@
 % modified. These lines are marked % PROJECTSPECIFIC
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% MMM TODO!!! change tendon length calculations to be based on prone length, not zero angle length?
-% --- length, pennation and angle angle in input data = prone position
-% --- for LICHT:
-%            % version 2 - length PRONE is zero elong, zero strain
-%            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - prone_GMfas_length; %fascicle elong 
-%            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - prone_GMfas_length) / prone_GMfas_length * 100; %fascicle strain
 
 
 

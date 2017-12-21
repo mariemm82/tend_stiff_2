@@ -4,7 +4,10 @@
 % 
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
-% input argument 3 = but set in beginning of function: toggle_normalization (0 = absolute, 1 = normalized)
+% input argument 3 = toggle normalization
+%   % input_normalize:
+%   % 0 = GM muscle/tendon/fascicle length/elong in absolute values
+%   % 1 = % of resting MTU length/% of total elongation
 %
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
@@ -12,6 +15,7 @@
 % modified. These lines are marked % PROJECTSPECIFIC
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % MMM TODO!!! change tendon length calculations to be based on prone length, not zero angle length?
 % --- length, pennation and angle angle in input data = prone position
@@ -23,11 +27,14 @@
 
 
 function [] = passiveUS(input_project, input_plot, input_normalize)
+
+    %% startup actions
     close all
     
-    toggle_normalization = input_normalize; % 0 = GM muscle/tendon/fascicle length/elong in absolute values, 1 = % of resting MTU length/% of total elong
-
+    % TMP
+    loadloop = 0;
     
+       
     
     %% PLOTS - determine which plots to display
     global plot_achilles plot_norm plot_emg plot_check plot_us subject_id plot_licht plot_individual plot_conversion
@@ -42,19 +49,17 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     else
         plot_individual = 0;
     end
-    
+
     % LEVEL 2: main checkpoint plots
     plot_norm = 0;
     plot_old = 0; %old plots, data not used for BD study
-    
+
     % LEVEL 3:
     plot_conversion = 0; % turn on/off plots for data conversion Norm
     plot_us = 0; % tracked feature vs external marker 
     plot_emg = 0; % RMS 3 EMG channels per trial
     plot_achilles = 0; % turn on/off Achilles machine plots
     plot_licht = 0; % plot averaging of trials from Lichtwark US fascicle tracking
-    %% PLOTS - determine which plots to display
-
 
 
     %% Set constants and globals % PROJECTSPECIFIC
@@ -67,7 +72,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     angle_step_plots = 0.05; % resampled, averaged data extracted every x degrees for PLOTS
     angle_step_stats_abs = 0.5; % every x degrees
     angle_step_stats_norm = 10;  % every x percent
-    
+
 
     % variables for NORM conversion factors - some from manifacturers, some from calibration trials, some calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
@@ -79,7 +84,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     % norm_volt_per_nm = (1024*((1*(1.355818*32768/500))+0)/1024)*(10000/32768); % 27.116 µV/Nm   Sampled Torque is in units of Foot-Pounds * 32768 / 500
     norm_volt_per_nm_a = 0.07490071; % from file "M M M conversion volt-torque 2014-DES NEW DATA.xlsx"
     norm_volt_per_nm_b = 0.69283161;
-    
+
     % cutoff frequencies for filters
     global emg_bandpass emg_rms_ms mvc_window_ms 
     emg_bandpass = [10/(noraxonfreq/2) 500/(noraxonfreq/2)]; % cutoff frequencies for EMG butterworth bandpass filter
@@ -111,27 +116,25 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     column_norm_velocity = 13;
     column_norm_direction = 14;
     column_achilles = 15;
-    %% Set constants and globals 
-    
-           
-    
+
+
     %% set AXES etc for plots
     col_lightblue = [0.6 0.8 1];
     col_lightred = [1 0.6 0.8];
     col_orange = [1 0.75 0];
     col_grey = [0.3 0.3 0.3];
-    
+
     txt_elong = 'Elongation (mm)';
     txt_length = 'Length (mm)';
     txt_strain = 'Strain (% of initial length)';
     txt_displ = 'Displacement (mm)';
     txt_emg = 'EMG (% of MVC)';
     txt_gonio = 'Gonio angle (°)';
-    
+
     if input_project == 1 
         %% dancer study
         axis_EMG = [-1 35 0 30];
-        
+
         axis_len_MTU = [-1 35 350 550]; % currently used BD
         axis_el_MTU = [-1 35 -1 65];
         axis_str_MTU = [-1 35 0 6];
@@ -141,7 +144,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_len_GMFAS = [-1 35 25 85];
         axis_el_GMFAS = [-1 35 0 35];
         axis_str_GMFAS = [-1 35 0 65];
-        
+
 % copy of old values:
 %         axis_el_GMmsc_arch = [-1 35 -1 22];
 %         axis_str_GMmsc_arch = [-1 35 -0.5 7];
@@ -153,7 +156,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_el_GMmsc_arch = [-1 35 0 35]; % currently used BD
         axis_str_GMmsc_arch = [-1 35 0 70];
         axis_len_GMmsc_arch = [-1 35 30 90];
-        
+
         axis_el_SEE_arch = [-1 35 0 50]; % currently used BD
         axis_str_SEE_arch = [-0 35 0 15];
         axis_len_SEE_arch = [-1 35 250 450];
@@ -189,7 +192,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_force = [-1 35 0 1400];
         axis_torque = [-1 35 0 70];
         axis_PP = [-5 100 0 105];
-        
+
         axis_ind_elong = [-1 35 0 55]; % currently used BD
         axis_ind_strain = [-1 35 0 70];
         axis_ind_len_MTU = [-1 35 0 550];
@@ -198,7 +201,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         %% intervention study
 
         axis_EMG = [-1 37 0 35];
-        
+
         axis_len_MTU = [-1 37 300 550];
         axis_el_MTU = [-1 37 -1 50];
         axis_str_MTU = [-1 37 -0.5 8];
@@ -212,7 +215,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_el_SEE_arch = [-1 37 -1 40];
         axis_str_SEE_arch = [-1 37 -0.5 12];
         axis_len_SEE_arch = [-1 37 250 500];
-        
+
         axis_el_GMmsc_arch = [-1 37 -0.5 24];
         axis_str_GMmsc_arch = [-1 37 -0.5 40];
         axis_len_GMmsc_arch = [-1 37 40 70];
@@ -239,7 +242,7 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_str_GMtend = [-1 37 -0.5 8];
         axis_str_GMtendP = [-5 100 -0.5 8];
         axis_len_GMtend = [-1 37 0 300];
-        
+
         axis_el_AT = [-1 37 -1 22];
         axis_str_AT = [-1 37 -1 45];
         axis_str_ATP = [-5 100 -1 70];
@@ -248,15 +251,13 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         axis_force = [-1 37 0 1900];
         axis_torque = [-1 37 0 100];
         axis_PP = [-5 100 0 105];
-        
+
         axis_ind_elong = [-1 37 -6 30];
         axis_ind_strain = [-1 37 -6 30];
         axis_ind_len_MTU = [-1 35 0 550];
     end
-    %% set AXES etc for plots
-    
-    
-    
+
+
     %% Read max angles and forces from "create_angles_passive.m"
     % Extracts max angles and forces per trial/subject/common
     % Produces arrays with angles and forces per subject/side/trial/group
@@ -278,8 +279,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         cprintf('*red', 'ERROR: Subject FORCE data file does not exist. Generate by running "create_angles_passive".\n')
         return
     end
-    %% Read ... from "create_angles_passive.m"
-
 
 
     %% Read datamaster file, to connect corresponding data files
@@ -295,2148 +294,2132 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
     linestotal = read_datamaster_passive(dm_filename);
-    %% Read datamaster file, to connect corresponding data files
-        
-    
-    
-    %% preallocate output arrays %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % common arrays for all subjects:
-        all_passive_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
-            'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', 'Submax - 10°', 'Submax - 67% ROM', ...
-            'force @ trial ROM (N)', 'force @ subject max ROM', 'force @ subject max force', 'force @ common max ROM', 'force @ 0 deg', 'force @ 10°', 'force @ 67% ROM', ...
-            'torque @ trial ROM (N)', 'torque @ subject max ROM', 'torque @ subject max torque', 'torque @ common max ROM', 'torque @ 0 deg', 'torque @ 10°', 'torque @ 67% ROM', ...
-            'angle @ trial max force (°)', 'angle @ subject max force', 'angle @ common max force', 'angle @ ind R max force', 'angle @ ind L max force', ...            
-            'Stiffness @ trial ROM (Nm/°)', 'Stiffness @ subject max ROM', 'Stiffness @ common max ROM', 'Stiffness @ 15 deg', 'Stiffness @ 10°', 'Stiffness @ 67% ROM',...
-            'Stiffness index (Nm/°^2)', ...
-            'displ SOL @ trial ROM (mm)', 'displ SOL @ subject max ROM', 'displ SOL @ common max ROM', 'displ SOL @ 10°', 'displ SOL @ 67% ROM', ...
-            'displ GMMTJ @ trial ROM', 'displ GMMTJ @ subject max ROM', 'displ GMMTJ @ common max ROM', 'displ GMMTJ @ 10°', 'displ GMMTJ @ 67% ROM', ...
-            'displ GMfas @ trial ROM', 'displ GMfas @ subject max ROM', 'displ GMfas @ common max ROM', 'displ GMFAS @ 10°', 'displ GMFAS @ 67% ROM', ...
-            'length AT trial max', 'length GMtend trial max', 'length leg trial max', 'length GMapo trial max', 'length msc GM trial max', 'length msc SOL trial max', ...
-            'length AT ind max', 'length GMtend ind max', 'length leg ind max', 'length GMapo ind max', 'length msc GM ind max', 'length msc SOL ind max', ...
-            'length AT common max', 'length GMtend common max', 'length leg common max', 'length GMapo common max', 'length msc GM common max', 'length msc SOL common max', ...
-            'length AT submax 1', 'length GMtend submax 1', 'length leg submax 1', 'length GMapo submax 1', 'length msc GM submax 1', 'length msc SOL submax 1', ...
-            'length AT submax 2', 'length GMtend submax 2', 'length leg submax 2', 'length GMapo submax 2', 'length msc GM submax 2', 'length msc SOL submax 2', ...
-            'elong AT trial max', 'elong GMtend trial max', 'elong leg trial max', 'elong GMapo trial max', 'elong msc GM trial max', 'elong msc SOL trial max',...
-            'elong AT ind max', 'elong GMtend ind max', 'elong leg ind max', 'elong GMapo ind max', 'elong msc GM ind max', 'elong msc SOL ind max', ...
-            'elong AT common max', 'elong GMtend common max', 'elong leg common max', 'elong GMapo common max', 'elong msc GM common max', 'elong msc SOL common max', ...
-            'elong AT submax 1', 'elong GMtend submax 1', 'elong leg submax 1', 'elong GMapo submax 1', 'elong msc GM submax 1', 'elong msc SOL submax 1', ...
-            'elong AT submax 2', 'elong GMtend submax 2', 'elong leg submax 2', 'elong GMapo submax 2', 'elong msc GM submax 2', 'elong msc SOL submax 2', ...
-            'strain AT trial max', 'strain GMtend trial max', 'strain leg trial max', 'strain GMapo trial max', 'strain msc GM trial max', 'strain msc SOL trial max', ...
-            'strain AT ind max', 'strain GMtend ind max', 'strain leg ind max', 'strain GMapo ind max', 'strain msc GM ind max', 'strain msc SOL ind max', ...
-            'strain AT common max', 'strain GMtend common max', 'strain leg common max', 'strain GMapo common max', 'strain msc GM common max', 'strain msc SOL common max', ...
-            'strain AT submax 1', 'strain GMtend submax 1', 'strain leg submax 1', 'strain GMapo submax 1', 'strain msc GM submax 1', 'strain msc SOL submax 1', ...
-            'strain AT submax 2', 'strain GMtend submax 2', 'strain leg submax 2', 'strain GMapo submax 2', 'strain msc GM submax 2', 'strain msc SOL submax 2', ...
-            'length GMtend Fuku trial max', 'length GMtend Fuku ind max', 'length GMtend Fuku common max', 'length GMtend Fuku submax 1', 'length GMtend Fuku submax 2' ...
-            'elong GMtend Fuku trial max', 'elong GMtend Fuku ind max', 'elong GMtend Fuku common max', 'elong GMtend Fuku submax 1', 'elong GMtend Fuku submax 2' ...
-            'strain GMtend Fuku trial max', 'strain GMtend Fuku ind max', 'strain GMtend Fuku common max', 'strain GMtend Fuku submax 1', 'strain GMtend Fuku submax 2' ...
-            'length msc GM Fuku trial max', 'length msc GM Fuku ind max', 'length msc GM Fuku common max', 'length msc GM Fuku submax 1', 'length msc GM Fuku submax 2' ...
-            'elong msc GM Fuku trial max', 'elong msc GM Fuku ind max', 'elong msc GM Fuku common max', 'elong msc GM Fuku submax 1', 'elong msc GM Fuku submax 2' ...
-            'strain msc GM Fuku trial max', 'strain msc GM Fuku ind max', 'strain msc GM Fuku common max', 'strain msc GM Fuku submax 1', 'strain msc GM Fuku submax 2' ...
-            'faslen GM @ trial ROM (mm)', 'faslen GM @ subject max ROM', 'faslen GM @ common max ROM', 'faslen GM @ 0 deg', 'faslen GM @ 10°', 'faslen GM @ 67% ROM', ...
-            'pennation GM @ trial ROM (°)', 'pennation GM @ subject max ROM', 'pennation GM @ common max ROM', 'pennation GM @ 0 deg', 'pennation GM @ 10°', 'pennation GM @ 67% ROM', ...
-            'fas elong GM @ trial ROM (mm)', 'fas elong GM @ subject max ROM', 'fas elong GM @ common max ROM', 'fas elong GM @ 0 deg', 'fas elong GM @ 10°', 'fas elong GM @ 67% ROM', ...
-            'fas strain GM @ trial ROM (°)', 'fas strain GM @ subject max ROM', 'fas strain GM @ common max ROM', 'fas strain GM @ 0 deg', 'fas strain GM @ 10°', 'fas strain GM @ 67% ROM', ...
-            'faslen SOL @ trial ROM', 'faslen SOL @ subject max ROM', 'faslen SOL @ common max ROM', 'faslen SOL @ 0 deg', 'faslen SOL @ 10°', 'faslen SOL @ 67% ROM', ...
-            'pennation SOL @ trial ROM', 'pennation SOL @ subject max ROM', 'pennation SOL @ common max ROM', 'pennation SOL @ 0 deg', 'pennation SOL @ 10°', 'pennation SOL @ 67% ROM', ...
-            'GM elong contribution@ trial ROM (%)', 'GM elong contribution@ subject max ROM', 'GM elong contribution@ common max ROM', 'GM elong contribution@ 10°', 'GM elong contribution@ 67% ROM', ...
-            'MAX elong AT', 'MAX elong GMtend', 'MAX elong leg', 'MAX elong GMapo', 'MAX elong msc GM', 'MAX elong msc SOL', ...
-            'MAX strain AT', 'MAX strain GMtend', 'MAX strain leg', 'MAX strain GMapo', 'MAX strain msc GM', 'MAX strain msc SOL', ...
-            'MAX length AT', 'MAX length GMtend', 'MAX length leg', 'MAX length GMapo', 'MAX length msc GM', 'MAX length msc SOL', ...
-            'MAX elong GMtend Fuku', 'MAX elong msc GM Fuku', 'MAX strain GMtend Fuku', 'MAX strain msc GM Fuku', 'MAX length GMtend Fuku', 'MAX length msc GM Fuku', ...
-            'MAX licht fas len GM', 'MAX licht fas elong GM', 'MAX licht fas strain GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
-            'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', 'EMG GM @ zero', ...
-            'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', 'EMG GL @ zero', ...
-            'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', 'EMG SOL @ zero', ...
-            'MAX EMG GM', 'MAX EMG GL', 'MAX EMG SOL', ...
-            }; % PROJECTSPECIFIC
-    all_passive_output = zeros(ceil(linestotal),length(all_passive_output_head)-4); 
-    all_passive_output_txt = cell(ceil(linestotal),4);
 
-    if input_project == 1 % BD study
-        BD_count = 0; % # of ballet dancer subjects
-        CON_count = 0; % # of controls = intervention study subjects
         
-        BD_no(ceil(linestotal)) = zeros;
-        BD_prone(ceil(linestotal),10) = zeros;
-        BD_angle_vars{ceil(linestotal)} = zeros;
-        BD_angle_vars_mean{ceil(linestotal)} = zeros;
-        BD_angle_vars_norm{ceil(linestotal)} = zeros;
-        BD_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        BD_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+    %% if loadloop - resume trial AFTER loop
+    % TODO if needed allow resuming at crashpoint in loop
+    if loadloop == 1
+        load all_data_passive
+    else % run from beginning
 
-        CON_no(ceil(linestotal)) = zeros;
-        CON_prone(ceil(linestotal),10) = zeros;
-        CON_angle_vars{ceil(linestotal)} = zeros;
-        CON_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-    else % intervention study
-        STR_PRE_count = 0;
-        STR_POST_count = 0;
-        CON_PRE_count = 0;
-        CON_POST_count = 0;
         
-        STR_PRE_ID{ceil(linestotal)} = [];
-        STR_POST_ID{ceil(linestotal)} = [];
-        CON_PRE_ID{ceil(linestotal)} = [];
-        CON_POST_ID{ceil(linestotal)} = [];
-        % old CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study
+        
+        %% preallocate output arrays %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % common arrays for all subjects:
+            all_passive_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
+                'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', 'Submax - 10°', 'Submax - 67% ROM', ...
+                'force @ trial ROM (N)', 'force @ subject max ROM', 'force @ subject max force', 'force @ common max ROM', 'force @ 0 deg', 'force @ 10°', 'force @ 67% ROM', ...
+                'torque @ trial ROM (N)', 'torque @ subject max ROM', 'torque @ subject max torque', 'torque @ common max ROM', 'torque @ 0 deg', 'torque @ 10°', 'torque @ 67% ROM', ...
+                'angle @ trial max force (°)', 'angle @ subject max force', 'angle @ common max force', 'angle @ ind R max force', 'angle @ ind L max force', ...            
+                'Stiffness @ trial ROM (Nm/°)', 'Stiffness @ subject max ROM', 'Stiffness @ common max ROM', 'Stiffness @ 15 deg', 'Stiffness @ 10°', 'Stiffness @ 67% ROM',...
+                'Stiffness index (Nm/°^2)', ...
+                'displ SOL @ trial ROM (mm)', 'displ SOL @ subject max ROM', 'displ SOL @ common max ROM', 'displ SOL @ 10°', 'displ SOL @ 67% ROM', ...
+                'displ GMMTJ @ trial ROM', 'displ GMMTJ @ subject max ROM', 'displ GMMTJ @ common max ROM', 'displ GMMTJ @ 10°', 'displ GMMTJ @ 67% ROM', ...
+                'displ GMfas @ trial ROM', 'displ GMfas @ subject max ROM', 'displ GMfas @ common max ROM', 'displ GMFAS @ 10°', 'displ GMFAS @ 67% ROM', ...
+                'length AT trial max', 'length GMtend trial max', 'length leg trial max', 'length GMapo trial max', 'length msc GM trial max', 'length msc SOL trial max', ...
+                'length AT ind max', 'length GMtend ind max', 'length leg ind max', 'length GMapo ind max', 'length msc GM ind max', 'length msc SOL ind max', ...
+                'length AT common max', 'length GMtend common max', 'length leg common max', 'length GMapo common max', 'length msc GM common max', 'length msc SOL common max', ...
+                'length AT submax 1', 'length GMtend submax 1', 'length leg submax 1', 'length GMapo submax 1', 'length msc GM submax 1', 'length msc SOL submax 1', ...
+                'length AT submax 2', 'length GMtend submax 2', 'length leg submax 2', 'length GMapo submax 2', 'length msc GM submax 2', 'length msc SOL submax 2', ...
+                'elong AT trial max', 'elong GMtend trial max', 'elong leg trial max', 'elong GMapo trial max', 'elong msc GM trial max', 'elong msc SOL trial max',...
+                'elong AT ind max', 'elong GMtend ind max', 'elong leg ind max', 'elong GMapo ind max', 'elong msc GM ind max', 'elong msc SOL ind max', ...
+                'elong AT common max', 'elong GMtend common max', 'elong leg common max', 'elong GMapo common max', 'elong msc GM common max', 'elong msc SOL common max', ...
+                'elong AT submax 1', 'elong GMtend submax 1', 'elong leg submax 1', 'elong GMapo submax 1', 'elong msc GM submax 1', 'elong msc SOL submax 1', ...
+                'elong AT submax 2', 'elong GMtend submax 2', 'elong leg submax 2', 'elong GMapo submax 2', 'elong msc GM submax 2', 'elong msc SOL submax 2', ...
+                'strain AT trial max', 'strain GMtend trial max', 'strain leg trial max', 'strain GMapo trial max', 'strain msc GM trial max', 'strain msc SOL trial max', ...
+                'strain AT ind max', 'strain GMtend ind max', 'strain leg ind max', 'strain GMapo ind max', 'strain msc GM ind max', 'strain msc SOL ind max', ...
+                'strain AT common max', 'strain GMtend common max', 'strain leg common max', 'strain GMapo common max', 'strain msc GM common max', 'strain msc SOL common max', ...
+                'strain AT submax 1', 'strain GMtend submax 1', 'strain leg submax 1', 'strain GMapo submax 1', 'strain msc GM submax 1', 'strain msc SOL submax 1', ...
+                'strain AT submax 2', 'strain GMtend submax 2', 'strain leg submax 2', 'strain GMapo submax 2', 'strain msc GM submax 2', 'strain msc SOL submax 2', ...
+                'length GMtend Fuku trial max', 'length GMtend Fuku ind max', 'length GMtend Fuku common max', 'length GMtend Fuku submax 1', 'length GMtend Fuku submax 2' ...
+                'elong GMtend Fuku trial max', 'elong GMtend Fuku ind max', 'elong GMtend Fuku common max', 'elong GMtend Fuku submax 1', 'elong GMtend Fuku submax 2' ...
+                'strain GMtend Fuku trial max', 'strain GMtend Fuku ind max', 'strain GMtend Fuku common max', 'strain GMtend Fuku submax 1', 'strain GMtend Fuku submax 2' ...
+                'length msc GM Fuku trial max', 'length msc GM Fuku ind max', 'length msc GM Fuku common max', 'length msc GM Fuku submax 1', 'length msc GM Fuku submax 2' ...
+                'elong msc GM Fuku trial max', 'elong msc GM Fuku ind max', 'elong msc GM Fuku common max', 'elong msc GM Fuku submax 1', 'elong msc GM Fuku submax 2' ...
+                'strain msc GM Fuku trial max', 'strain msc GM Fuku ind max', 'strain msc GM Fuku common max', 'strain msc GM Fuku submax 1', 'strain msc GM Fuku submax 2' ...
+                'faslen GM @ trial ROM (mm)', 'faslen GM @ subject max ROM', 'faslen GM @ common max ROM', 'faslen GM @ 0 deg', 'faslen GM @ 10°', 'faslen GM @ 67% ROM', ...
+                'pennation GM @ trial ROM (°)', 'pennation GM @ subject max ROM', 'pennation GM @ common max ROM', 'pennation GM @ 0 deg', 'pennation GM @ 10°', 'pennation GM @ 67% ROM', ...
+                'fas elong GM @ trial ROM (mm)', 'fas elong GM @ subject max ROM', 'fas elong GM @ common max ROM', 'fas elong GM @ 0 deg', 'fas elong GM @ 10°', 'fas elong GM @ 67% ROM', ...
+                'fas strain GM @ trial ROM (°)', 'fas strain GM @ subject max ROM', 'fas strain GM @ common max ROM', 'fas strain GM @ 0 deg', 'fas strain GM @ 10°', 'fas strain GM @ 67% ROM', ...
+                'faslen SOL @ trial ROM', 'faslen SOL @ subject max ROM', 'faslen SOL @ common max ROM', 'faslen SOL @ 0 deg', 'faslen SOL @ 10°', 'faslen SOL @ 67% ROM', ...
+                'pennation SOL @ trial ROM', 'pennation SOL @ subject max ROM', 'pennation SOL @ common max ROM', 'pennation SOL @ 0 deg', 'pennation SOL @ 10°', 'pennation SOL @ 67% ROM', ...
+                'GM elong contribution@ trial ROM (%)', 'GM elong contribution@ subject max ROM', 'GM elong contribution@ common max ROM', 'GM elong contribution@ 10°', 'GM elong contribution@ 67% ROM', ...
+                'MAX elong AT', 'MAX elong GMtend', 'MAX elong leg', 'MAX elong GMapo', 'MAX elong msc GM', 'MAX elong msc SOL', ...
+                'MAX strain AT', 'MAX strain GMtend', 'MAX strain leg', 'MAX strain GMapo', 'MAX strain msc GM', 'MAX strain msc SOL', ...
+                'MAX length AT', 'MAX length GMtend', 'MAX length leg', 'MAX length GMapo', 'MAX length msc GM', 'MAX length msc SOL', ...
+                'MAX elong GMtend Fuku', 'MAX elong msc GM Fuku', 'MAX strain GMtend Fuku', 'MAX strain msc GM Fuku', 'MAX length GMtend Fuku', 'MAX length msc GM Fuku', ...
+                'MAX licht fas len GM', 'MAX licht fas elong GM', 'MAX licht fas strain GM', 'MAX licht pennation GM', 'MAX licht faslen SOL', 'MAX licht pennation SOL', ...
+                'EMG GM @ trial ROM (%)', 'EMG GM @ subject max ROM', 'EMG GM @ common max ROM', 'EMG GM @ 10°', 'EMG GM @ 67% ROM', 'EMG GM @ zero', ...
+                'EMG GL @ trial ROM', 'EMG GL @ subject max ROM', 'EMG GL @ common max ROM', 'EMG GL @ 10°', 'EMG GL @ 67% ROM', 'EMG GL @ zero', ...
+                'EMG SOL @ trial ROM', 'EMG SOL @ subject max ROM', 'EMG SOL @ common max ROM', 'EMG SOL @ 10°', 'EMG SOL @ 67% ROM', 'EMG SOL @ zero', ...
+                'MAX EMG GM', 'MAX EMG GL', 'MAX EMG SOL', ...
+                }; % PROJECTSPECIFIC
+        all_passive_output = zeros(ceil(linestotal),length(all_passive_output_head)-4); 
+        all_passive_output_txt = cell(ceil(linestotal),4);
 
-        STR_PRE_no(ceil(linestotal)) = zeros;
-        STR_PRE_prone(ceil(linestotal),10) = zeros;
-        STR_PRE_angle_vars{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-
-        STR_POST_no(ceil(linestotal)) = zeros;
-        STR_POST_prone(ceil(linestotal),10) = zeros;
-        STR_POST_angle_vars{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-        
-        CON_PRE_no(ceil(linestotal)) = zeros;
-        CON_PRE_prone(ceil(linestotal),10) = zeros;
-        CON_PRE_angle_vars{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-
-        CON_POST_no(ceil(linestotal)) = zeros;
-        CON_POST_prone(ceil(linestotal),10) = zeros;
-        CON_POST_angle_vars{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
-
-    end
-    %% 
-    
-    
-    
-    
-    %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    for line = 1:linestotal 
-        clear emg_all;
-        emg_all{3,6} = zeros; % 6 EMG channels for 1 subject, to be reused across subjects
-        
-        
-        
-        %% subject/trial identifier
-        trial_subjectno = str2double(dm_subjectno{line});
-        trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
-        trial_leg = strcmp(dm_trial{line},'STR'); % 0 = CON, 1 = STR
-        trial_calf_length = str2double(dm_leg_length{line}) * 10;  % convert from input in cm to calf length in mm
-        prone_GMfas_length = str2double(dm_GMmsc_faslen{line}); % resting (prone) length of GM fascicle 
-        prone_GMfas_penn = str2double(dm_GMmsc_penn{line}); % resting (prone) pennation angle of GM 
-        prone_GMfas_ankle = -str2double(dm_ankle_angle_rest{line}); % plantarflexed angle - input is positive value, but must be neg for plots
-        
         if input_project == 1 % BD study
-            if trial_subjectno > 100
-                filepath = 'data\BD\';
-                subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
-                BD_count = BD_count + 1;
-                BD_no(BD_count) = str2double(dm_subjectno{line});
-            else
+            BD_count = 0; % # of ballet dancer subjects
+            CON_count = 0; % # of controls = intervention study subjects
+
+            BD_no(ceil(linestotal)) = zeros;
+            BD_prone(ceil(linestotal),10) = zeros;
+            BD_angle_vars{ceil(linestotal)} = zeros;
+            BD_angle_vars_mean{ceil(linestotal)} = zeros;
+            BD_angle_vars_norm{ceil(linestotal)} = zeros;
+            BD_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            BD_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+            CON_no(ceil(linestotal)) = zeros;
+            CON_prone(ceil(linestotal),10) = zeros;
+            CON_angle_vars{ceil(linestotal)} = zeros;
+            CON_angle_vars_mean{ceil(linestotal)} = zeros;
+            CON_angle_vars_norm{ceil(linestotal)} = zeros;
+            CON_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            CON_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+        else % intervention study
+            STR_PRE_count = 0;
+            STR_POST_count = 0;
+            CON_PRE_count = 0;
+            CON_POST_count = 0;
+
+            STR_PRE_ID{ceil(linestotal)} = [];
+            STR_POST_ID{ceil(linestotal)} = [];
+            CON_PRE_ID{ceil(linestotal)} = [];
+            CON_POST_ID{ceil(linestotal)} = [];
+            % old CON_PRE_subject_ID(ceil(linestotal/4)) = zeros; % holds subject numbers for intervention study
+
+            STR_PRE_no(ceil(linestotal)) = zeros;
+            STR_PRE_prone(ceil(linestotal),10) = zeros;
+            STR_PRE_angle_vars{ceil(linestotal)} = zeros;
+            STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
+            STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+            STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+            STR_POST_no(ceil(linestotal)) = zeros;
+            STR_POST_prone(ceil(linestotal),10) = zeros;
+            STR_POST_angle_vars{ceil(linestotal)} = zeros;
+            STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
+            STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+            STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+            CON_PRE_no(ceil(linestotal)) = zeros;
+            CON_PRE_prone(ceil(linestotal),10) = zeros;
+            CON_PRE_angle_vars{ceil(linestotal)} = zeros;
+            CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
+            CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+            CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+            CON_POST_no(ceil(linestotal)) = zeros;
+            CON_POST_prone(ceil(linestotal),10) = zeros;
+            CON_POST_angle_vars{ceil(linestotal)} = zeros;
+            CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
+            CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+            CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+            CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+
+        end
+
+
+        %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        for line = 1:linestotal 
+            clear emg_all;
+            emg_all{3,6} = zeros; % 6 EMG channels for 1 subject, to be reused across subjects
+
+
+
+            %% subject/trial identifier
+            trial_subjectno = str2double(dm_subjectno{line});
+            trial_timepoint = strcmp(dm_timepoint{line},'POST'); % 0 = PRE, 1 = POST
+            trial_leg = strcmp(dm_trial{line},'STR'); % 0 = CON, 1 = STR
+            trial_calf_length = str2double(dm_leg_length{line}) * 10;  % convert from input in cm to calf length in mm
+            prone_GMfas_length = str2double(dm_GMmsc_faslen{line}); % resting (prone) length of GM fascicle 
+            prone_GMfas_penn = str2double(dm_GMmsc_penn{line}); % resting (prone) pennation angle of GM 
+            prone_GMfas_ankle = -str2double(dm_ankle_angle_rest{line}); % plantarflexed angle - input is positive value, but must be neg for plots
+
+            if input_project == 1 % BD study
+                if trial_subjectno > 100
+                    filepath = 'data\BD\';
+                    subject_id = horzcat('Dancer ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
+                    BD_count = BD_count + 1;
+                    BD_no(BD_count) = str2double(dm_subjectno{line});
+                else
+                    filepath = 'data\';
+                    subject_id = horzcat('Control ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
+                    CON_count = CON_count + 1;
+                    CON_no(CON_count) = str2double(dm_subjectno{line});
+                end
+            elseif input_project == 2 % intervention
                 filepath = 'data\';
-                subject_id = horzcat('Control ', dm_subjectno{line}, ' ', dm_side{line}, ' ', dm_timepoint{line}, ' ', dm_trial{line});
-                CON_count = CON_count + 1;
-                CON_no(CON_count) = str2double(dm_subjectno{line});
+                subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
+                if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                    STR_PRE_count = STR_PRE_count + 1;
+                    STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
+                    STR_PRE_ID{STR_PRE_count} = subject_id;
+                elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                    STR_POST_count = STR_POST_count + 1;
+                    STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
+                    STR_POST_ID{STR_POST_count} = subject_id;
+                elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                    CON_PRE_count = CON_PRE_count + 1;
+                    CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
+                    CON_PRE_ID{CON_PRE_count} = subject_id;
+                    % old: CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
+                elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                    CON_POST_count = CON_POST_count + 1;
+                    CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
+                    CON_POST_ID{CON_POST_count} = subject_id;
+                end
             end
-        elseif input_project == 2 % intervention
-            filepath = 'data\';
-            subject_id = horzcat('INT_', dm_subjectno{line}, '_', dm_trial{line}, '_', dm_timepoint{line}, '_', dm_side{line});
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                STR_PRE_count = STR_PRE_count + 1;
-                STR_PRE_no(STR_PRE_count) = str2double(dm_subjectno{line});
-                STR_PRE_ID{STR_PRE_count} = subject_id;
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                STR_POST_count = STR_POST_count + 1;
-                STR_POST_no(STR_POST_count) = str2double(dm_subjectno{line});
-                STR_POST_ID{STR_POST_count} = subject_id;
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                CON_PRE_count = CON_PRE_count + 1;
-                CON_PRE_no(CON_PRE_count) = str2double(dm_subjectno{line});
-                CON_PRE_ID{CON_PRE_count} = subject_id;
-                % old: CON_PRE_subject_ID(CON_PRE_count) = trial_subjectno;
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                CON_POST_count = CON_POST_count + 1;
-                CON_POST_no(CON_POST_count) = str2double(dm_subjectno{line});
-                CON_POST_ID{CON_POST_count} = subject_id;
+            cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
+            %%
+
+
+
+            %% calculate NORM conversion factors
+            % retrieve conversion constants for Norm data
+            [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'passive');
+            %%
+
+
+
+            %% calculate MVC from EMG data
+            % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - PLANTAR FLEXION
+            % Produce a new noraxon data array
+            noraxon_mvc_plantar = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantar');
+
+            % Calculate co-activation constants
+            % Read complete, prepared noraxon array + number of frames to average (freq * time)
+            % Produce max torque, max EMG constants
+            if strcmpi(dm_side{line},'R') == 1
+                [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gm, 0);
+                [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gl, 0);
+                [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_sol, 0);
+            else % left
+                [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gm, 0);
+                [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gl, 0);
+                [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_sol, 0);
             end
-        end
-        cprintf('*black', horzcat('----------------', subject_id, '------------------\n'))
-        %%
-        
-        
-        
-        %% calculate NORM conversion factors
-        % retrieve conversion constants for Norm data
-        [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, convert_norm_torque_b, convert_norm_velocity_a, convert_norm_velocity_b, convert_norm_direction_b] = calculate_norm_constants_complete(dm_subjectno{line}, dm_side{line}, dm_timepoint{line}, line, 'passive');
-        %%
-        
-        
-        
-        %% calculate MVC from EMG data
-        % Read noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample - PLANTAR FLEXION
-        % Produce a new noraxon data array
-        noraxon_mvc_plantar = read_noraxon_stiffness(strcat(filepath, dm_MVC_PF{line}), freq_default, dm_side{line}, 'MVC plantar');
 
-        % Calculate co-activation constants
-        % Read complete, prepared noraxon array + number of frames to average (freq * time)
-        % Produce max torque, max EMG constants
-        if strcmpi(dm_side{line},'R') == 1
-            [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gm, 0);
-            [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_gl, 0);
-            [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_r_sol, 0);
-        else % left
-            [~,EMG_max_gm] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gm, 0);
-            [~,EMG_max_gl] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_gl, 0);
-            [~,EMG_max_sol] = calculate_EMG_max(noraxon_mvc_plantar, freq_default*(mvc_window_ms/1000), column_l_sol, 0);
-        end
-        
-        % no calculations for tibialis anterior for passive trials:
-        EMG_max_TA = 0;
-        %%
+            % no calculations for tibialis anterior for passive trials:
+            EMG_max_TA = 0;
+            %%
 
 
 
-        %% calculate ACHILLES TENDON MOMENT ARM
-        at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
-        %%
-        
-        
-            
-        %% calculations for 2x SOL trials
-        
-        % extract force, gonio, angle, displacement for EACH TRIAL
-        % NB: extract_force_displ_singletrial_passive_EMG is where torque is converted to force
-        if(strcmpi(dm_ROM_sol1_NX{line}, 'null'))
-            % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
-            SOL_force_1 = zeros;
-            SOL_gonio_1 = zeros;
-            SOL_angle_1 = zeros;
-            SOL_displacement_1 = zeros;
-        else 
-            [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
-            emg_all{1,1} = [SOL_gonio_1 SOL_emg_gm_1];
-            emg_all{2,1} = [SOL_gonio_1 SOL_emg_gl_1];
-            emg_all{3,1} = [SOL_gonio_1 SOL_emg_sol_1];
-        end
-        if(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
-            SOL_force_2 = zeros;
-            SOL_gonio_2 = zeros;
-            SOL_angle_2 = zeros;
-            SOL_displacement_2 = zeros;
-        else 
-            [SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL2');    
-            emg_all{1,2} = [SOL_gonio_2 SOL_emg_gm_2];
-            emg_all{2,2} = [SOL_gonio_2 SOL_emg_gl_2];
-            emg_all{3,2} = [SOL_gonio_2 SOL_emg_sol_2];
-        end
+            %% calculate ACHILLES TENDON MOMENT ARM
+            at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
+            %%
 
-        % average two passive trials
-        if(strcmpi(dm_ROM_sol1_NX{line}, 'null')) % trial 1 not existing
-            data_SOL = average_passive_trials_EMG(SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
-        elseif(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
-            data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1);
-        else % if 2 trials exist (none of variables are 'null')
-            data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
-        end
 
-        % plot summary of 2 trials: Displacement-angle
-        if plot_check && plot_individual && plot_old 
-            plottitle = horzcat('IND displacement SOL vs angle, ', subject_id);
-            figure('Name',plottitle);
-            plot(SOL_gonio_1,SOL_displacement_1,'LineWidth',2)
-            hold on
-            plot(SOL_gonio_2,SOL_displacement_2,'LineWidth',2)
-            axis(axis_displ_SOL)
-            ylabel(txt_displ)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('Trial 1','Trial 2','Location','Southeast')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
 
-        %% calculations for 2x GM MTJ trials
+            %% calculations for 2x SOL trials
 
-        % extract force, gonio, angle, displacement for EACH TRIAL
-        if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
-            % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
-            GMMTJ_force_1 = zeros;
-            GMMTJ_angle_1 = zeros;
-            GMMTJ_gonio_1 = zeros;
-            GMMTJ_displacement_1 = zeros;
-        else 
-            [GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
-            emg_all{1,3} = [GMMTJ_gonio_1 GMMTJ_emg_gm_1];
-            emg_all{2,3} = [GMMTJ_gonio_1 GMMTJ_emg_gl_1];
-            emg_all{3,3} = [GMMTJ_gonio_1 GMMTJ_emg_sol_1];
-        end
-        if(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
-            GMMTJ_force_2 = zeros;
-            GMMTJ_angle_2 = zeros;
-            GMMTJ_gonio_2 = zeros;
-            GMMTJ_displacement_2 = zeros;
-        else 
-            [GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
-            emg_all{1,4} = [GMMTJ_gonio_2 GMMTJ_emg_gm_2];
-            emg_all{2,4} = [GMMTJ_gonio_2 GMMTJ_emg_gl_2];
-            emg_all{3,4} = [GMMTJ_gonio_2 GMMTJ_emg_sol_2];
-        end
-
-        % average two passive trials
-        if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
-            data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
-        elseif(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
-            data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1);
-        else % if 2 trials exist (none of variables are 'null')
-            data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
-        end
-    
-        % plot summary of 2 trials: Displacement-angle
-        if plot_check && plot_individual && plot_old 
-            plottitle = horzcat('IND displacement GMMTJ vs angle, ', subject_id);
-            figure('Name',plottitle);
-            plot(GMMTJ_gonio_1,GMMTJ_displacement_1,'LineWidth',2)
-            hold on
-            plot(GMMTJ_gonio_2,GMMTJ_displacement_2,'LineWidth',2)
-            axis(axis_el_GMmsc)
-            ylabel(txt_displ)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('Trial 1','Trial 2','Location','Southeast')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
-        
-        %% calculations for 2x GM fascicle trials - ORIGINAL calculations, as for GMMTJ and SOL
-
-        % extract force, gonio, angle, displacement for EACH TRIAL
-        if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
-            % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
-            GMFAS_force_1 = zeros;
-            GMFAS_angle_1 = zeros;
-            GMFAS_gonio_1 = zeros;
-            GMFAS_displacement_1 = zeros;
-        else 
-            [GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS1');
-            emg_all{1,5} = [GMFAS_gonio_1 GMFAS_emg_gm_1];
-            emg_all{2,5} = [GMFAS_gonio_1 GMFAS_emg_gl_1];
-            emg_all{3,5} = [GMFAS_gonio_1 GMFAS_emg_sol_1];
-        end
-        if(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
-            GMFAS_force_2 = zeros;
-            GMFAS_angle_2 = zeros;
-            GMFAS_gonio_2 = zeros;
-            GMFAS_displacement_2 = zeros;
-        else 
-            [GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS2');    
-            emg_all{1,6} = [GMFAS_gonio_2 GMFAS_emg_gm_2];
-            emg_all{2,6} = [GMFAS_gonio_2 GMFAS_emg_gl_2];
-            emg_all{3,6} = [GMFAS_gonio_2 GMFAS_emg_sol_2];
-        end
-
-        % average two passive trials
-        if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
-            data_GMFAS = average_passive_trials_EMG(GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
-        elseif(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
-            data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1);
-        else % if 2 trials exist (none of variables are 'null')
-            data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
-        end
-
-        % plot summary of 2 trials: Displacement-angle
-        if plot_check && plot_individual && plot_old 
-            plottitle = horzcat('IND displacement GMFAS vs angle, ', subject_id);
-            figure('Name',plottitle);
-            plot(GMFAS_gonio_1,GMFAS_displacement_1,'LineWidth',2)
-            hold on
-            plot(GMFAS_gonio_2,GMFAS_displacement_2,'LineWidth',2)
-            axis(axis_displ_GMFAS)
-            ylabel(txt_displ)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('Trial 1','Trial 2','Location','Southeast')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
-                
-        %% calculations for 2x GM fascicle trials - LICHTWARK analysis
-        
-        % read Lichtwark data, trial 1
-        GMFAS_licht_SOL_1_exists = 0;
-        if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null'))
-            % allow for the possibility of discarded trials (null)
-        else 
-            [GMFAS_licht_data_1] = read_us_licht(strcat(filepath, dm_ROM_gmfas1_licht{line}, '.txt'), str2double(dm_ROM_gmfas1_US_frame{line}), 'GMFAS1_Licht');
-            % check if trial has both GM + SOL, or only GM
-            if length(GMFAS_licht_data_1(1,:)) == 3 % GM only
-                GMFAS_licht_GM_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),2);
-                GMFAS_licht_GM_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),3);
-                GMFAS_licht_SOL_faslen_1 = zeros(0);
-                GMFAS_licht_SOL_pennation_1 = zeros(0);
-            else % length = 6, GM + SOL
-                GMFAS_licht_SOL_1_exists = 1;
-                GMFAS_licht_GM_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),2);
-                GMFAS_licht_GM_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),3);
-                GMFAS_licht_SOL_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),5);
-                GMFAS_licht_SOL_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),6);
+            % extract force, gonio, angle, displacement for EACH TRIAL
+            % NB: extract_force_displ_singletrial_passive_EMG is where torque is converted to force
+            if(strcmpi(dm_ROM_sol1_NX{line}, 'null'))
+                % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
+                SOL_force_1 = zeros;
+                SOL_gonio_1 = zeros;
+                SOL_angle_1 = zeros;
+                SOL_displacement_1 = zeros;
+            else 
+                [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
+                emg_all{1,1} = [SOL_gonio_1 SOL_emg_gm_1];
+                emg_all{2,1} = [SOL_gonio_1 SOL_emg_gl_1];
+                emg_all{3,1} = [SOL_gonio_1 SOL_emg_sol_1];
             end
-        end
-
-        % read Lichtwark data, trial 2
-        GMFAS_licht_SOL_2_exists = 0;
-        if(strcmpi(dm_ROM_gmfas2_licht{line}, 'null'))
-            % allow for the possibility of discarded trials (null)
-        else 
-            [GMFAS_licht_data_2] = read_us_licht(strcat(filepath, dm_ROM_gmfas2_licht{line}, '.txt'), str2double(dm_ROM_gmfas2_US_frame{line}), 'GMFAS2_Licht');
-            % check if trial has both GM + SOL, or only GM
-            if length(GMFAS_licht_data_2(1,:)) == 3 % GM only
-                GMFAS_licht_GM_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),2);
-                GMFAS_licht_GM_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),3);
-                GMFAS_licht_SOL_faslen_2 = zeros(0);
-                GMFAS_licht_SOL_pennation_2 = zeros(0);
-            else % length = 6, GM + SOL
-                GMFAS_licht_SOL_2_exists = 1;
-                GMFAS_licht_GM_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),2);
-                GMFAS_licht_GM_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),3);
-                GMFAS_licht_SOL_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),5);
-                GMFAS_licht_SOL_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),6);
+            if(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
+                SOL_force_2 = zeros;
+                SOL_gonio_2 = zeros;
+                SOL_angle_2 = zeros;
+                SOL_displacement_2 = zeros;
+            else 
+                [SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL2');    
+                emg_all{1,2} = [SOL_gonio_2 SOL_emg_gm_2];
+                emg_all{2,2} = [SOL_gonio_2 SOL_emg_gl_2];
+                emg_all{3,2} = [SOL_gonio_2 SOL_emg_sol_2];
             end
-        end
 
-        % perform averaging of lichtwark data:
-        % create two arrays:
-        %   data_GMFAS_licht_GM
-        %   data_GMFAS_licht_SOL
-        % containing:
-        %   averaged angle (currently calculated from gonio)
-        %   averaged fasicle length
-        %   averaged pennation angle
-        %   averaged fascicle elongation
-        %   averaged fascicle strain
-        % OR containing zeros (if nonexistent)
-        
-        if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0 && strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0)
-            
-            % if 2 GM trials exist (none of variables are 'null')
-
-            % GM Lichtwark: perform averaging of trial 1 and trial 2
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
-
-            % SOL Lichtwark: check for existence of SOL data
-            if GMFAS_licht_SOL_1_exists && GMFAS_licht_SOL_2_exists
-                % average two trials:
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
-            elseif GMFAS_licht_SOL_1_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
-            elseif GMFAS_licht_SOL_2_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
-            else % no SOL exists
-                data_GMFAS_licht_SOL = zeros(1,3);
+            % average two passive trials
+            if(strcmpi(dm_ROM_sol1_NX{line}, 'null')) % trial 1 not existing
+                data_SOL = average_passive_trials_EMG(SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
+            elseif(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
+                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1);
+            else % if 2 trials exist (none of variables are 'null')
+                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
             end
-            
-        elseif(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0) % only trial 1 exists
-            % keep GM trial 1
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, 'GM fascicles');
-            % keep eventual SOL trial 1
-            if GMFAS_licht_SOL_1_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
-            else % no SOL exists
-                data_GMFAS_licht_SOL = zeros(1,3);
-            end    
-            
-        elseif(strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0) % only trial 2 exists
-            % keep GM trial 2
-            data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
-            % keep eventual SOL trial 2
-            if GMFAS_licht_SOL_2_exists
-                data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
-            else % no SOL exists
-                data_GMFAS_licht_SOL = zeros(1,3);
-            end    
-            
-        else % no trials exist
-            data_GMFAS_licht_GM = zeros(1,5);
-            data_GMFAS_licht_SOL = zeros(1,3);
-        end
-        
-        % add GM fascicle elongation and strain to data_GMFAS_licht_GM
-        if length(data_GMFAS_licht_GM) > 5
-%             % version 1 - length at zero degrees = zero elong, zero strain
-%             angle_zero = 0 - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999 %VAR
-%             loc_angle_zero = find(data_GMFAS_licht_GM(:,1)>=angle_zero,1,'first');
-%             data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2); %elong
-%             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2)) / data_GMFAS_licht_GM(loc_angle_zero,2) * 100; %strain
 
-            % version 2 - length PRONE is zero elong, zero strain
-            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - prone_GMfas_length; %fascicle elong 
-            data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - prone_GMfas_length) / prone_GMfas_length * 100; %fascicle strain
-        
-            if plot_check && plot_individual
-                plottitle = horzcat('IND Lichtwark GM fascicle vs angle, ', subject_id);
+            % plot summary of 2 trials: Displacement-angle
+            if plot_check && plot_individual && plot_old 
+                plottitle = horzcat('IND displacement SOL vs angle, ', subject_id);
                 figure('Name',plottitle);
+                plot(SOL_gonio_1,SOL_displacement_1,'LineWidth',2)
                 hold on
-                mat_version = version('-release');
-                % left axis
-                if strcmp(mat_version,'2015b') == 0
-                    yyaxis left
-                end
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'b','LineWidth',2) % fascicle length
-                plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_length prone_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','b', 'MarkerEdgeColor','b') % fas len at rest/prone
-                ylabel(txt_length)
-                if strcmp(mat_version,'2015b') == 0
-                    yyaxis right
-                end
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),'r','LineWidth',2) % pennation angle
-                plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_penn prone_GMfas_penn], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','r', 'MarkerEdgeColor','r') % penn angle at rest/prone
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),':r','LineWidth',1) % fascicle strain
-                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'--r','LineWidth',1) % fascicle elongation
-                ylabel('Elongation (mm) / Strain (%) / Pennation angle (°)')
+                plot(SOL_gonio_2,SOL_displacement_2,'LineWidth',2)
+                axis(axis_displ_SOL)
+                ylabel(txt_displ)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('Fasc length','Faslen PRONE', 'Pennation angle', 'Penn ang PRONE', 'Fasc strain', 'Fasc elong', 'Location','West')
-                % not possible to break axis with two y-axes: "Object Copy of Axes with multiple coordinate systems is not supported."
-                % breakxaxis([-15 -5]);
+                legend('Trial 1','Trial 2','Location','Southeast')
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
-        % LATER - Fukunaga fascicle/muscle/SEE faslen/elong/strain also for SOL fascicle scans?
-        end
-        %%
-        
-        
-        
-        %% average SOL + GMMTJ + GMFAS trials for force, gonio, angle, EMG
-        
-        % average 3 force arrays into one
-        data_force_gonio = average_passive_forces_EMG(data_SOL, data_GMMTJ, data_GMFAS, trial_subjectno);
-        
-        % plot all 6 trials separately: Force-angle
-        if plot_check && plot_individual
-            plottitle = horzcat('IND force vs angle, ', subject_id);
-            figure('Name',plottitle);
-            plot(SOL_gonio_1,SOL_force_1,'LineWidth',2, 'Color',[1 0 0])
-            hold on
-            plot(SOL_gonio_2,SOL_force_2,'LineWidth',2, 'Color',[1 0.6 0])
-            plot(GMMTJ_gonio_1,GMMTJ_force_1,'LineWidth',2, 'Color',[1 1 0])
-            plot(GMMTJ_gonio_2,GMMTJ_force_2,'LineWidth',2, 'Color',[0 1 0])
-            plot(GMFAS_gonio_1,GMFAS_force_1,'LineWidth',2, 'Color',[0 0 1])
-            plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
-            axis(axis_force)
-            ylabel('Force (N)')
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Location','Southeast')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-       
-        % Plot all 6 trials separately: EMG vs angle
-        if plot_check && plot_individual
-            plottitle = horzcat('IND EMG vs angle, ', subject_id);
-            figure('Name',plottitle)
-            % tweak to get proper legend:
-            hold on
-            plot(0,0,'y');
-            plot(0,0,'m');
-            plot(0,0,'c');
-            for i = 1:6 % 6 trials GM
-                if ~isempty(emg_all{1,i})
-                    plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2),'y');
-                end
-            end
-            plot(data_force_gonio(:,2),data_force_gonio(:,3),'y','LineWidth',2); % mean GM
-            
-            for i = 1:6 % 6 trials GL
-                if ~isempty(emg_all{1,i})
-                    plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2),'m');
-                end
-            end
-            plot(data_force_gonio(:,2),data_force_gonio(:,4),'m','LineWidth',2); % mean GL
-            
-            for i = 1:6 % 6 trials SOL
-                if ~isempty(emg_all{1,i})
-                    plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2),'c');
-                end
-            end
-            plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2); % mean SOL
-            
-            axis(axis_EMG)
-            ylabel('Muscle activation (% of MVC)')
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('Gastr.med.','Gastr.lat.','Soleus','Location','Northwest')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
-        
-        
-        
-        %% check conformation of GONIOMETER to norm angle
-        if plot_check && plot_individual && plot_old 
-            plottitle = horzcat('IND Goniometer check 6 trials, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(SOL_angle_1, SOL_gonio_1, 'LineWidth',2, 'Color',[1 0 0])
-            plot(SOL_angle_2, SOL_gonio_2, 'LineWidth',2, 'Color',[1 0.6 0])
-            plot(GMMTJ_angle_1, GMMTJ_gonio_1, 'LineWidth',2, 'Color',[1 1 0])
-            plot(GMMTJ_angle_2, GMMTJ_gonio_2, 'LineWidth',2, 'Color',[0 1 0])
-            plot(GMFAS_angle_1, GMFAS_gonio_1, 'LineWidth',2, 'Color',[0 0 1])
-            plot(GMFAS_angle_2, GMFAS_gonio_2, 'LineWidth',2, 'Color',[1 0 1])
-            if length(SOL_angle_1) == 1
-                plot(SOL_angle_2, SOL_angle_2, 'LineWidth',2, 'Color',col_grey, 'LineStyle',':') % conformation line
-            else
-                plot(SOL_angle_1, SOL_angle_1, 'LineWidth',2, 'Color',col_grey, 'LineStyle',':') % conformation line
-            end
-            plot([0 0],[0 0], 'Marker','o', 'MarkerSize',10, 'MarkerFaceColor',col_grey)% zero point
-            xlabel('Norm angle (°)')
-            ylabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Norm/Norm','Location','Southeast')
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
-        
-        
-        
-         
-        %% extract arrays of MTU LENGTH, ELONGATION, STRAIN
+            %%
 
-        % MTU_length_array =                            MTU_elong_array =      MTU_strain_array =
-        %1       angle
-        %2       calc to SOL ins = free tendon                 
-        %3       calc go GM ins = GM tendon
-        %4       calc to knee = entire calf
-        %5       DISPLACEMENT from GMFAS tracking
-        %6       SOL to GM = GM apo
-        %7       GM to knee = GM msc
-        %8       SOL length (H&H) minus free AT = SOL msc
-        %9       SEE Fukunaga
-        %10      GM muscle Fukunaga (longitudinal aspect of one fascicle)
-        
-        % retrieve max gonio angle
-        if strcmpi(dm_timepoint{line}, 'PRE') == 1
-            if strcmpi(dm_side{line}, 'R') == 1
-                out_ROM_trial_max = str2double(input_gon_pre_r{trial_subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
-            else % L
-                out_ROM_trial_max = str2double(input_gon_pre_l{trial_subjectno}) - 0.00000001;
+            %% calculations for 2x GM MTJ trials
+
+            % extract force, gonio, angle, displacement for EACH TRIAL
+            if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
+                % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
+                GMMTJ_force_1 = zeros;
+                GMMTJ_angle_1 = zeros;
+                GMMTJ_gonio_1 = zeros;
+                GMMTJ_displacement_1 = zeros;
+            else 
+                [GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
+                emg_all{1,3} = [GMMTJ_gonio_1 GMMTJ_emg_gm_1];
+                emg_all{2,3} = [GMMTJ_gonio_1 GMMTJ_emg_gl_1];
+                emg_all{3,3} = [GMMTJ_gonio_1 GMMTJ_emg_sol_1];
             end
-        else % POST
-            if strcmpi(dm_side{line}, 'R') == 1
-                out_ROM_trial_max = str2double(input_gon_post_r{trial_subjectno}) - 0.00000001;
-            else % L
-                out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
+            if(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
+                GMMTJ_force_2 = zeros;
+                GMMTJ_angle_2 = zeros;
+                GMMTJ_gonio_2 = zeros;
+                GMMTJ_displacement_2 = zeros;
+            else 
+                [GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
+                emg_all{1,4} = [GMMTJ_gonio_2 GMMTJ_emg_gm_2];
+                emg_all{2,4} = [GMMTJ_gonio_2 GMMTJ_emg_gl_2];
+                emg_all{3,4} = [GMMTJ_gonio_2 GMMTJ_emg_sol_2];
             end
-        end
-        
-        % error if ROM not existing (incorrect create angles passive?)
-        if round(out_ROM_trial_max,1) == 100
-            cprintf('*red', 'ERROR: ROM data not calculated for current subject. Run "create_angles_passive".\n')
-            return
-        end
-        
-        % calculate MTU lengths
-        [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle);
-        
-        % column choices MTU ELONGATION / LENGTH / STRAIN
-        col_angle_MTU = 1;
-        col_AT = 2;
-        col_GMtend = 3;
-        col_leg = 4;
-        col_GMFAS_and_penn_ang = 5; % in elongation: GMFAS displacement
-        col_GMapo_and_faslen = 6;
-        col_GMmsc = 7;
-        col_SOLmsc = 8;
-        col_GMmsc_Fukunaga = 9;
-        col_SEE_Fukunaga = 10;
-        %%
-        
-        
-        
-        %% NORMALIZE Lichtwark/Fukunaga length/elongation to initial leg length (BD study) %%%%%%%%%%%%%%%%%%
-        if input_project == 1 && toggle_normalization == 1
-            %%% Normalization of MTU, GMmsc, SEE * elongation, length:
-            % in MTU arrays, replace absolute values with normalization to MTU length/elongation
-            % currently normalizing to MTU length while resting in prone position
-            %    resting MTU length is found in variable:
-            MTU_length_rest = MTU_prone_vars(col_leg);
-            
-            % ELONGATION
-            %%% Version 1: GMmsc/SEE elongation (mm) / resting/prone MTU length (mm) - in %
-%            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
-%            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
-            %%% Version 2: GMmsc/SEE elongation (mm) / MTU ELONGATION (mm) - in %
-            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_array(:,col_leg)*100;
-            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_array(:,col_leg)*100;
-            %%% MTU elongation (mm) / resting/prone MTU length (mm) - in %
-            MTU_elong_array(:,col_leg) = MTU_elong_array(:,col_leg)/MTU_length_rest*100;
-            
-            % LENGTH - in percent of resting/prone MTU length
-            MTU_length_array(:,col_leg) = MTU_length_array(:,col_leg)/MTU_length_rest*100;
-            MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
-            MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
-            
-            %%% Normalization of fascicle length/elongation to resting/prone MTU length:
+
+            % average two passive trials
+            if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
+            elseif(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1);
+            else % if 2 trials exist (none of variables are 'null')
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
+            end
+
+            % plot summary of 2 trials: Displacement-angle
+            if plot_check && plot_individual && plot_old 
+                plottitle = horzcat('IND displacement GMMTJ vs angle, ', subject_id);
+                figure('Name',plottitle);
+                plot(GMMTJ_gonio_1,GMMTJ_displacement_1,'LineWidth',2)
+                hold on
+                plot(GMMTJ_gonio_2,GMMTJ_displacement_2,'LineWidth',2)
+                axis(axis_el_GMmsc)
+                ylabel(txt_displ)
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('Trial 1','Trial 2','Location','Southeast')
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+            %%
+
+            %% calculations for 2x GM fascicle trials - ORIGINAL calculations, as for GMMTJ and SOL
+
+            % extract force, gonio, angle, displacement for EACH TRIAL
+            if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
+                % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
+                GMFAS_force_1 = zeros;
+                GMFAS_angle_1 = zeros;
+                GMFAS_gonio_1 = zeros;
+                GMFAS_displacement_1 = zeros;
+            else 
+                [GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS1');
+                emg_all{1,5} = [GMFAS_gonio_1 GMFAS_emg_gm_1];
+                emg_all{2,5} = [GMFAS_gonio_1 GMFAS_emg_gl_1];
+                emg_all{3,5} = [GMFAS_gonio_1 GMFAS_emg_sol_1];
+            end
+            if(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
+                GMFAS_force_2 = zeros;
+                GMFAS_angle_2 = zeros;
+                GMFAS_gonio_2 = zeros;
+                GMFAS_displacement_2 = zeros;
+            else 
+                [GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS2');    
+                emg_all{1,6} = [GMFAS_gonio_2 GMFAS_emg_gm_2];
+                emg_all{2,6} = [GMFAS_gonio_2 GMFAS_emg_gl_2];
+                emg_all{3,6} = [GMFAS_gonio_2 GMFAS_emg_sol_2];
+            end
+
+            % average two passive trials
+            if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
+            elseif(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1);
+            else % if 2 trials exist (none of variables are 'null')
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
+            end
+
+            % plot summary of 2 trials: Displacement-angle
+            if plot_check && plot_individual && plot_old 
+                plottitle = horzcat('IND displacement GMFAS vs angle, ', subject_id);
+                figure('Name',plottitle);
+                plot(GMFAS_gonio_1,GMFAS_displacement_1,'LineWidth',2)
+                hold on
+                plot(GMFAS_gonio_2,GMFAS_displacement_2,'LineWidth',2)
+                axis(axis_displ_GMFAS)
+                ylabel(txt_displ)
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('Trial 1','Trial 2','Location','Southeast')
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+            %%
+
+            %% calculations for 2x GM fascicle trials - LICHTWARK analysis
+
+            % read Lichtwark data, trial 1
+            GMFAS_licht_SOL_1_exists = 0;
+            if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null'))
+                % allow for the possibility of discarded trials (null)
+            else 
+                [GMFAS_licht_data_1] = read_us_licht(strcat(filepath, dm_ROM_gmfas1_licht{line}, '.txt'), str2double(dm_ROM_gmfas1_US_frame{line}), 'GMFAS1_Licht');
+                % check if trial has both GM + SOL, or only GM
+                if length(GMFAS_licht_data_1(1,:)) == 3 % GM only
+                    GMFAS_licht_GM_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),2);
+                    GMFAS_licht_GM_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),3);
+                    GMFAS_licht_SOL_faslen_1 = zeros(0);
+                    GMFAS_licht_SOL_pennation_1 = zeros(0);
+                else % length = 6, GM + SOL
+                    GMFAS_licht_SOL_1_exists = 1;
+                    GMFAS_licht_GM_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),2);
+                    GMFAS_licht_GM_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),3);
+                    GMFAS_licht_SOL_faslen_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),5);
+                    GMFAS_licht_SOL_pennation_1 = GMFAS_licht_data_1(1:length(GMFAS_gonio_1),6);
+                end
+            end
+
+            % read Lichtwark data, trial 2
+            GMFAS_licht_SOL_2_exists = 0;
+            if(strcmpi(dm_ROM_gmfas2_licht{line}, 'null'))
+                % allow for the possibility of discarded trials (null)
+            else 
+                [GMFAS_licht_data_2] = read_us_licht(strcat(filepath, dm_ROM_gmfas2_licht{line}, '.txt'), str2double(dm_ROM_gmfas2_US_frame{line}), 'GMFAS2_Licht');
+                % check if trial has both GM + SOL, or only GM
+                if length(GMFAS_licht_data_2(1,:)) == 3 % GM only
+                    GMFAS_licht_GM_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),2);
+                    GMFAS_licht_GM_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),3);
+                    GMFAS_licht_SOL_faslen_2 = zeros(0);
+                    GMFAS_licht_SOL_pennation_2 = zeros(0);
+                else % length = 6, GM + SOL
+                    GMFAS_licht_SOL_2_exists = 1;
+                    GMFAS_licht_GM_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),2);
+                    GMFAS_licht_GM_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),3);
+                    GMFAS_licht_SOL_faslen_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),5);
+                    GMFAS_licht_SOL_pennation_2 = GMFAS_licht_data_2(1:length(GMFAS_gonio_2),6);
+                end
+            end
+
+            % perform averaging of lichtwark data:
+            % create two arrays:
             %   data_GMFAS_licht_GM
             %   data_GMFAS_licht_SOL
             % containing:
-            %    1 averaged angle (currently calculated from gonio)
-            %    2 averaged fasicle length
-            %    3 averaged pennation angle
-            %    4 averaged fascicle elongation
-            %    5 averaged fascicle strain
-            data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_length_rest*100;
-            data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_length_rest*100;
-        elseif input_project == 2 && toggle_normalization == 1
-            % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
-        end
-        %%
-        
-        
-        
-        %% plot arrays of MTU LENGTH, ELONGATION, STRAIN
-        if plot_check && plot_individual
-            % raw lengths (mm)
-            plottitle = horzcat('IND MTU length vs angle, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_leg),'LineWidth',2,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
-            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',2,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
-            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
-            plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-            % plot vertical lines to show color coding of subsequent figs
-            plot([0,0], [MTU_length_array(1,col_leg), MTU_length_array(1,col_GMtend)],'Color','cyan')
-            plot([1,1], [MTU_length_array(1,col_leg), MTU_length_array(1,col_SEE_Fukunaga)],'Color','cyan','LineWidth',2)
-            plot([1,1], [MTU_length_array(1,col_SOLmsc)+MTU_length_array(1,col_AT), MTU_length_array(1,col_GMtend)],'Color','black')
-            plot([0,0], [MTU_length_array(1,col_GMtend), MTU_length_array(1,col_AT)],'Color',col_orange)
-            plot([0,0], [MTU_length_array(1,col_AT), 0],'Color','green')
-            
-            axis(axis_ind_len_MTU)
-            ylabel(txt_length)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('Full GM MTU', 'SEE (from archi)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
-            print(horzcat('data_plots/',plottitle),'-dpng')
-            
-%             % raw elongation (mm)
-%             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
-%             figure('Name',plottitle);
-%             hold on
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS_and_penn_ang),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
-%             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
-%             axis(axis_ind_elong)
-%             ylabel(txt_elong)
-%             xlabel(txt_gonio)
-%             title(plottitle,'Interpreter', 'none')
-%             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
-%             print(horzcat('data_plots/',plottitle),'-dpng')
-%             xlim([-0.5 inf]) 
-%             ylim([-inf inf]) 
-%             print(horzcat('data_plots/GRP_INT ',plottitle, ' ZOOM'),'-dpng')
-            
-            % raw elongation (mm) - CLEANED VERSION, LICHT ONLY
-            plottitle = horzcat('IND MTU elongation v2 vs angle, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-            plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',1.5,'Color','yellow') % fascicle elongation
-            axis(axis_ind_elong)
-            ylabel(txt_elong)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
-            print(horzcat('data_plots/',plottitle),'-dpng')
-            
-%             % strain (percent of initial length)
-%             plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
-%             figure('Name',plottitle);
-%             hold on
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-%             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
-%             if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
-%                 text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
-%             end
-%             axis(axis_ind_strain)
-%             ylabel(txt_strain)
-%             xlabel(txt_gonio)
-%             title(plottitle,'Interpreter', 'none')
-%             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
-%             print(horzcat('data_plots/',plottitle),'-dpng')
-%             xlim([-0.5 inf]) 
-%             ylim([-inf inf]) 
-%             print(horzcat('data_plots/', plottitle,' ZOOM'),'-dpng'))
+            %   averaged angle (currently calculated from gonio)
+            %   averaged fasicle length
+            %   averaged pennation angle
+            %   averaged fascicle elongation
+            %   averaged fascicle strain
+            % OR containing zeros (if nonexistent)
 
-            % strain (percent of initial length) - CLEANED VERSION, LICHT ONLY
-            plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
-            figure('Name',plottitle);
-            hold on
-            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-            plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
-            plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'LineWidth',1.5,'Color','yellow') % fascicle strain
-            axis(axis_ind_strain)
-            ylabel(txt_strain)
-            xlabel(txt_gonio)
-            title(plottitle,'Interpreter', 'none')
-            legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
-            print(horzcat('data_plots/',plottitle),'-dpng')
-        end
-        %%
-        
-        
-        
-        %% extract FORCE, ANGLE, LENGTH/ELONGATION/STRAIN, EMG at various joint angles
-        %   force, angle, EMG from all 3 scan locations / 6 trials, averaged
-        %   displacement of SOL, GMMTJ, GMFAS from 2 trials per scan location
-        %   length, elongation, strain of AT, GM apo, msc etc - from displacement data
-        
-        %   joint angles = 
-        %       out_ROM_trial_max = trial max (different PRE, POST, L, R)
-        %       out_ROM_ind_max = subject ind max (lowest PRE, POST, L, R)
-        %       out_ROM_common_max = common max (lowest of all subjects)
-        %       out_ROM_submax_1 OLD = additional predetermined angle: 1/3 of trial max ROM
-        %       out_ROM_submax_2 = additional predetermined angle: 2/3 of trial max ROM
-        %       out_ROM_submax_1 = 10 degrees for those subjects which have this ROM available 
+            if(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0 && strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0)
 
-        
-        
-        % column choices force, torque, displacement
-        col_force = 1;      % from data_force_gonio / data_SOL etc
-        col_angle_DFG = 2;
-        col_displ = 3;
-        
-        % print error if max angles do not exist --> create_angles_passive needs to be run
-        if str2double(input_gon_ind_max{trial_subjectno}) == 100
-            cprintf('*red', 'ERROR: Max ROM values are not calculated for subject. Run create_angles_passive first.\n')
-        end
+                % if 2 GM trials exist (none of variables are 'null')
 
-        % find relevant goniometer angles 
-        if strcmpi(dm_timepoint{line}, 'PRE') == 1
-            if strcmpi(dm_side{line}, 'R') == 1
-                out_ROM_trial_max = str2double(input_gon_pre_r{trial_subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
-            else % L
-                out_ROM_trial_max = str2double(input_gon_pre_l{trial_subjectno}) - 0.00000001;
-            end
-        else % POST
-            if strcmpi(dm_side{line}, 'R') == 1
-                out_ROM_trial_max = str2double(input_gon_post_r{trial_subjectno}) - 0.00000001;
-            else % L
-                out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
-            end
-        end
-        out_ROM_ind_max = str2double(input_gon_ind_max{trial_subjectno}) - 0.00000001;
-        out_ROM_common_max = str2double(input_gon_common_max{trial_subjectno}) - 0.00000001;
-       % out_ROM_submax_1 = out_ROM_trial_max * 1/3; %VAR --- old, replaced by 10 degrees (reused submax_1 for simplicity)
-        out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
-        out_ROM_submax_1 = 10; %VAR
-        
-        % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
-        out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
-        out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-        out_F_ind_max = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-        out_F_common_max = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=0,1,'first'); % zero angle
-        out_F_zero = data_force_gonio(loc_frame,col_force);
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-        if isempty(loc_frame) == 0
-            out_F_submax_1 = data_force_gonio(loc_frame,col_force);
-            out_T_submax_1 = out_F_submax_1 *at_momentarm;
-        else
-            out_F_submax_1 = NaN;
-            out_T_submax_1 = NaN;
-        end
-        loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-        out_F_submax_2 = data_force_gonio(loc_frame,col_force);
-        
-        % torques
-        out_T_trial_max_ROM = out_F_trial_max_ROM *at_momentarm;
-        out_T_trial_max_F = out_F_trial_max_F *at_momentarm;
-        out_T_ind_max = out_F_ind_max *at_momentarm;
-        out_T_common_max = out_F_common_max *at_momentarm;
-        out_T_zero = out_F_zero *at_momentarm;
-        % submex 2 - with force above
-        out_T_submax_2 = out_F_submax_2 *at_momentarm;
+                % GM Lichtwark: perform averaging of trial 1 and trial 2
+                data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
 
-        % displacements SOL
-        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
-        out_displ_SOL_trial_max = data_SOL(loc_frame,col_displ);
-        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-        out_displ_SOL_ind_max = data_SOL(loc_frame,col_displ); 
-        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-        out_displ_SOL_common_max = data_SOL(loc_frame,col_displ); 
-        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-        if isempty(loc_frame) == 0
-            out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
-        else
-            out_displ_SOL_submax_1 = NaN;
-        end
-        loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-        out_displ_SOL_submax_2 = data_SOL(loc_frame,col_displ); 
+                % SOL Lichtwark: check for existence of SOL data
+                if GMFAS_licht_SOL_1_exists && GMFAS_licht_SOL_2_exists
+                    % average two trials:
+                    data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
+                elseif GMFAS_licht_SOL_1_exists
+                    data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
+                elseif GMFAS_licht_SOL_2_exists
+                    data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
+                else % no SOL exists
+                    data_GMFAS_licht_SOL = zeros(1,3);
+                end
 
-        % displacements GMMTJ
-        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
-        out_displ_GMMTJ_trial_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-        out_displ_GMMTJ_ind_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-        out_displ_GMMTJ_common_max = data_GMMTJ(loc_frame,col_displ); 
-        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-        if isempty(loc_frame) == 0
-            out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
-        else
-            out_displ_GMMTJ_submax_1 = NaN;
-        end
-        loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-        out_displ_GMMTJ_submax_2 = data_GMMTJ(loc_frame,col_displ); 
+            elseif(strcmpi(dm_ROM_gmfas1_licht{line}, 'null')==0) % only trial 1 exists
+                % keep GM trial 1
+                data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_GM_faslen_1, GMFAS_licht_GM_pennation_1, GMFAS_time_1, 'GM fascicles');
+                % keep eventual SOL trial 1
+                if GMFAS_licht_SOL_1_exists
+                    data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_1, GMFAS_angle_1, GMFAS_licht_SOL_faslen_1, GMFAS_licht_SOL_pennation_1, GMFAS_time_1, 'SOL fascicles');
+                else % no SOL exists
+                    data_GMFAS_licht_SOL = zeros(1,3);
+                end    
 
-        % displacements GMFAS
-        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
-        out_displ_GMFAS_trial_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-        out_displ_GMFAS_ind_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-        out_displ_GMFAS_common_max = data_GMFAS(loc_frame,col_displ); 
-        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-        if isempty(loc_frame) == 0
-            out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
-        else
-            out_displ_GMFAS_submax_1 = NaN;
-        end
-        loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-        out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
+            elseif(strcmpi(dm_ROM_gmfas2_licht{line}, 'null')==0) % only trial 2 exists
+                % keep GM trial 2
+                data_GMFAS_licht_GM = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_GM_faslen_2, GMFAS_licht_GM_pennation_2, GMFAS_time_2, 'GM fascicles');
+                % keep eventual SOL trial 2
+                if GMFAS_licht_SOL_2_exists
+                    data_GMFAS_licht_SOL = average_passive_trials_licht(GMFAS_gonio_2, GMFAS_angle_2, GMFAS_licht_SOL_faslen_2, GMFAS_licht_SOL_pennation_2, GMFAS_time_2, 'SOL fascicles');
+                else % no SOL exists
+                    data_GMFAS_licht_SOL = zeros(1,3);
+                end    
 
-        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_trial_max,1,'first'); 
-        out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
-        out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
-        out_elong_leg_trial_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen);
-        out_elong_msc_GM_trial_max = MTU_elong_array(loc_frame,col_GMmsc);
-        out_elong_msc_SOL_trial_max = MTU_elong_array(loc_frame,col_SOLmsc);
-        out_strain_AT_trial_max = MTU_strain_array(loc_frame,col_AT);
-        out_strain_GMtend_trial_max = MTU_strain_array(loc_frame,col_GMtend);
-        out_strain_leg_trial_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen);
-        out_strain_msc_GM_trial_max = MTU_strain_array(loc_frame,col_GMmsc);
-        out_strain_msc_SOL_trial_max = MTU_strain_array(loc_frame,col_SOLmsc);
-        out_length_AT_trial_max = MTU_length_array(loc_frame,col_AT);
-        out_length_GMtend_trial_max = MTU_length_array(loc_frame,col_GMtend);
-        out_length_leg_trial_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo_and_faslen);
-        out_length_msc_GM_trial_max = MTU_length_array(loc_frame,col_GMmsc);
-        out_length_msc_SOL_trial_max = MTU_length_array(loc_frame,col_SOLmsc);
-        out_contrib_GM_trial_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_trial_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
-        out_elong_msc_GM_Fuku_trial_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_trial_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
-        out_strain_msc_GM_Fuku_trial_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_trial_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
-        out_length_msc_GM_Fuku_trial_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
-        
-        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_ind_max,1,'first'); 
-        out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
-        out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
-        out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
-        out_elong_msc_GM_ind_max = MTU_elong_array(loc_frame,col_GMmsc); 
-        out_elong_msc_SOL_ind_max = MTU_elong_array(loc_frame,col_SOLmsc); 
-        out_strain_AT_ind_max = MTU_strain_array(loc_frame,col_AT); 
-        out_strain_GMtend_ind_max = MTU_strain_array(loc_frame,col_GMtend);
-        out_strain_leg_ind_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
-        out_strain_msc_GM_ind_max = MTU_strain_array(loc_frame,col_GMmsc); 
-        out_strain_msc_SOL_ind_max = MTU_strain_array(loc_frame,col_SOLmsc); 
-        out_length_AT_ind_max = MTU_length_array(loc_frame,col_AT); 
-        out_length_GMtend_ind_max = MTU_length_array(loc_frame,col_GMtend);
-        out_length_leg_ind_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
-        out_length_msc_GM_ind_max = MTU_length_array(loc_frame,col_GMmsc); 
-        out_length_msc_SOL_ind_max = MTU_length_array(loc_frame,col_SOLmsc); 
-        out_contrib_GM_ind_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_ind_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
-        out_elong_msc_GM_Fuku_ind_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_ind_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
-        out_strain_msc_GM_Fuku_ind_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_ind_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
-        out_length_msc_GM_Fuku_ind_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
-        
-        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_common_max,1,'first'); 
-        out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
-        out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
-        out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
-        out_elong_msc_GM_common_max = MTU_elong_array(loc_frame,col_GMmsc); 
-        out_elong_msc_SOL_common_max = MTU_elong_array(loc_frame,col_SOLmsc); 
-        out_strain_AT_common_max = MTU_strain_array(loc_frame,col_AT); 
-        out_strain_GMtend_common_max = MTU_strain_array(loc_frame,col_GMtend);
-        out_strain_leg_common_max = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
-        out_strain_msc_GM_common_max = MTU_strain_array(loc_frame,col_GMmsc); 
-        out_strain_msc_SOL_common_max = MTU_strain_array(loc_frame,col_SOLmsc); 
-        out_length_AT_common_max = MTU_length_array(loc_frame,col_AT); 
-        out_length_GMtend_common_max = MTU_length_array(loc_frame,col_GMtend);
-        out_length_leg_common_max = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
-        out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_GMmsc); 
-        out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_SOLmsc); 
-        out_contrib_GM_common_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_common_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
-        out_elong_msc_GM_Fuku_common_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_common_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
-        out_strain_msc_GM_Fuku_common_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_common_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
-        out_length_msc_GM_Fuku_common_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
-        
-        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_1,1,'first'); 
-        if isempty(loc_frame)
-            out_elong_AT_submax_1 = NaN;
-            out_elong_GMtend_submax_1 = NaN;
-            out_elong_leg_submax_1 = NaN;
-            out_elong_GMapo_submax_1 = NaN;
-            out_elong_msc_GM_submax_1 = NaN;
-            out_elong_msc_SOL_submax_1 = NaN;
-            out_strain_AT_submax_1 = NaN;
-            out_strain_GMtend_submax_1 = NaN;
-            out_strain_leg_submax_1 = NaN;
-            out_strain_GMapo_submax_1 = NaN;
-            out_strain_msc_GM_submax_1 = NaN;
-            out_strain_msc_SOL_submax_1 = NaN;
-            out_length_AT_submax_1 = NaN;
-            out_length_GMtend_submax_1 = NaN;
-            out_length_leg_submax_1 = NaN;
-            out_length_GMapo_submax_1 = NaN;
-            out_length_msc_GM_submax_1 = NaN;
-            out_length_msc_SOL_submax_1 = NaN;
-            out_contrib_GM_submax_1 = NaN;
-            out_elong_GMtend_Fuku_submax_1 = NaN;
-            out_elong_msc_GM_Fuku_submax_1 = NaN;
-            out_strain_GMtend_Fuku_submax_1 = NaN;
-            out_strain_msc_GM_Fuku_submax_1 = NaN;
-            out_length_GMtend_Fuku_submax_1 = NaN;
-            out_length_msc_GM_Fuku_submax_1 = NaN;
-        else
-            out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
-            out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GMtend);
-            out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
-            out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
-            out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_GMmsc); 
-            out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_SOLmsc); 
-            out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
-            out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GMtend);
-            out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
-            out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
-            out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_GMmsc); 
-            out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_SOLmsc); 
-            out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
-            out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GMtend);
-            out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
-            out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
-            out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_GMmsc); 
-            out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_SOLmsc); 
-            out_contrib_GM_submax_1 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-            out_elong_GMtend_Fuku_submax_1 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
-            out_elong_msc_GM_Fuku_submax_1 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-            out_strain_GMtend_Fuku_submax_1 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
-            out_strain_msc_GM_Fuku_submax_1 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-            out_length_GMtend_Fuku_submax_1 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
-            out_length_msc_GM_Fuku_submax_1 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
-        end
-        
-        loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_2,1,'first');
-        out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
-        out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
-        out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
-        out_elong_msc_GM_submax_2 = MTU_elong_array(loc_frame,col_GMmsc); 
-        out_elong_msc_SOL_submax_2 = MTU_elong_array(loc_frame,col_SOLmsc); 
-        out_strain_AT_submax_2 = MTU_strain_array(loc_frame,col_AT); 
-        out_strain_GMtend_submax_2 = MTU_strain_array(loc_frame,col_GMtend);
-        out_strain_leg_submax_2 = MTU_strain_array(loc_frame,col_leg);
-        out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
-        out_strain_msc_GM_submax_2 = MTU_strain_array(loc_frame,col_GMmsc); 
-        out_strain_msc_SOL_submax_2 = MTU_strain_array(loc_frame,col_SOLmsc); 
-        out_length_AT_submax_2 = MTU_length_array(loc_frame,col_AT); 
-        out_length_GMtend_submax_2 = MTU_length_array(loc_frame,col_GMtend);
-        out_length_leg_submax_2 = MTU_length_array(loc_frame,col_leg);
-        out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
-        out_length_msc_GM_submax_2 = MTU_length_array(loc_frame,col_GMmsc); 
-        out_length_msc_SOL_submax_2 = MTU_length_array(loc_frame,col_SOLmsc); 
-        out_contrib_GM_submax_2 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
-        out_elong_GMtend_Fuku_submax_2 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
-        out_elong_msc_GM_Fuku_submax_2 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
-        out_strain_GMtend_Fuku_submax_2 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
-        out_strain_msc_GM_Fuku_submax_2 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
-        out_length_GMtend_Fuku_submax_2 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
-        out_length_msc_GM_Fuku_submax_2 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
-        
-        
-        
-        % EMG (from all 3 scan locations / 6 trials, averaged)
-        
-        emg_step = 9; %VAR - number of EMG values BEFORE relevant angle, to include in average. 9 values = a span of 0.5 degrees.
-        % cannot average values AROUND relevant angle, because for a few (least flexible) trials, we want the data AT the last available angle.
-
-        % identify locations of the relevant goniometer angles, in the array with all 2+2+2 trials averaged:
-        loc_frame_trial_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
-        loc_frame_ind_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-        loc_frame_common_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-        loc_frame_submax_1 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-        loc_frame_submax_2 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-        loc_frame_zero = 1; % find(data_force_gonio(:,col_angle)>=0,1,'first'); 
-
-        % stop running if frame not found
-        if isempty(loc_frame_ind_max)
-            % cprintf('error', horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ));
-            error(horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle_DFG))), '). Check "create_angles_passive" vs current data.\n' ))
-        end
-        
-        % EMG gm
-        out_emg_gm_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,3)); % EMG gm = column 3
-        out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,3));
-        out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,3));
-        out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,3));
-        out_emg_gm_zero = data_force_gonio(1,3); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,3));
-        out_emg_gm_max = max(data_force_gonio(:,3));
-
-        % EMG gl
-        out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gl = column 4
-        out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4)); 
-        out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
-        out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
-        out_emg_gl_zero = data_force_gonio(1,4); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,4));
-        out_emg_gl_max = max(data_force_gonio(:,4));
-        
-        % EMG sol
-        out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG sol = column 5
-        out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5));
-        out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
-        out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
-        out_emg_sol_zero = data_force_gonio(1,5); % mean(data_force_gonio(emg_step:loc_frame_zero,5));
-        out_emg_sol_max = max(data_force_gonio(:,5));
-        
-        if isempty(loc_frame_submax_1)
-            out_emg_gm_submax_1 = NaN;
-            out_emg_gl_submax_1 = NaN;
-            out_emg_sol_submax_1 = NaN;
-        else
-            out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
-            out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
-            out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
-        end
-        %%
-        
-        
-        
-        %% extract FASCICLE LENGTH, PENNATION ANGLE, GM ELONG at various joint angles
-        %     data_GMFAS_licht_GM
-        %     data_GMFAS_licht_SOL
-        % containing:
-        %   averaged angle (currently calculated from gonio)
-        %   averaged fasicle length
-        %   averaged pennation angle
-        %   averaged fasicle elong
-        %   averaged fasicle strain
-        % OR containing zeros (if nonexistent)
-        %    data_GMFAS_elong_Lichtwark
-        % containing:
-        %  angle
-        %  GM muscle elongation (Lichtwark/Fukunaga)
-        
-        % set columns:
-        col_licht_angle = 1;   % in data_GMFAS_licht_x
-        col_licht_faslen = 2;
-        col_licht_penn = 3;
-        col_licht_fas_elong = 4;
-        col_licht_fas_strain = 5;
-        
-        % preallocate / set zero values:
-        
-        % --- GM pennation and fascicle length
-        out_licht_faslen_GM_trial_max = NaN;
-        out_licht_pennation_GM_trial_max = NaN;
-        out_licht_faslen_GM_common_max = NaN;
-        out_licht_pennation_GM_common_max = NaN;
-        out_licht_faslen_GM_ind_max = NaN;
-        out_licht_pennation_GM_ind_max = NaN;
-        out_licht_faslen_GM_zero = NaN;
-        out_licht_pennation_GM_zero = NaN;
-        out_licht_faslen_GM_submax_1 = NaN;
-        out_licht_pennation_GM_submax_1 = NaN;
-        out_licht_faslen_GM_submax_2 = NaN;
-        out_licht_pennation_GM_submax_2 = NaN;
-        out_licht_fas_elong_GM_trial_max = NaN;
-        out_licht_fas_strain_GM_trial_max = NaN;
-        out_licht_fas_elong_GM_common_max = NaN;
-        out_licht_fas_strain_GM_common_max = NaN;
-        out_licht_fas_elong_GM_ind_max = NaN;
-        out_licht_fas_strain_GM_ind_max = NaN;
-        out_licht_fas_elong_GM_zero = NaN;
-        out_licht_fas_strain_GM_zero = NaN;
-        out_licht_fas_elong_GM_submax_1 = NaN;
-        out_licht_fas_strain_GM_submax_1 = NaN;
-        out_licht_fas_elong_GM_submax_2 = NaN;
-        out_licht_fas_strain_GM_submax_2 = NaN;
-        
-        % --- SOL pennation and fascicle length
-        out_licht_faslen_SOL_trial_max = NaN;
-        out_licht_pennation_SOL_trial_max = NaN;
-        out_licht_faslen_SOL_common_max = NaN;
-        out_licht_pennation_SOL_common_max = NaN;
-        out_licht_faslen_SOL_ind_max = NaN;
-        out_licht_pennation_SOL_ind_max = NaN;
-        out_licht_faslen_SOL_zero = NaN;
-        out_licht_pennation_SOL_zero = NaN;
-        out_licht_faslen_SOL_submax_1 = NaN;
-        out_licht_pennation_SOL_submax_1 = NaN;
-        out_licht_faslen_SOL_submax_2 = NaN;
-        out_licht_pennation_SOL_submax_2 = NaN;
-        
-        
-        if data_GMFAS_licht_GM == 0
-            % no licht data existing
-        else
-            % at trial max angle:
-            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
-            out_licht_faslen_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
-            out_licht_pennation_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn);
-            out_licht_fas_elong_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-            out_licht_fas_strain_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
-            if (length((data_GMFAS_licht_SOL)) == 3) == 0
-                % SOL exists
-                out_licht_faslen_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                out_licht_pennation_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+            else % no trials exist
+                data_GMFAS_licht_GM = zeros(1,5);
+                data_GMFAS_licht_SOL = zeros(1,3);
             end
 
-            % at individual max angle (across sides/timepoints):
-            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-            out_licht_faslen_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
-            out_licht_pennation_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
-            out_licht_fas_elong_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-            out_licht_fas_strain_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
-            if (length((data_GMFAS_licht_SOL)) == 3) == 0
-                % SOL exists
-                out_licht_faslen_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                out_licht_pennation_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+            % add GM fascicle elongation and strain to data_GMFAS_licht_GM
+            if length(data_GMFAS_licht_GM) > 5
+    %             % version 1 - length at zero degrees = zero elong, zero strain
+    %             angle_zero = 0 - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999 %VAR
+    %             loc_angle_zero = find(data_GMFAS_licht_GM(:,1)>=angle_zero,1,'first');
+    %             data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2); %elong
+    %             data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - data_GMFAS_licht_GM(loc_angle_zero,2)) / data_GMFAS_licht_GM(loc_angle_zero,2) * 100; %strain
+
+                % version 2 - length PRONE is zero elong, zero strain
+                data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,2) - prone_GMfas_length; %fascicle elong 
+                data_GMFAS_licht_GM(:,5) = (data_GMFAS_licht_GM(:,2) - prone_GMfas_length) / prone_GMfas_length * 100; %fascicle strain
+
+                if plot_check && plot_individual
+                    plottitle = horzcat('IND Lichtwark GM fascicle vs angle, ', subject_id);
+                    figure('Name',plottitle);
+                    hold on
+                    mat_version = version('-release');
+                    % left axis
+                    if strcmp(mat_version,'2015b') == 0
+                        yyaxis left
+                    end
+                    plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,2),'b','LineWidth',2) % fascicle length
+                    plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_length prone_GMfas_length], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','b', 'MarkerEdgeColor','b') % fas len at rest/prone
+                    ylabel(txt_length)
+                    if strcmp(mat_version,'2015b') == 0
+                        yyaxis right
+                    end
+                    plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,3),'r','LineWidth',2) % pennation angle
+                    plot([prone_GMfas_ankle prone_GMfas_ankle],[prone_GMfas_penn prone_GMfas_penn], 'Marker','o', 'MarkerSize',5, 'MarkerFaceColor','r', 'MarkerEdgeColor','r') % penn angle at rest/prone
+                    plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),':r','LineWidth',1) % fascicle strain
+                    plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'--r','LineWidth',1) % fascicle elongation
+                    ylabel('Elongation (mm) / Strain (%) / Pennation angle (°)')
+                    xlabel(txt_gonio)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('Fasc length','Faslen PRONE', 'Pennation angle', 'Penn ang PRONE', 'Fasc strain', 'Fasc elong', 'Location','West')
+                    % not possible to break axis with two y-axes: "Object Copy of Axes with multiple coordinate systems is not supported."
+                    % breakxaxis([-15 -5]);
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            % LATER - Fukunaga fascicle/muscle/SEE faslen/elong/strain also for SOL fascicle scans?
+            end
+            %%
+
+
+
+            %% average SOL + GMMTJ + GMFAS trials for force, gonio, angle, EMG
+
+            % average 3 force arrays into one
+            data_force_gonio = average_passive_forces_EMG(data_SOL, data_GMMTJ, data_GMFAS, trial_subjectno);
+
+            % plot all 6 trials separately: Force-angle
+            if plot_check && plot_individual
+                plottitle = horzcat('IND force vs angle, ', subject_id);
+                figure('Name',plottitle);
+                plot(SOL_gonio_1,SOL_force_1,'LineWidth',2, 'Color',[1 0 0])
+                hold on
+                plot(SOL_gonio_2,SOL_force_2,'LineWidth',2, 'Color',[1 0.6 0])
+                plot(GMMTJ_gonio_1,GMMTJ_force_1,'LineWidth',2, 'Color',[1 1 0])
+                plot(GMMTJ_gonio_2,GMMTJ_force_2,'LineWidth',2, 'Color',[0 1 0])
+                plot(GMFAS_gonio_1,GMFAS_force_1,'LineWidth',2, 'Color',[0 0 1])
+                plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
+                axis(axis_force)
+                ylabel('Force (N)')
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Location','Southeast')
+                print(horzcat('data_plots/',plottitle),'-dpng')
             end
 
-            % at subject common max angle:
-            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-            out_licht_faslen_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
-            out_licht_pennation_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
-            out_licht_fas_elong_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-            out_licht_fas_strain_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
-            if (length((data_GMFAS_licht_SOL)) == 3) == 0
-                % SOL exists
-                out_licht_faslen_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                out_licht_pennation_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+            % Plot all 6 trials separately: EMG vs angle
+            if plot_check && plot_individual
+                plottitle = horzcat('IND EMG vs angle, ', subject_id);
+                figure('Name',plottitle)
+                % tweak to get proper legend:
+                hold on
+                plot(0,0,'y');
+                plot(0,0,'m');
+                plot(0,0,'c');
+                for i = 1:6 % 6 trials GM
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2),'y');
+                    end
+                end
+                plot(data_force_gonio(:,2),data_force_gonio(:,3),'y','LineWidth',2); % mean GM
+
+                for i = 1:6 % 6 trials GL
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2),'m');
+                    end
+                end
+                plot(data_force_gonio(:,2),data_force_gonio(:,4),'m','LineWidth',2); % mean GL
+
+                for i = 1:6 % 6 trials SOL
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2),'c');
+                    end
+                end
+                plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2); % mean SOL
+
+                axis(axis_EMG)
+                ylabel('Muscle activation (% of MVC)')
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('Gastr.med.','Gastr.lat.','Soleus','Location','Northwest')
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+            %%
+
+
+
+            %% check conformation of GONIOMETER to norm angle
+            if plot_check && plot_individual && plot_old 
+                plottitle = horzcat('IND Goniometer check 6 trials, ', subject_id);
+                figure('Name',plottitle);
+                hold on
+                plot(SOL_angle_1, SOL_gonio_1, 'LineWidth',2, 'Color',[1 0 0])
+                plot(SOL_angle_2, SOL_gonio_2, 'LineWidth',2, 'Color',[1 0.6 0])
+                plot(GMMTJ_angle_1, GMMTJ_gonio_1, 'LineWidth',2, 'Color',[1 1 0])
+                plot(GMMTJ_angle_2, GMMTJ_gonio_2, 'LineWidth',2, 'Color',[0 1 0])
+                plot(GMFAS_angle_1, GMFAS_gonio_1, 'LineWidth',2, 'Color',[0 0 1])
+                plot(GMFAS_angle_2, GMFAS_gonio_2, 'LineWidth',2, 'Color',[1 0 1])
+                if length(SOL_angle_1) == 1
+                    plot(SOL_angle_2, SOL_angle_2, 'LineWidth',2, 'Color',col_grey, 'LineStyle',':') % conformation line
+                else
+                    plot(SOL_angle_1, SOL_angle_1, 'LineWidth',2, 'Color',col_grey, 'LineStyle',':') % conformation line
+                end
+                plot([0 0],[0 0], 'Marker','o', 'MarkerSize',10, 'MarkerFaceColor',col_grey)% zero point
+                xlabel('Norm angle (°)')
+                ylabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Norm/Norm','Location','Southeast')
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+            %%
+
+
+
+
+            %% extract arrays of MTU LENGTH, ELONGATION, STRAIN
+
+            % MTU_length_array =                            MTU_elong_array =      MTU_strain_array =
+            %1       angle
+            %2       calc to SOL ins = free tendon                 
+            %3       calc go GM ins = GM tendon
+            %4       calc to knee = entire calf
+            %5       DISPLACEMENT from GMFAS tracking
+            %6       SOL to GM = GM apo
+            %7       GM to knee = GM msc
+            %8       SOL length (H&H) minus free AT = SOL msc
+            %9       SEE Fukunaga
+            %10      GM muscle Fukunaga (longitudinal aspect of one fascicle)
+
+            % retrieve max gonio angle
+            if strcmpi(dm_timepoint{line}, 'PRE') == 1
+                if strcmpi(dm_side{line}, 'R') == 1
+                    out_ROM_trial_max = str2double(input_gon_pre_r{trial_subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
+                else % L
+                    out_ROM_trial_max = str2double(input_gon_pre_l{trial_subjectno}) - 0.00000001;
+                end
+            else % POST
+                if strcmpi(dm_side{line}, 'R') == 1
+                    out_ROM_trial_max = str2double(input_gon_post_r{trial_subjectno}) - 0.00000001;
+                else % L
+                    out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
+                end
             end
 
-            % at zero angle:
-            loc_frame = find(data_GMFAS(:,2)>=0,1,'first'); 
-            out_licht_faslen_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
-            out_licht_pennation_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
-            out_licht_fas_elong_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-            out_licht_fas_strain_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
-            if (length((data_GMFAS_licht_SOL)) == 3) == 0
-                % SOL exists
-                out_licht_faslen_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                out_licht_pennation_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+            % error if ROM not existing (incorrect create angles passive?)
+            if round(out_ROM_trial_max,1) == 100
+                cprintf('*red', 'ERROR: ROM data not calculated for current subject. Run "create_angles_passive".\n')
+                return
             end
 
-            % at submax_1 angle:
-            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
-            % does angle exist in data?
-            if isempty(loc_frame)
-                %
+            % calculate MTU lengths
+            [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle);
+
+            % column choices MTU ELONGATION / LENGTH / STRAIN
+            col_angle_MTU = 1;
+            col_AT = 2;
+            col_GMtend = 3;
+            col_leg = 4;
+            col_GMFAS_and_penn_ang = 5; % in elongation: GMFAS displacement
+            col_GMapo_and_faslen = 6;
+            col_GMmsc = 7;
+            col_SOLmsc = 8;
+            col_GMmsc_Fukunaga = 9;
+            col_SEE_Fukunaga = 10;
+
+
+            %% NORMALIZE Lichtwark/Fukunaga length/elongation to initial leg length (BD study) %%%%%%%%%%%%%%%%%%
+            if input_project == 1 && input_normalize == 1
+                %%% Normalization of MTU, GMmsc, SEE * elongation, length:
+                % in MTU arrays, replace absolute values with normalization to MTU length/elongation
+                % currently normalizing to MTU length while resting in prone position
+                %    resting MTU length is found in variable:
+                MTU_length_rest = MTU_prone_vars(col_leg);
+
+                % ELONGATION
+                %%% Version 1: GMmsc/SEE elongation (mm) / resting/prone MTU length (mm) - in %
+    %            MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
+    %            MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
+                %%% Version 2: GMmsc/SEE elongation (mm) / MTU ELONGATION (mm) - in %
+                MTU_elong_array(:,col_GMmsc_Fukunaga) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+                MTU_elong_array(:,col_SEE_Fukunaga) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+                %%% MTU elongation (mm) / resting/prone MTU length (mm) - in %
+                MTU_elong_array(:,col_leg) = MTU_elong_array(:,col_leg)/MTU_length_rest*100;
+
+                % LENGTH - in percent of resting/prone MTU length
+                MTU_length_array(:,col_leg) = MTU_length_array(:,col_leg)/MTU_length_rest*100;
+                MTU_length_array(:,col_GMmsc_Fukunaga) = MTU_length_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
+                MTU_length_array(:,col_SEE_Fukunaga) = MTU_length_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
+
+                %%% Normalization of fascicle length/elongation to resting/prone MTU length:
+                %   data_GMFAS_licht_GM
+                %   data_GMFAS_licht_SOL
+                % containing:
+                %    1 averaged angle (currently calculated from gonio)
+                %    2 averaged fasicle length
+                %    3 averaged pennation angle
+                %    4 averaged fascicle elongation
+                %    5 averaged fascicle strain
+                data_GMFAS_licht_GM(:,2) = data_GMFAS_licht_GM(:,2)/MTU_length_rest*100;
+                data_GMFAS_licht_GM(:,4) = data_GMFAS_licht_GM(:,4)/MTU_length_rest*100;
+            elseif input_project == 2 && input_normalize == 1
+                % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
+            end
+
+
+            %% plot arrays of MTU LENGTH, ELONGATION, STRAIN
+            if plot_check && plot_individual
+                % raw lengths (mm)
+                plottitle = horzcat('IND MTU length vs angle, ', subject_id);
+                figure('Name',plottitle);
+                hold on
+                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_leg),'LineWidth',2,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
+                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',2,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
+                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
+                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+                % plot vertical lines to show color coding of subsequent figs
+                plot([0,0], [MTU_length_array(1,col_leg), MTU_length_array(1,col_GMtend)],'Color','cyan')
+                plot([1,1], [MTU_length_array(1,col_leg), MTU_length_array(1,col_SEE_Fukunaga)],'Color','cyan','LineWidth',2)
+                plot([1,1], [MTU_length_array(1,col_SOLmsc)+MTU_length_array(1,col_AT), MTU_length_array(1,col_GMtend)],'Color','black')
+                plot([0,0], [MTU_length_array(1,col_GMtend), MTU_length_array(1,col_AT)],'Color',col_orange)
+                plot([0,0], [MTU_length_array(1,col_AT), 0],'Color','green')
+
+                axis(axis_ind_len_MTU)
+                ylabel(txt_length)
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('Full GM MTU', 'SEE (from archi)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
+                print(horzcat('data_plots/',plottitle),'-dpng')
+
+    %             % raw elongation (mm)
+    %             plottitle = horzcat('IND MTU elongation vs angle, ', subject_id);
+    %             figure('Name',plottitle);
+    %             hold on
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS_and_penn_ang),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
+    %             plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
+    %             axis(axis_ind_elong)
+    %             ylabel(txt_elong)
+    %             xlabel(txt_gonio)
+    %             title(plottitle,'Interpreter', 'none')
+    %             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
+    %             print(horzcat('data_plots/',plottitle),'-dpng')
+    %             xlim([-0.5 inf]) 
+    %             ylim([-inf inf]) 
+    %             print(horzcat('data_plots/GRP_INT ',plottitle, ' ZOOM'),'-dpng')
+
+                % raw elongation (mm) - CLEANED VERSION, LICHT ONLY
+                plottitle = horzcat('IND MTU elongation v2 vs angle, ', subject_id);
+                figure('Name',plottitle);
+                hold on
+                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',1.5,'Color','yellow') % fascicle elongation
+                axis(axis_ind_elong)
+                ylabel(txt_elong)
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
+                print(horzcat('data_plots/',plottitle),'-dpng')
+
+    %             % strain (percent of initial length)
+    %             plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
+    %             figure('Name',plottitle);
+    %             hold on
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+    %             plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo_and_faslen),'LineWidth',0.8,'Color',col_orange) % GM apo
+    %             if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
+    %                 text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
+    %             end
+    %             axis(axis_ind_strain)
+    %             ylabel(txt_strain)
+    %             xlabel(txt_gonio)
+    %             title(plottitle,'Interpreter', 'none')
+    %             legend('GM MTU', 'AT free', 'GM tendon (linear)', 'SEE (from archi)', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
+    %             print(horzcat('data_plots/',plottitle),'-dpng')
+    %             xlim([-0.5 inf]) 
+    %             ylim([-inf inf]) 
+    %             print(horzcat('data_plots/', plottitle,' ZOOM'),'-dpng'))
+
+                % strain (percent of initial length) - CLEANED VERSION, LICHT ONLY
+                plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
+                figure('Name',plottitle);
+                hold on
+                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+                plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'LineWidth',1.5,'Color','yellow') % fascicle strain
+                axis(axis_ind_strain)
+                ylabel(txt_strain)
+                xlabel(txt_gonio)
+                title(plottitle,'Interpreter', 'none')
+                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
+                print(horzcat('data_plots/',plottitle),'-dpng')
+            end
+
+
+            %% extract FORCE, ANGLE, LENGTH/ELONGATION/STRAIN, EMG at various joint angles
+            %   force, angle, EMG from all 3 scan locations / 6 trials, averaged
+            %   displacement of SOL, GMMTJ, GMFAS from 2 trials per scan location
+            %   length, elongation, strain of AT, GM apo, msc etc - from displacement data
+
+            %   joint angles = 
+            %       out_ROM_trial_max = trial max (different PRE, POST, L, R)
+            %       out_ROM_ind_max = subject ind max (lowest PRE, POST, L, R)
+            %       out_ROM_common_max = common max (lowest of all subjects)
+            %       out_ROM_submax_1 OLD = additional predetermined angle: 1/3 of trial max ROM
+            %       out_ROM_submax_2 = additional predetermined angle: 2/3 of trial max ROM
+            %       out_ROM_submax_1 = 10 degrees for those subjects which have this ROM available 
+
+
+
+            % column choices force, torque, displacement
+            col_force = 1;      % from data_force_gonio / data_SOL etc
+            col_angle_DFG = 2;
+            col_displ = 3;
+
+            % print error if max angles do not exist --> create_angles_passive needs to be run
+            if str2double(input_gon_ind_max{trial_subjectno}) == 100
+                cprintf('*red', 'ERROR: Max ROM values are not calculated for subject. Run create_angles_passive first.\n')
+            end
+
+            % find relevant goniometer angles 
+            if strcmpi(dm_timepoint{line}, 'PRE') == 1
+                if strcmpi(dm_side{line}, 'R') == 1
+                    out_ROM_trial_max = str2double(input_gon_pre_r{trial_subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
+                else % L
+                    out_ROM_trial_max = str2double(input_gon_pre_l{trial_subjectno}) - 0.00000001;
+                end
+            else % POST
+                if strcmpi(dm_side{line}, 'R') == 1
+                    out_ROM_trial_max = str2double(input_gon_post_r{trial_subjectno}) - 0.00000001;
+                else % L
+                    out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
+                end
+            end
+            out_ROM_ind_max = str2double(input_gon_ind_max{trial_subjectno}) - 0.00000001;
+            out_ROM_common_max = str2double(input_gon_common_max{trial_subjectno}) - 0.00000001;
+           % out_ROM_submax_1 = out_ROM_trial_max * 1/3; %VAR --- old, replaced by 10 degrees (reused submax_1 for simplicity)
+            out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
+            out_ROM_submax_1 = 10; %VAR
+
+            % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
+            out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
+            out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+            out_F_ind_max = data_force_gonio(loc_frame,col_force);
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+            out_F_common_max = data_force_gonio(loc_frame,col_force);
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=0,1,'first'); % zero angle
+            out_F_zero = data_force_gonio(loc_frame,col_force);
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+            if isempty(loc_frame) == 0
+                out_F_submax_1 = data_force_gonio(loc_frame,col_force);
+                out_T_submax_1 = out_F_submax_1 *at_momentarm;
             else
-                % GM data exist:
-                out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
-                out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
-                out_licht_fas_elong_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-                out_licht_fas_strain_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                out_F_submax_1 = NaN;
+                out_T_submax_1 = NaN;
+            end
+            loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+            out_F_submax_2 = data_force_gonio(loc_frame,col_force);
+
+            % torques
+            out_T_trial_max_ROM = out_F_trial_max_ROM *at_momentarm;
+            out_T_trial_max_F = out_F_trial_max_F *at_momentarm;
+            out_T_ind_max = out_F_ind_max *at_momentarm;
+            out_T_common_max = out_F_common_max *at_momentarm;
+            out_T_zero = out_F_zero *at_momentarm;
+            % submex 2 - with force above
+            out_T_submax_2 = out_F_submax_2 *at_momentarm;
+
+            % displacements SOL
+            loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
+            out_displ_SOL_trial_max = data_SOL(loc_frame,col_displ);
+            loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+            out_displ_SOL_ind_max = data_SOL(loc_frame,col_displ); 
+            loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+            out_displ_SOL_common_max = data_SOL(loc_frame,col_displ); 
+            loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+            if isempty(loc_frame) == 0
+                out_displ_SOL_submax_1 = data_SOL(loc_frame,col_displ); 
+            else
+                out_displ_SOL_submax_1 = NaN;
+            end
+            loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+            out_displ_SOL_submax_2 = data_SOL(loc_frame,col_displ); 
+
+            % displacements GMMTJ
+            loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
+            out_displ_GMMTJ_trial_max = data_GMMTJ(loc_frame,col_displ); 
+            loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+            out_displ_GMMTJ_ind_max = data_GMMTJ(loc_frame,col_displ); 
+            loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+            out_displ_GMMTJ_common_max = data_GMMTJ(loc_frame,col_displ); 
+            loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+            if isempty(loc_frame) == 0
+                out_displ_GMMTJ_submax_1 = data_GMMTJ(loc_frame,col_displ); 
+            else
+                out_displ_GMMTJ_submax_1 = NaN;
+            end
+            loc_frame = find(data_GMMTJ(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+            out_displ_GMMTJ_submax_2 = data_GMMTJ(loc_frame,col_displ); 
+
+            % displacements GMFAS
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
+            out_displ_GMFAS_trial_max = data_GMFAS(loc_frame,col_displ); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+            out_displ_GMFAS_ind_max = data_GMFAS(loc_frame,col_displ); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+            out_displ_GMFAS_common_max = data_GMFAS(loc_frame,col_displ); 
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+            if isempty(loc_frame) == 0
+                out_displ_GMFAS_submax_1 = data_GMFAS(loc_frame,col_displ); 
+            else
+                out_displ_GMFAS_submax_1 = NaN;
+            end
+            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+            out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
+
+            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_trial_max,1,'first'); 
+            out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
+            out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
+            out_elong_leg_trial_max = MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMapo_trial_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen);
+            out_elong_msc_GM_trial_max = MTU_elong_array(loc_frame,col_GMmsc);
+            out_elong_msc_SOL_trial_max = MTU_elong_array(loc_frame,col_SOLmsc);
+            out_strain_AT_trial_max = MTU_strain_array(loc_frame,col_AT);
+            out_strain_GMtend_trial_max = MTU_strain_array(loc_frame,col_GMtend);
+            out_strain_leg_trial_max = MTU_strain_array(loc_frame,col_leg);
+            out_strain_GMapo_trial_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen);
+            out_strain_msc_GM_trial_max = MTU_strain_array(loc_frame,col_GMmsc);
+            out_strain_msc_SOL_trial_max = MTU_strain_array(loc_frame,col_SOLmsc);
+            out_length_AT_trial_max = MTU_length_array(loc_frame,col_AT);
+            out_length_GMtend_trial_max = MTU_length_array(loc_frame,col_GMtend);
+            out_length_leg_trial_max = MTU_length_array(loc_frame,col_leg);
+            out_length_GMapo_trial_max = MTU_length_array(loc_frame,col_GMapo_and_faslen);
+            out_length_msc_GM_trial_max = MTU_length_array(loc_frame,col_GMmsc);
+            out_length_msc_SOL_trial_max = MTU_length_array(loc_frame,col_SOLmsc);
+            out_contrib_GM_trial_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMtend_Fuku_trial_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
+            out_elong_msc_GM_Fuku_trial_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
+            out_strain_GMtend_Fuku_trial_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
+            out_strain_msc_GM_Fuku_trial_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
+            out_length_GMtend_Fuku_trial_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
+            out_length_msc_GM_Fuku_trial_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
+
+            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_ind_max,1,'first'); 
+            out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
+            out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
+            out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMapo_ind_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+            out_elong_msc_GM_ind_max = MTU_elong_array(loc_frame,col_GMmsc); 
+            out_elong_msc_SOL_ind_max = MTU_elong_array(loc_frame,col_SOLmsc); 
+            out_strain_AT_ind_max = MTU_strain_array(loc_frame,col_AT); 
+            out_strain_GMtend_ind_max = MTU_strain_array(loc_frame,col_GMtend);
+            out_strain_leg_ind_max = MTU_strain_array(loc_frame,col_leg);
+            out_strain_GMapo_ind_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+            out_strain_msc_GM_ind_max = MTU_strain_array(loc_frame,col_GMmsc); 
+            out_strain_msc_SOL_ind_max = MTU_strain_array(loc_frame,col_SOLmsc); 
+            out_length_AT_ind_max = MTU_length_array(loc_frame,col_AT); 
+            out_length_GMtend_ind_max = MTU_length_array(loc_frame,col_GMtend);
+            out_length_leg_ind_max = MTU_length_array(loc_frame,col_leg);
+            out_length_GMapo_ind_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+            out_length_msc_GM_ind_max = MTU_length_array(loc_frame,col_GMmsc); 
+            out_length_msc_SOL_ind_max = MTU_length_array(loc_frame,col_SOLmsc); 
+            out_contrib_GM_ind_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMtend_Fuku_ind_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
+            out_elong_msc_GM_Fuku_ind_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
+            out_strain_GMtend_Fuku_ind_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
+            out_strain_msc_GM_Fuku_ind_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
+            out_length_GMtend_Fuku_ind_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
+            out_length_msc_GM_Fuku_ind_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
+
+            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_common_max,1,'first'); 
+            out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
+            out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
+            out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMapo_common_max = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+            out_elong_msc_GM_common_max = MTU_elong_array(loc_frame,col_GMmsc); 
+            out_elong_msc_SOL_common_max = MTU_elong_array(loc_frame,col_SOLmsc); 
+            out_strain_AT_common_max = MTU_strain_array(loc_frame,col_AT); 
+            out_strain_GMtend_common_max = MTU_strain_array(loc_frame,col_GMtend);
+            out_strain_leg_common_max = MTU_strain_array(loc_frame,col_leg);
+            out_strain_GMapo_common_max = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+            out_strain_msc_GM_common_max = MTU_strain_array(loc_frame,col_GMmsc); 
+            out_strain_msc_SOL_common_max = MTU_strain_array(loc_frame,col_SOLmsc); 
+            out_length_AT_common_max = MTU_length_array(loc_frame,col_AT); 
+            out_length_GMtend_common_max = MTU_length_array(loc_frame,col_GMtend);
+            out_length_leg_common_max = MTU_length_array(loc_frame,col_leg);
+            out_length_GMapo_common_max = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+            out_length_msc_GM_common_max = MTU_length_array(loc_frame,col_GMmsc); 
+            out_length_msc_SOL_common_max = MTU_length_array(loc_frame,col_SOLmsc); 
+            out_contrib_GM_common_max = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMtend_Fuku_common_max = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
+            out_elong_msc_GM_Fuku_common_max = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
+            out_strain_GMtend_Fuku_common_max = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
+            out_strain_msc_GM_Fuku_common_max = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
+            out_length_GMtend_Fuku_common_max = MTU_length_array(loc_frame,col_SEE_Fukunaga);
+            out_length_msc_GM_Fuku_common_max = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
+
+            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_1,1,'first'); 
+            if isempty(loc_frame)
+                out_elong_AT_submax_1 = NaN;
+                out_elong_GMtend_submax_1 = NaN;
+                out_elong_leg_submax_1 = NaN;
+                out_elong_GMapo_submax_1 = NaN;
+                out_elong_msc_GM_submax_1 = NaN;
+                out_elong_msc_SOL_submax_1 = NaN;
+                out_strain_AT_submax_1 = NaN;
+                out_strain_GMtend_submax_1 = NaN;
+                out_strain_leg_submax_1 = NaN;
+                out_strain_GMapo_submax_1 = NaN;
+                out_strain_msc_GM_submax_1 = NaN;
+                out_strain_msc_SOL_submax_1 = NaN;
+                out_length_AT_submax_1 = NaN;
+                out_length_GMtend_submax_1 = NaN;
+                out_length_leg_submax_1 = NaN;
+                out_length_GMapo_submax_1 = NaN;
+                out_length_msc_GM_submax_1 = NaN;
+                out_length_msc_SOL_submax_1 = NaN;
+                out_contrib_GM_submax_1 = NaN;
+                out_elong_GMtend_Fuku_submax_1 = NaN;
+                out_elong_msc_GM_Fuku_submax_1 = NaN;
+                out_strain_GMtend_Fuku_submax_1 = NaN;
+                out_strain_msc_GM_Fuku_submax_1 = NaN;
+                out_length_GMtend_Fuku_submax_1 = NaN;
+                out_length_msc_GM_Fuku_submax_1 = NaN;
+            else
+                out_elong_AT_submax_1 = MTU_elong_array(loc_frame,col_AT); 
+                out_elong_GMtend_submax_1 = MTU_elong_array(loc_frame,col_GMtend);
+                out_elong_leg_submax_1 = MTU_elong_array(loc_frame,col_leg);
+                out_elong_GMapo_submax_1 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+                out_elong_msc_GM_submax_1 = MTU_elong_array(loc_frame,col_GMmsc); 
+                out_elong_msc_SOL_submax_1 = MTU_elong_array(loc_frame,col_SOLmsc); 
+                out_strain_AT_submax_1 = MTU_strain_array(loc_frame,col_AT); 
+                out_strain_GMtend_submax_1 = MTU_strain_array(loc_frame,col_GMtend);
+                out_strain_leg_submax_1 = MTU_strain_array(loc_frame,col_leg);
+                out_strain_GMapo_submax_1 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+                out_strain_msc_GM_submax_1 = MTU_strain_array(loc_frame,col_GMmsc); 
+                out_strain_msc_SOL_submax_1 = MTU_strain_array(loc_frame,col_SOLmsc); 
+                out_length_AT_submax_1 = MTU_length_array(loc_frame,col_AT); 
+                out_length_GMtend_submax_1 = MTU_length_array(loc_frame,col_GMtend);
+                out_length_leg_submax_1 = MTU_length_array(loc_frame,col_leg);
+                out_length_GMapo_submax_1 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+                out_length_msc_GM_submax_1 = MTU_length_array(loc_frame,col_GMmsc); 
+                out_length_msc_SOL_submax_1 = MTU_length_array(loc_frame,col_SOLmsc); 
+                out_contrib_GM_submax_1 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
+                out_elong_GMtend_Fuku_submax_1 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
+                out_elong_msc_GM_Fuku_submax_1 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
+                out_strain_GMtend_Fuku_submax_1 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
+                out_strain_msc_GM_Fuku_submax_1 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
+                out_length_GMtend_Fuku_submax_1 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
+                out_length_msc_GM_Fuku_submax_1 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
+            end
+
+            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_2,1,'first');
+            out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
+            out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
+            out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMapo_submax_2 = MTU_elong_array(loc_frame,col_GMapo_and_faslen); 
+            out_elong_msc_GM_submax_2 = MTU_elong_array(loc_frame,col_GMmsc); 
+            out_elong_msc_SOL_submax_2 = MTU_elong_array(loc_frame,col_SOLmsc); 
+            out_strain_AT_submax_2 = MTU_strain_array(loc_frame,col_AT); 
+            out_strain_GMtend_submax_2 = MTU_strain_array(loc_frame,col_GMtend);
+            out_strain_leg_submax_2 = MTU_strain_array(loc_frame,col_leg);
+            out_strain_GMapo_submax_2 = MTU_strain_array(loc_frame,col_GMapo_and_faslen); 
+            out_strain_msc_GM_submax_2 = MTU_strain_array(loc_frame,col_GMmsc); 
+            out_strain_msc_SOL_submax_2 = MTU_strain_array(loc_frame,col_SOLmsc); 
+            out_length_AT_submax_2 = MTU_length_array(loc_frame,col_AT); 
+            out_length_GMtend_submax_2 = MTU_length_array(loc_frame,col_GMtend);
+            out_length_leg_submax_2 = MTU_length_array(loc_frame,col_leg);
+            out_length_GMapo_submax_2 = MTU_length_array(loc_frame,col_GMapo_and_faslen); 
+            out_length_msc_GM_submax_2 = MTU_length_array(loc_frame,col_GMmsc); 
+            out_length_msc_SOL_submax_2 = MTU_length_array(loc_frame,col_SOLmsc); 
+            out_contrib_GM_submax_2 = 100 * MTU_elong_array(loc_frame,col_GMmsc_Fukunaga) / MTU_elong_array(loc_frame,col_leg);
+            out_elong_GMtend_Fuku_submax_2 = MTU_elong_array(loc_frame,col_SEE_Fukunaga);
+            out_elong_msc_GM_Fuku_submax_2 = MTU_elong_array(loc_frame,col_GMmsc_Fukunaga);
+            out_strain_GMtend_Fuku_submax_2 = MTU_strain_array(loc_frame,col_SEE_Fukunaga);
+            out_strain_msc_GM_Fuku_submax_2 = MTU_strain_array(loc_frame,col_GMmsc_Fukunaga);
+            out_length_GMtend_Fuku_submax_2 = MTU_length_array(loc_frame,col_SEE_Fukunaga);
+            out_length_msc_GM_Fuku_submax_2 = MTU_length_array(loc_frame,col_GMmsc_Fukunaga);
+
+
+
+            % EMG (from all 3 scan locations / 6 trials, averaged)
+
+            emg_step = 9; %VAR - number of EMG values BEFORE relevant angle, to include in average. 9 values = a span of 0.5 degrees.
+            % cannot average values AROUND relevant angle, because for a few (least flexible) trials, we want the data AT the last available angle.
+
+            % identify locations of the relevant goniometer angles, in the array with all 2+2+2 trials averaged:
+            loc_frame_trial_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
+            loc_frame_ind_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+            loc_frame_common_max = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+            loc_frame_submax_1 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+            loc_frame_submax_2 = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+            loc_frame_zero = 1; % find(data_force_gonio(:,col_angle)>=0,1,'first'); 
+
+            % stop running if frame not found
+            if isempty(loc_frame_ind_max)
+                % cprintf('error', horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle))), '). Check "create_angles_passive" vs current data.\n' ));
+                error(horzcat('ERROR: Computed trial max ROM (', num2str(out_ROM_trial_max), ') does not exist in the current data series (max = ', num2str(max(data_force_gonio(:,col_angle_DFG))), '). Check "create_angles_passive" vs current data.\n' ))
+            end
+
+            % EMG gm
+            out_emg_gm_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,3)); % EMG gm = column 3
+            out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,3));
+            out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,3));
+            out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,3));
+            out_emg_gm_zero = data_force_gonio(1,3); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,3));
+            out_emg_gm_max = max(data_force_gonio(:,3));
+
+            % EMG gl
+            out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gl = column 4
+            out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4)); 
+            out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
+            out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
+            out_emg_gl_zero = data_force_gonio(1,4); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,4));
+            out_emg_gl_max = max(data_force_gonio(:,4));
+
+            % EMG sol
+            out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG sol = column 5
+            out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5));
+            out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
+            out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
+            out_emg_sol_zero = data_force_gonio(1,5); % mean(data_force_gonio(emg_step:loc_frame_zero,5));
+            out_emg_sol_max = max(data_force_gonio(:,5));
+
+            if isempty(loc_frame_submax_1)
+                out_emg_gm_submax_1 = NaN;
+                out_emg_gl_submax_1 = NaN;
+                out_emg_sol_submax_1 = NaN;
+            else
+                out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
+                out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
+                out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
+            end
+
+
+            %% extract FASCICLE LENGTH, PENNATION ANGLE, GM ELONG at various joint angles
+            %     data_GMFAS_licht_GM
+            %     data_GMFAS_licht_SOL
+            % containing:
+            %   averaged angle (currently calculated from gonio)
+            %   averaged fasicle length
+            %   averaged pennation angle
+            %   averaged fasicle elong
+            %   averaged fasicle strain
+            % OR containing zeros (if nonexistent)
+            %    data_GMFAS_elong_Lichtwark
+            % containing:
+            %  angle
+            %  GM muscle elongation (Lichtwark/Fukunaga)
+
+            % set columns:
+            col_licht_angle = 1;   % in data_GMFAS_licht_x
+            col_licht_faslen = 2;
+            col_licht_penn = 3;
+            col_licht_fas_elong = 4;
+            col_licht_fas_strain = 5;
+
+            % preallocate / set zero values:
+
+            % --- GM pennation and fascicle length
+            out_licht_faslen_GM_trial_max = NaN;
+            out_licht_pennation_GM_trial_max = NaN;
+            out_licht_faslen_GM_common_max = NaN;
+            out_licht_pennation_GM_common_max = NaN;
+            out_licht_faslen_GM_ind_max = NaN;
+            out_licht_pennation_GM_ind_max = NaN;
+            out_licht_faslen_GM_zero = NaN;
+            out_licht_pennation_GM_zero = NaN;
+            out_licht_faslen_GM_submax_1 = NaN;
+            out_licht_pennation_GM_submax_1 = NaN;
+            out_licht_faslen_GM_submax_2 = NaN;
+            out_licht_pennation_GM_submax_2 = NaN;
+            out_licht_fas_elong_GM_trial_max = NaN;
+            out_licht_fas_strain_GM_trial_max = NaN;
+            out_licht_fas_elong_GM_common_max = NaN;
+            out_licht_fas_strain_GM_common_max = NaN;
+            out_licht_fas_elong_GM_ind_max = NaN;
+            out_licht_fas_strain_GM_ind_max = NaN;
+            out_licht_fas_elong_GM_zero = NaN;
+            out_licht_fas_strain_GM_zero = NaN;
+            out_licht_fas_elong_GM_submax_1 = NaN;
+            out_licht_fas_strain_GM_submax_1 = NaN;
+            out_licht_fas_elong_GM_submax_2 = NaN;
+            out_licht_fas_strain_GM_submax_2 = NaN;
+
+            % --- SOL pennation and fascicle length
+            out_licht_faslen_SOL_trial_max = NaN;
+            out_licht_pennation_SOL_trial_max = NaN;
+            out_licht_faslen_SOL_common_max = NaN;
+            out_licht_pennation_SOL_common_max = NaN;
+            out_licht_faslen_SOL_ind_max = NaN;
+            out_licht_pennation_SOL_ind_max = NaN;
+            out_licht_faslen_SOL_zero = NaN;
+            out_licht_pennation_SOL_zero = NaN;
+            out_licht_faslen_SOL_submax_1 = NaN;
+            out_licht_pennation_SOL_submax_1 = NaN;
+            out_licht_faslen_SOL_submax_2 = NaN;
+            out_licht_pennation_SOL_submax_2 = NaN;
+
+
+            if data_GMFAS_licht_GM == 0
+                % no licht data existing
+            else
+                % at trial max angle:
+                loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
+                out_licht_faslen_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
+                out_licht_pennation_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn);
+                out_licht_fas_elong_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                    out_licht_pennation_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                    out_licht_faslen_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                end
+
+                % at individual max angle (across sides/timepoints):
+                loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
+                out_licht_faslen_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_pennation_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                out_licht_fas_elong_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                if (length((data_GMFAS_licht_SOL)) == 3) == 0
+                    % SOL exists
+                    out_licht_faslen_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                end
+
+                % at subject common max angle:
+                loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
+                out_licht_faslen_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_pennation_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                out_licht_fas_elong_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                if (length((data_GMFAS_licht_SOL)) == 3) == 0
+                    % SOL exists
+                    out_licht_faslen_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                end
+
+                % at zero angle:
+                loc_frame = find(data_GMFAS(:,2)>=0,1,'first'); 
+                out_licht_faslen_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_pennation_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                out_licht_fas_elong_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                if (length((data_GMFAS_licht_SOL)) == 3) == 0
+                    % SOL exists
+                    out_licht_faslen_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                end
+
+                % at submax_1 angle:
+                loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
+                % does angle exist in data?
+                if isempty(loc_frame)
+                    %
+                else
+                    % GM data exist:
+                    out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                    out_licht_fas_elong_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                    out_licht_fas_strain_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                    if (length((data_GMFAS_licht_SOL)) == 3) == 0
+                        % SOL exists
+                        out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                        out_licht_pennation_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                    end
+                end
+
+                % at submax_2 angle:
+                loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
+                out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_pennation_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
+                out_licht_fas_elong_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
+                out_licht_fas_strain_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+                if (length((data_GMFAS_licht_SOL)) == 3) == 0
+                    % SOL exists
+                    out_licht_faslen_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_pennation_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
             end
-            
-            % at submax_2 angle:
-            loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-            out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
-            out_licht_pennation_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
-            out_licht_fas_elong_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
-            out_licht_fas_strain_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
+
+
+            %% OUTPUT MAXIMAL ELONGATIONS (not angle specific) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
+            out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
+            out_elong_leg_max = max(MTU_elong_array(:,col_leg));
+            out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo_and_faslen)); 
+            out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
+            out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
+            out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
+            out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
+            out_strain_leg_max = max(MTU_strain_array(:,col_leg));
+            out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo_and_faslen)); 
+            out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
+            out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
+            out_length_AT_max = max(MTU_length_array(:,col_AT)); 
+            out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
+            out_length_leg_max = max(MTU_length_array(:,col_leg));
+            out_length_GMapo_max = max(MTU_length_array(:,col_GMapo_and_faslen)); 
+            out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
+            out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
+            out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
+            out_elong_msc_GM_Fuku_max = max(MTU_elong_array(:,col_GMmsc_Fukunaga));
+            out_strain_GMtend_Fuku_max = max(MTU_strain_array(:,col_SEE_Fukunaga));
+            out_strain_msc_GM_Fuku_max = max(MTU_strain_array(:,col_GMmsc_Fukunaga));
+            out_length_GMtend_Fuku_max = max(MTU_length_array(:,col_SEE_Fukunaga));
+            out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
+
+            out_licht_faslen_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
+            out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
+            out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_elong));
+            out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_strain));
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
-                out_licht_faslen_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
-                out_licht_pennation_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
+                out_licht_faslen_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
+                out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
+            else
+                out_licht_faslen_SOL_max = NaN;
+                out_licht_pennation_SOL_max = NaN;
             end
-        end
-        %% 
-        
-        
-        %% OUTPUT MAXIMAL ELONGATIONS (not angle specific) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
-        out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
-        out_elong_leg_max = max(MTU_elong_array(:,col_leg));
-        out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo_and_faslen)); 
-        out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
-        out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
-        out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
-        out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
-        out_strain_leg_max = max(MTU_strain_array(:,col_leg));
-        out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo_and_faslen)); 
-        out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
-        out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
-        out_length_AT_max = max(MTU_length_array(:,col_AT)); 
-        out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
-        out_length_leg_max = max(MTU_length_array(:,col_leg));
-        out_length_GMapo_max = max(MTU_length_array(:,col_GMapo_and_faslen)); 
-        out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
-        out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
-        out_elong_GMtend_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
-        out_elong_msc_GM_Fuku_max = max(MTU_elong_array(:,col_GMmsc_Fukunaga));
-        out_strain_GMtend_Fuku_max = max(MTU_strain_array(:,col_SEE_Fukunaga));
-        out_strain_msc_GM_Fuku_max = max(MTU_strain_array(:,col_GMmsc_Fukunaga));
-        out_length_GMtend_Fuku_max = max(MTU_length_array(:,col_SEE_Fukunaga));
-        out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
-        
-        out_licht_faslen_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
-        out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
-        out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_elong));
-        out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_strain));
-        if (length((data_GMFAS_licht_SOL)) == 3) == 0
-            % SOL exists
-            out_licht_faslen_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
-            out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
-        else
-            out_licht_faslen_SOL_max = NaN;
-            out_licht_pennation_SOL_max = NaN;
-        end
-        %%
 
-        
-        
-        
-        %% PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        % gonio angle = data_force_gonio(:,col_angle)
-        % force = data_force_gonio(:,col_force)
-        % multiplying force with at_momentarm to convert to torque
-        
-        
-        
-        %%% PASSIVE STIFFNESS:
-        
-        % passive stiffness = delta torque / delta angle, at various angles
-        % fit 4th order polynomial to averaged torque-angle curve, using data from zero angle to subject's individual max ROM (across both legs)
-        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 4);
 
-        % extract passive stiffness (derivate of 4th order poly) at:
-        out_pstiff_trial_max = (4 * fit_ind_max(1) * out_ROM_trial_max^3) + (3 * fit_ind_max(2) * out_ROM_trial_max^2) + (2 * fit_ind_max(3) * out_ROM_trial_max) + fit_ind_max(4);
-        out_pstiff_ind_max = (4 * fit_ind_max(1) * out_ROM_ind_max^3) + (3 * fit_ind_max(2) * out_ROM_ind_max^2) + (2 * fit_ind_max(3) * out_ROM_ind_max) + fit_ind_max(4);
-        out_pstiff_common_max = (4 * fit_ind_max(1) * out_ROM_common_max^3) + (3 * fit_ind_max(2) * out_ROM_common_max^2) + (2 * fit_ind_max(3) * out_ROM_common_max) + fit_ind_max(4);
-        if out_ROM_trial_max > out_ROM_submax_1 
-            out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
-        else
-            out_pstiff_submax_1 = NaN;
-        end
-        out_pstiff_submax_2 = (4 * fit_ind_max(1) * out_ROM_submax_2^3) + (3 * fit_ind_max(2) * out_ROM_submax_2^2) + (2 * fit_ind_max(3) * out_ROM_submax_2) + fit_ind_max(4);
-        out_pstiff_angle = 15; %VAR
-        if out_ROM_trial_max > out_pstiff_angle
-            out_pstiff_15 = (4 * fit_ind_max(1) * out_pstiff_angle^3) + (3 * fit_ind_max(2) * out_pstiff_angle^2) + (2 * fit_ind_max(3) * out_pstiff_angle) + fit_ind_max(4);
-        else
-            out_pstiff_15 = NaN;
-        end
-        
-%         % plotting various methods of curve fit equations:
-%         fit_ind_max2 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 3);
-%         fit_ind_max3 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
-%                 plottitle = horzcat('IND torque-angle fit for stiffness, ', subject_id);
-%                 figure('Name',plottitle)
-%                 hold on
-%                 plot(data_force_gonio(1:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(1:loc_frame_ind_max,col_force))
-%                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),':')
-%                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max2,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'--')
-%                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max3,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'-.')
-%                 axis([0 max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]) 0 1.5*max(at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force))])
-%                 xlabel(txt_gonio)
-%                 ylabel('Force (N)')
-%                 title(plottitle,'Interpreter', 'none')
-%                 legend('Raw data', 'Fit 4th order','Fit 3rd order','Fit 2nd order','Location','Northwest')
-%                 print(horzcat('data_plots/',plottitle),'-dpng')
+            %% PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-                
-        
-        %%% STIFFNESS INDEX:
-        
-        % fit 2nd order polynomial to averaged torque-angle curve, using data from zero angle to ind max ROM:
-        fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
+            % gonio angle = data_force_gonio(:,col_angle)
+            % force = data_force_gonio(:,col_force)
+            % multiplying force with at_momentarm to convert to torque
 
-        % extract stiffness index as 2 * a
-        out_pstiff_index = 2 * fit_ind_max(1);
-        
-        
-        
-        %%% AT STIFFNESS - possible?
-        % LATER - stiffness = delta force / delta length for AT? check literature
-        %%
-        
-        
-        
-        %% extract ANGLES at specific FORCE levels
-        %   force = 6 trials with max force -> 1 lowest max force
-        %   force levels = 
-        %       ind max force
-        %       common max force 
-        %       ind R max force 
-        %       ind L max force
-        %   extracting gonio angle in degrees
-        
-        % data = input_for_pre_r 
-        %        input_for_pre_l 
-        %        input_for_post_r 
-        %        input_for_post_l 
-        %        input_for_ind_max 
-        %        input_for_common_max 
-        %        input_for_ind_rmax 
-        %        input_for_ind_lmax
-        
-        % print error if forces do not exist --> create_angles_passive needs to be run
-        if str2double(input_for_ind_max{trial_subjectno}) == 10000
-            cprintf('*red', 'ERROR: Max ROM values are not calculated for current subject. Run create_angles_passive first.\n')
-        end
 
-        % load the predetermined forces to be searched for
-        if strcmpi(dm_timepoint{line}, 'PRE') == 1
-            if strcmpi(dm_side{line}, 'R') == 1
-                loc_F_trial_max = str2double(input_for_pre_r{trial_subjectno}) - 0.0001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
-            else % L
-                loc_F_trial_max = str2double(input_for_pre_l{trial_subjectno}) - 0.0001;
+
+            %%% PASSIVE STIFFNESS:
+
+            % passive stiffness = delta torque / delta angle, at various angles
+            % fit 4th order polynomial to averaged torque-angle curve, using data from zero angle to subject's individual max ROM (across both legs)
+            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 4);
+
+            % extract passive stiffness (derivate of 4th order poly) at:
+            out_pstiff_trial_max = (4 * fit_ind_max(1) * out_ROM_trial_max^3) + (3 * fit_ind_max(2) * out_ROM_trial_max^2) + (2 * fit_ind_max(3) * out_ROM_trial_max) + fit_ind_max(4);
+            out_pstiff_ind_max = (4 * fit_ind_max(1) * out_ROM_ind_max^3) + (3 * fit_ind_max(2) * out_ROM_ind_max^2) + (2 * fit_ind_max(3) * out_ROM_ind_max) + fit_ind_max(4);
+            out_pstiff_common_max = (4 * fit_ind_max(1) * out_ROM_common_max^3) + (3 * fit_ind_max(2) * out_ROM_common_max^2) + (2 * fit_ind_max(3) * out_ROM_common_max) + fit_ind_max(4);
+            if out_ROM_trial_max > out_ROM_submax_1 
+                out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
+            else
+                out_pstiff_submax_1 = NaN;
             end
-        else % POST
-            if strcmpi(dm_side{line}, 'R') == 1
-                loc_F_trial_max = str2double(input_for_post_r{trial_subjectno}) - 0.0001;
-            else % L
-                loc_F_trial_max = str2double(input_for_post_l{trial_subjectno}) - 0.0001;
+            out_pstiff_submax_2 = (4 * fit_ind_max(1) * out_ROM_submax_2^3) + (3 * fit_ind_max(2) * out_ROM_submax_2^2) + (2 * fit_ind_max(3) * out_ROM_submax_2) + fit_ind_max(4);
+            out_pstiff_angle = 15; %VAR
+            if out_ROM_trial_max > out_pstiff_angle
+                out_pstiff_15 = (4 * fit_ind_max(1) * out_pstiff_angle^3) + (3 * fit_ind_max(2) * out_pstiff_angle^2) + (2 * fit_ind_max(3) * out_pstiff_angle) + fit_ind_max(4);
+            else
+                out_pstiff_15 = NaN;
             end
-        end
-        loc_F_ind_max = str2double(input_for_ind_max{trial_subjectno}) - 0.0001;
-        loc_F_common_max = str2double(input_for_common_max{trial_subjectno}) - 0.0001;
-        loc_F_ind_rmax = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001;
-        loc_F_ind_lmax = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001;
 
-        % find goniometer angles (from all 3 scan locations / 6 trials, averaged)
-        loc_frame = find(data_force_gonio(:,col_force)>=loc_F_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
-        if isempty(loc_frame) % catch error of FORCE not found:
-            loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
-            cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
-        end
-        out_angle_trial_max = data_force_gonio(loc_frame,col_angle_DFG); 
-        loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_max,1,'first'); 
-        if isempty(loc_frame) % catch error of FORCE not found:
-            loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
-            cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
-        end
-        out_angle_ind_max = data_force_gonio(loc_frame,col_angle_DFG);
-        loc_frame = find(data_force_gonio(:,col_force)>=loc_F_common_max,1,'first');
-        out_angle_common_max = data_force_gonio(loc_frame,col_angle_DFG);
-        
-        % for current trial (L or R), find the angle at the max force for
-        % the other leg, if the other leg has a lower max force as lowest
-        % PRE/POST (not really sure what these data should be used for...)
-        if str2double(input_for_ind_rmax(trial_subjectno)) > 9000
-            % data do not exist for the right side (array preloaded with "empty" values of 10000)
-            out_angle_ind_rmax = NaN;
-        else
-            loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_rmax,1,'first'); 
-            if isempty(loc_frame) % force level does not exist
+    %         % plotting various methods of curve fit equations:
+    %         fit_ind_max2 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 3);
+    %         fit_ind_max3 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
+    %                 plottitle = horzcat('IND torque-angle fit for stiffness, ', subject_id);
+    %                 figure('Name',plottitle)
+    %                 hold on
+    %                 plot(data_force_gonio(1:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(1:loc_frame_ind_max,col_force))
+    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),':')
+    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max2,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'--')
+    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max3,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'-.')
+    %                 axis([0 max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]) 0 1.5*max(at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force))])
+    %                 xlabel(txt_gonio)
+    %                 ylabel('Force (N)')
+    %                 title(plottitle,'Interpreter', 'none')
+    %                 legend('Raw data', 'Fit 4th order','Fit 3rd order','Fit 2nd order','Location','Northwest')
+    %                 print(horzcat('data_plots/',plottitle),'-dpng')
+
+
+
+            %%% STIFFNESS INDEX:
+
+            % fit 2nd order polynomial to averaged torque-angle curve, using data from zero angle to ind max ROM:
+            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
+
+            % extract stiffness index as 2 * a
+            out_pstiff_index = 2 * fit_ind_max(1);
+
+
+
+            %%% AT STIFFNESS - possible?
+            % LATER - stiffness = delta force / delta length for AT? check literature
+
+
+            %% extract ANGLES at specific FORCE levels
+            %   force = 6 trials with max force -> 1 lowest max force
+            %   force levels = 
+            %       ind max force
+            %       common max force 
+            %       ind R max force 
+            %       ind L max force
+            %   extracting gonio angle in degrees
+
+            % data = input_for_pre_r 
+            %        input_for_pre_l 
+            %        input_for_post_r 
+            %        input_for_post_l 
+            %        input_for_ind_max 
+            %        input_for_common_max 
+            %        input_for_ind_rmax 
+            %        input_for_ind_lmax
+
+            % print error if forces do not exist --> create_angles_passive needs to be run
+            if str2double(input_for_ind_max{trial_subjectno}) == 10000
+                cprintf('*red', 'ERROR: Max ROM values are not calculated for current subject. Run create_angles_passive first.\n')
+            end
+
+            % load the predetermined forces to be searched for
+            if strcmpi(dm_timepoint{line}, 'PRE') == 1
+                if strcmpi(dm_side{line}, 'R') == 1
+                    loc_F_trial_max = str2double(input_for_pre_r{trial_subjectno}) - 0.0001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
+                else % L
+                    loc_F_trial_max = str2double(input_for_pre_l{trial_subjectno}) - 0.0001;
+                end
+            else % POST
+                if strcmpi(dm_side{line}, 'R') == 1
+                    loc_F_trial_max = str2double(input_for_post_r{trial_subjectno}) - 0.0001;
+                else % L
+                    loc_F_trial_max = str2double(input_for_post_l{trial_subjectno}) - 0.0001;
+                end
+            end
+            loc_F_ind_max = str2double(input_for_ind_max{trial_subjectno}) - 0.0001;
+            loc_F_common_max = str2double(input_for_common_max{trial_subjectno}) - 0.0001;
+            loc_F_ind_rmax = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001;
+            loc_F_ind_lmax = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001;
+
+            % find goniometer angles (from all 3 scan locations / 6 trials, averaged)
+            loc_frame = find(data_force_gonio(:,col_force)>=loc_F_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
+            if isempty(loc_frame) % catch error of FORCE not found:
+                loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
+                cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
+            end
+            out_angle_trial_max = data_force_gonio(loc_frame,col_angle_DFG); 
+            loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_max,1,'first'); 
+            if isempty(loc_frame) % catch error of FORCE not found:
+                loc_frame = find(data_force_gonio(:,col_force)>=max(data_force_gonio(:,col_force)),1,'first'); 
+                cprintf('*red', 'ERROR: Recorded ind max FORCE not found in data. Run create_angles_passive?\n')
+            end
+            out_angle_ind_max = data_force_gonio(loc_frame,col_angle_DFG);
+            loc_frame = find(data_force_gonio(:,col_force)>=loc_F_common_max,1,'first');
+            out_angle_common_max = data_force_gonio(loc_frame,col_angle_DFG);
+
+            % for current trial (L or R), find the angle at the max force for
+            % the other leg, if the other leg has a lower max force as lowest
+            % PRE/POST (not really sure what these data should be used for...)
+            if str2double(input_for_ind_rmax(trial_subjectno)) > 9000
+                % data do not exist for the right side (array preloaded with "empty" values of 10000)
                 out_angle_ind_rmax = NaN;
             else
-                out_angle_ind_rmax = data_force_gonio(loc_frame,col_angle_DFG);
+                loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_rmax,1,'first'); 
+                if isempty(loc_frame) % force level does not exist
+                    out_angle_ind_rmax = NaN;
+                else
+                    out_angle_ind_rmax = data_force_gonio(loc_frame,col_angle_DFG);
+                end
             end
-        end
-        
-        if str2double(input_for_ind_lmax(trial_subjectno)) > 9000
-            % data do not exist for the left side (array preloaded with "empty" values of 10000)
-            out_angle_ind_lmax = NaN;
-        else
-            loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_lmax,1,'first'); 
-            if isempty(loc_frame) % force level does not exist
+
+            if str2double(input_for_ind_lmax(trial_subjectno)) > 9000
+                % data do not exist for the left side (array preloaded with "empty" values of 10000)
                 out_angle_ind_lmax = NaN;
             else
-                out_angle_ind_lmax = data_force_gonio(loc_frame,col_angle_DFG);
+                loc_frame = find(data_force_gonio(:,col_force)>=loc_F_ind_lmax,1,'first'); 
+                if isempty(loc_frame) % force level does not exist
+                    out_angle_ind_lmax = NaN;
+                else
+                    out_angle_ind_lmax = data_force_gonio(loc_frame,col_angle_DFG);
+                end
             end
+
+
+            %% prepare angle_vars arrays for group plots & stats
+
+            % data_force_gonio
+            % from M-file average_passive_forces_EMG
+            % average of 6 trials
+            % output array "data_force_gonio" contains: 
+            %   average_force_gonio
+            %   average_angle_array
+            %   average_emg_gm_gonio
+            %   average_emg_gl_gonio
+            %	average_emg_sol_gonio
+
+            % data_SOL / data_GMMTJ / data_GMFAS
+            % from M-file average_passive_trials_EMG
+            % average of 2 trials
+            % output array "data_SOL" etc contains:
+            %   average_force_gonio
+            %   average_angle_array
+            %   average_displ_gonio
+            %   average_emg_gm_gonio
+            %   average_emg_gl_gonio
+            %	average_emg_sol_gonio
+
+            % data_GMFAS_licht_GM
+            % average of 2 trials
+            % contains:
+            %   averaged angle (currently calculated from gonio)
+            %   averaged fasicle length
+            %   averaged pennation angle
+            %   fascicle elongation
+            %   fascicle strain
+            %   --- OR containing 5x zeros (if nonexistent)
+
+
+            % extract angle range common to all trials for current subject
+            angle_start = 0 - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999 %VAR
+            angle_stop = out_ROM_trial_max;
+
+            % identify locations of start/stop angles in above mentioned arrays
+            loc_angle_start = find(data_force_gonio(:,col_angle_DFG)>=angle_start,1,'first');
+            loc_angle_stop = find(data_force_gonio(:,col_angle_DFG)>=angle_stop,1,'first');
+            loc_angle_licht_start = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_start,1,'first');
+            loc_angle_licht_stop = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_stop,1,'first');
+
+
+
+            % contents of below angle_vars arrays / angle_vars contain:
+                    %   1 angle
+                    %   2 F 
+                    %   3 EMG_gm 
+                    %   4 EMG_gl 
+                    %   5 EMG_sol 
+
+                    %   6 elong AT
+                    %   7 elong GMtend
+                    %   8 elong MTU/calf        
+                    %   9 displ*** GMFAS     
+                    %  10 elong GMapo       
+                    %  11 elong msc GM         
+
+                    %  12 L_AT              
+                    %  13 L_GMtend          
+                    %  14 L_MTU/calf
+                    %  15 --- (GMFAS)
+                    %  16 L_GMapo           
+                    %  17 L_msc_GM             
+
+                    %  18 Torque            
+
+                    %  19 elong msc SOL
+                    %  20 L msc SOL
+
+                    % 21 strain AT
+                    % 22 strain GMtend
+                    % 23 strain MTJ
+                    % 24 ------ (GMFAS)
+                    % 25 strain GMapo
+                    % 26 strain msc GM
+
+                    % 27 strain msc SOL
+
+                    % 28 elong msc GM (from Lichtwark/Fukunaga)
+                    % 29 elong SEE (from Lichtwark/Fukunaga)
+                    % 30 strain msc GM (from Lichtwark/Fukunaga)
+                    % 31 strain SEE (from Lichtwark/Fukunaga)
+
+                    % 32 length fascicles GM (from Lichtwark)
+                    % 33 pennation GM (from Lichtwark)
+                    % 34 elongation fascicles GM (from Lichtwark)
+                    % 35 strain fascicles GM (from Lichtwark)
+
+                    % 36 length msc GM (from Lichtwark/Fukunaga)
+                    % 37 length SEE (from Lichtwark/Fukunaga)
+
+                    % 38 angle (repeated - without normalization)
+
+             if input_project == 1 % BD study
+             %% BD study
+                if trial_subjectno > 100 % BD subject
+                    %% BD subjects
+                    % all data in ONE cell, up to each subject's max angle, RAW data:
+                    BD_angle_vars{BD_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9     GMFAS displacement
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15     empty - GMFAS
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18 Torque
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24     empty - GMFAS
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+                    % all data in ONE cell, NORMALIZED data:
+                    % NB: length/elongation of leg, Fukunaga muscle/SEE, GM
+                    %   fascicles - already normalizsed in MTU_ arrays, before
+                    %   assembled into angle_vars arrays
+                    % NB: other variables (from scans of SOL MTJ, GM MTJ):
+                    %   normalizing to first value in array (=zero degree), instead 
+                    %   of using constants from datamaster. Tested and values are 
+                    %   the same except rounding at 2nd or 3rd decimal
+                    BD_angle_vars_norm_indlength{BD_count} = BD_angle_vars{BD_count};
+                    BD_angle_vars_norm_indlength{BD_count}(:,1) = BD_angle_vars{1,BD_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    BD_angle_vars_norm_indlength{BD_count}(:,2) = BD_angle_vars{1,BD_count}(:,2)*100/max(BD_angle_vars{1,BD_count}(:,2));   % 2 force - to maximal force in trial
+                    BD_angle_vars_norm_indlength{BD_count}(:,12) = (BD_angle_vars{1,BD_count}(:,12)-BD_angle_vars{1,BD_count}(1,12)) *100/BD_angle_vars{1,BD_count}(1,12); % 12 length - to initial length of free AT
+                    BD_angle_vars_norm_indlength{BD_count}(:,13) = (BD_angle_vars{1,BD_count}(:,13)-BD_angle_vars{1,BD_count}(1,13)) *100/BD_angle_vars{1,BD_count}(1,13); % 13 length - to initial length of GM tend
+                    BD_angle_vars_norm_indlength{BD_count}(:,14) = (BD_angle_vars{1,BD_count}(:,14)-BD_angle_vars{1,BD_count}(1,14)) *100/BD_angle_vars{1,BD_count}(1,14); % 14 leg length - to initial leg length
+                    BD_angle_vars_norm_indlength{BD_count}(:,16) = (BD_angle_vars{1,BD_count}(:,16)-BD_angle_vars{1,BD_count}(1,16)) *100/BD_angle_vars{1,BD_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    BD_angle_vars_norm_indlength{BD_count}(:,17) = (BD_angle_vars{1,BD_count}(:,17)-BD_angle_vars{1,BD_count}(1,17)) *100/BD_angle_vars{1,BD_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    BD_angle_vars_norm_indlength{BD_count}(:,18) = BD_angle_vars{1,BD_count}(:,18)*100/max(BD_angle_vars{1,BD_count}(:,18));  %        18 torque - to max torque in trial
+                    BD_angle_vars_norm_indlength{BD_count}(:,20) = (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace with 1000
+                    % LATER - change to the more elegant method used for CON_PRE_angle_vars_STAT
+                    BD_angle_vars_norm_indlength{1,BD_count}(isnan(BD_angle_vars_norm_indlength{1,BD_count})) = 1000;       
+                    % spline
+                    BD_angle_vars_norm{BD_count} = spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1)',BD_angle_vars_norm_indlength{1,BD_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if BD_angle_vars_norm{BD_count}(1,3) == 1000
+                        BD_angle_vars_norm{BD_count}(:,3:5) = NaN;
+                    end
+
+    % plot to show interpolation of NORMALIZED angles, from ca 0.20 % intervals (unequal
+    % intervals, depending on sample frequency and gonio angle development) to
+    % 0.05 % of ROM intervals
+    %         sub = 1;
+    %         var = 33; %pennation
+    %         figure
+    %         hold on
+    %         plot(BD_angle_vars_norm_indlength{1,sub}(:,1),BD_angle_vars_norm_indlength{1,sub}(:,var))
+    %         plot(BD_angle_vars_norm{1,sub}(:,1),BD_angle_vars_norm{1,sub}(:,var),'o')
+    %         legend('orig','stat spline')
+
+
+
+                    %% END BD subjects
+                else
+                    %% CON subjects
+
+                    % all data in ONE cell, common angles, RAW data:
+                    CON_angle_vars{CON_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+
+
+
+                    % all data in ONE cell, NORMALIZED data:
+                    CON_angle_vars_norm_indlength{CON_count} = CON_angle_vars{CON_count};
+                    CON_angle_vars_norm_indlength{CON_count}(:,1) = CON_angle_vars{1,CON_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    CON_angle_vars_norm_indlength{CON_count}(:,2) = CON_angle_vars{1,CON_count}(:,2)*100/max(CON_angle_vars{1,CON_count}(:,2));   % 2 force - to maximal force in trial
+                    CON_angle_vars_norm_indlength{CON_count}(:,12) = (CON_angle_vars{1,CON_count}(:,12)-CON_angle_vars{1,CON_count}(1,12)) *100/CON_angle_vars{1,CON_count}(1,12); % 12 length - to initial length of free AT
+                    CON_angle_vars_norm_indlength{CON_count}(:,13) = (CON_angle_vars{1,CON_count}(:,13)-CON_angle_vars{1,CON_count}(1,13)) *100/CON_angle_vars{1,CON_count}(1,13); % 13 length - to initial length of GM tend
+                    CON_angle_vars_norm_indlength{CON_count}(:,14) = (CON_angle_vars{1,CON_count}(:,14)-CON_angle_vars{1,CON_count}(1,14)) *100/CON_angle_vars{1,CON_count}(1,14); % 14 leg length - to initial leg length
+                    CON_angle_vars_norm_indlength{CON_count}(:,16) = (CON_angle_vars{1,CON_count}(:,16)-CON_angle_vars{1,CON_count}(1,16)) *100/CON_angle_vars{1,CON_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    CON_angle_vars_norm_indlength{CON_count}(:,17) = (CON_angle_vars{1,CON_count}(:,17)-CON_angle_vars{1,CON_count}(1,17)) *100/CON_angle_vars{1,CON_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    CON_angle_vars_norm_indlength{CON_count}(:,18) = CON_angle_vars{1,CON_count}(:,18)*100/max(CON_angle_vars{1,CON_count}(:,18));  %        18 torque - to max torque in trial
+                    CON_angle_vars_norm_indlength{CON_count}(:,20) = (CON_angle_vars{1,CON_count}(:,20)-CON_angle_vars{1,CON_count}(1,20)) *100/CON_angle_vars{1,CON_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace  with 1000
+                    CON_angle_vars_norm_indlength{1,CON_count}(isnan(CON_angle_vars_norm_indlength{1,CON_count})) = 1000;       
+                    % spline
+                    CON_angle_vars_norm{CON_count} = spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1)',CON_angle_vars_norm_indlength{1,CON_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if CON_angle_vars_norm{CON_count}(1,3) == 1000
+                        CON_angle_vars_norm{CON_count}(:,3:5) = NaN;
+                    end
+                    %% END CON subjects
+                end
+             %%
+            else % project == 2 == intervention
+             %% intervention study =================================================================================================================
+                if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                    %% STR PRE
+                    % all data in ONE cell, common angles, RAW data:
+                    STR_PRE_angle_vars{STR_PRE_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+                    % all data in ONE cell, NORMALIZED data:
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
+                    STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace  with 1000
+                    STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
+                    % spline
+                    STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
+                        STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
+                    end
+                    %% END STR PRE
+
+                elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                    %% STR POST
+                    % all data in ONE cell, up to each subject's max angle, RAW data:
+                    STR_POST_angle_vars{STR_POST_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+                    % all data in ONE cell, NORMALIZED data:
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
+                    STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace  with 1000
+                    STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
+                    % spline
+                    STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
+                        STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
+                    end
+
+                    %% END STR POST
+
+                elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                    %% CON PRE
+                    % all data in ONE cell, up to each subject's max angle, RAW data:
+                    CON_PRE_angle_vars{CON_PRE_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+                    % all data in ONE cell, NORMALIZED data:
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
+                    CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+                    % MMM TODO - consider types of normalization for intervention study
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace  with 1000
+                    CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
+                    % spline
+                    CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
+                        CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
+                    end
+                    %% END CON PRE
+
+                elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                    %% CON POST
+                    % all data in ONE cell, up to each subject's max angle, RAW data:
+                    CON_POST_angle_vars{CON_POST_count} = [ ...
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
+                        data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
+                        data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
+                        data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                        MTU_elong_array(:,2) ...                                        6
+                        MTU_elong_array(:,3) ...                                        7
+                        MTU_elong_array(:,4) ...                                        8
+                        MTU_elong_array(:,5) ...                                        9
+                        MTU_elong_array(:,6) ...                                        10
+                        MTU_elong_array(:,7) ...                                        11
+                        MTU_length_array(:,2) ...                                       12
+                        MTU_length_array(:,3) ...                                       13
+                        MTU_length_array(:,4) ...                                       14
+                        MTU_length_array(:,5) ...                                       15
+                        MTU_length_array(:,6) ...                                       16
+                        MTU_length_array(:,7) ...                                       17
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                        MTU_elong_array(:,8) ...                                        19
+                        MTU_length_array(:,8) ...                                       20
+                        MTU_strain_array(:,2) ...                                       21
+                        MTU_strain_array(:,3) ...                                       22
+                        MTU_strain_array(:,4) ...                                       23
+                        MTU_strain_array(:,5) ...                                       24
+                        MTU_strain_array(:,6) ...                                       25
+                        MTU_strain_array(:,7) ...                                       26
+                        MTU_strain_array(:,8) ...                                       27
+                        MTU_elong_array(:,9) ...                                        28
+                        MTU_elong_array(:,10) ...                                       29
+                        MTU_strain_array(:,9) ...                                       30
+                        MTU_strain_array(:,10) ...                                      31
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
+                        data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
+                        MTU_length_array(:,9) ...                                        36
+                        MTU_length_array(:,10) ...                                       37
+                        data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                        ];
+
+                    % all data in ONE cell, NORMALIZED data:
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
+                    CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+
+                    % resample for plots
+
+                    % tweak for NaN EMG data - replace  with 1000
+                    CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
+                    % spline
+                    CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
+                    % replace 1000 with NaN
+                    if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
+                        CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
+                    end
+                    %% END CON POST
+
+                end
+             %% 
+            end
+            %%
+
+
+
+            %% prepare prone arrays for group plots & stats
+             if input_project == 1 % BD study
+             %% BD study
+                if trial_subjectno > 100 % BD subject
+                    %% BD subjects
+                    BD_prone(BD_count,:) = MTU_prone_vars;
+                    %% END BD subjects
+                else
+                    %% CON subjects
+                    CON_prone(CON_count,:) = MTU_prone_vars;
+                    %% END CON subjects
+                end
+             %%
+            else % project == 2 == intervention
+             %% intervention study
+                if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
+                    STR_PRE_prone(STR_PRE_count,:) = MTU_prone_vars;
+                elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
+                    STR_POST_prone(STR_POST_count,:) = MTU_prone_vars;
+                elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
+                    CON_PRE_prone(CON_PRE_count,:) = MTU_prone_vars;
+                elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
+                    CON_POST_prone(CON_POST_count,:) = MTU_prone_vars;
+                end
+             %% 
+            end
+            %%
+
+
+
+            %% prepare arrays for individual trial data to file
+
+            % txt trial ID
+            all_passive_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
+
+            % add data to a common array for all subjects    
+            all_passive_output(line,:) = [out_ROM_trial_max out_ROM_ind_max out_ROM_common_max out_ROM_submax_1 out_ROM_submax_2...
+                out_F_trial_max_ROM out_F_trial_max_F out_F_ind_max out_F_common_max out_F_zero out_F_submax_1 out_F_submax_2...
+                out_T_trial_max_ROM out_T_trial_max_F out_T_ind_max out_T_common_max out_T_zero out_T_submax_1 out_T_submax_2...
+                out_angle_trial_max out_angle_ind_max out_angle_common_max out_angle_ind_rmax out_angle_ind_lmax...
+                out_pstiff_trial_max out_pstiff_ind_max out_pstiff_common_max out_pstiff_15 out_pstiff_submax_1 out_pstiff_submax_2 out_pstiff_index...
+                out_displ_SOL_trial_max out_displ_SOL_ind_max out_displ_SOL_common_max out_displ_SOL_submax_1 out_displ_SOL_submax_2...
+                out_displ_GMMTJ_trial_max out_displ_GMMTJ_ind_max out_displ_GMMTJ_common_max out_displ_GMMTJ_submax_1 out_displ_GMMTJ_submax_2...
+                out_displ_GMFAS_trial_max out_displ_GMFAS_ind_max out_displ_GMFAS_common_max out_displ_GMFAS_submax_1 out_displ_GMFAS_submax_2...
+                out_length_AT_trial_max out_length_GMtend_trial_max out_length_leg_trial_max out_length_GMapo_trial_max out_length_msc_GM_trial_max out_length_msc_SOL_trial_max...
+                out_length_AT_ind_max out_length_GMtend_ind_max out_length_leg_ind_max out_length_GMapo_ind_max out_length_msc_GM_ind_max out_length_msc_SOL_ind_max...
+                out_length_AT_common_max out_length_GMtend_common_max out_length_leg_common_max out_length_GMapo_common_max out_length_msc_GM_common_max out_length_msc_SOL_common_max...
+                out_length_AT_submax_1 out_length_GMtend_submax_1 out_length_leg_submax_1 out_length_GMapo_submax_1 out_length_msc_GM_submax_1 out_length_msc_SOL_submax_1...
+                out_length_AT_submax_2 out_length_GMtend_submax_2 out_length_leg_submax_2 out_length_GMapo_submax_2 out_length_msc_GM_submax_2 out_length_msc_SOL_submax_2...
+                out_elong_AT_trial_max out_elong_GMtend_trial_max out_elong_leg_trial_max out_elong_GMapo_trial_max out_elong_msc_GM_trial_max out_elong_msc_SOL_trial_max...
+                out_elong_AT_ind_max out_elong_GMtend_ind_max out_elong_leg_ind_max out_elong_GMapo_ind_max out_elong_msc_GM_ind_max out_elong_msc_SOL_ind_max...
+                out_elong_AT_common_max out_elong_GMtend_common_max out_elong_leg_common_max out_elong_GMapo_common_max out_elong_msc_GM_common_max out_elong_msc_SOL_common_max...
+                out_elong_AT_submax_1 out_elong_GMtend_submax_1 out_elong_leg_submax_1 out_elong_GMapo_submax_1 out_elong_msc_GM_submax_1 out_elong_msc_SOL_submax_1...
+                out_elong_AT_submax_2 out_elong_GMtend_submax_2 out_elong_leg_submax_2 out_elong_GMapo_submax_2 out_elong_msc_GM_submax_2 out_elong_msc_SOL_submax_2...
+                out_strain_AT_trial_max out_strain_GMtend_trial_max out_strain_leg_trial_max out_strain_GMapo_trial_max out_strain_msc_GM_trial_max out_strain_msc_SOL_trial_max...
+                out_strain_AT_ind_max out_strain_GMtend_ind_max out_strain_leg_ind_max out_strain_GMapo_ind_max out_strain_msc_GM_ind_max out_strain_msc_SOL_ind_max...
+                out_strain_AT_common_max out_strain_GMtend_common_max out_strain_leg_common_max out_strain_GMapo_common_max out_strain_msc_GM_common_max out_strain_msc_SOL_common_max...
+                out_strain_AT_submax_1 out_strain_GMtend_submax_1 out_strain_leg_submax_1 out_strain_GMapo_submax_1 out_strain_msc_GM_submax_1 out_strain_msc_SOL_submax_1...
+                out_strain_AT_submax_2 out_strain_GMtend_submax_2 out_strain_leg_submax_2 out_strain_GMapo_submax_2 out_strain_msc_GM_submax_2 out_strain_msc_SOL_submax_2...
+                out_length_GMtend_Fuku_trial_max out_length_GMtend_Fuku_ind_max out_length_GMtend_Fuku_common_max out_length_GMtend_Fuku_submax_1 out_length_GMtend_Fuku_submax_2 ...
+                out_elong_GMtend_Fuku_trial_max out_elong_GMtend_Fuku_ind_max out_elong_GMtend_Fuku_common_max out_elong_GMtend_Fuku_submax_1 out_elong_GMtend_Fuku_submax_2 ...
+                out_strain_GMtend_Fuku_trial_max out_strain_GMtend_Fuku_ind_max out_strain_GMtend_Fuku_common_max out_strain_GMtend_Fuku_submax_1 out_strain_GMtend_Fuku_submax_2 ...
+                out_length_msc_GM_Fuku_trial_max out_length_msc_GM_Fuku_ind_max out_length_msc_GM_Fuku_common_max out_length_msc_GM_Fuku_submax_1 out_length_msc_GM_Fuku_submax_2 ...
+                out_elong_msc_GM_Fuku_trial_max out_elong_msc_GM_Fuku_ind_max out_elong_msc_GM_Fuku_common_max out_elong_msc_GM_Fuku_submax_1 out_elong_msc_GM_Fuku_submax_2 ...
+                out_strain_msc_GM_Fuku_trial_max out_strain_msc_GM_Fuku_ind_max out_strain_msc_GM_Fuku_common_max out_strain_msc_GM_Fuku_submax_1 out_strain_msc_GM_Fuku_submax_2 ...
+                out_licht_faslen_GM_trial_max out_licht_faslen_GM_ind_max out_licht_faslen_GM_common_max out_licht_faslen_GM_zero out_licht_faslen_GM_submax_1 out_licht_faslen_GM_submax_2...
+                out_licht_pennation_GM_trial_max out_licht_pennation_GM_ind_max out_licht_pennation_GM_common_max out_licht_pennation_GM_zero out_licht_pennation_GM_submax_1 out_licht_pennation_GM_submax_2...
+                out_licht_fas_elong_GM_trial_max out_licht_fas_elong_GM_ind_max out_licht_fas_elong_GM_common_max out_licht_fas_elong_GM_zero out_licht_fas_elong_GM_submax_1 out_licht_fas_elong_GM_submax_2...
+                out_licht_fas_strain_GM_trial_max out_licht_fas_strain_GM_ind_max out_licht_fas_strain_GM_common_max out_licht_fas_strain_GM_zero out_licht_fas_strain_GM_submax_1 out_licht_fas_strain_GM_submax_2...
+                out_licht_faslen_SOL_trial_max out_licht_faslen_SOL_ind_max out_licht_faslen_SOL_common_max out_licht_faslen_SOL_zero out_licht_faslen_SOL_submax_1 out_licht_faslen_SOL_submax_2...
+                out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_zero out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2...
+                out_contrib_GM_trial_max out_contrib_GM_ind_max out_contrib_GM_common_max out_contrib_GM_submax_1 out_contrib_GM_submax_2...
+                out_elong_AT_max out_elong_GMtend_max out_elong_leg_max out_elong_GMapo_max out_elong_msc_GM_max out_elong_msc_SOL_max ...
+                out_strain_AT_max out_strain_GMtend_max out_strain_leg_max out_strain_GMapo_max out_strain_msc_GM_max out_strain_msc_SOL_max ...
+                out_length_AT_max out_length_GMtend_max out_length_leg_max out_length_GMapo_max out_length_msc_GM_max out_length_msc_SOL_max ...
+                out_elong_GMtend_Fuku_max out_elong_msc_GM_Fuku_max out_strain_GMtend_Fuku_max out_strain_msc_GM_Fuku_max out_length_GMtend_Fuku_max out_length_msc_GM_Fuku_max ...
+                out_licht_faslen_GM_max out_licht_fas_elong_GM_max out_licht_fas_strain_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
+                out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2 out_emg_gm_zero...
+                out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2 out_emg_gl_zero...
+                out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2 out_emg_sol_zero...
+                out_emg_gm_max out_emg_gl_max out_emg_sol_max ...
+                ];
+
+            save all_data_passive_inloop
+            close all
+
         end
-        %%
-        
-               
-        
-        %% prepare angle_vars arrays for group plots & stats
-
-        % data_force_gonio
-        % from M-file average_passive_forces_EMG
-        % average of 6 trials
-        % output array "data_force_gonio" contains: 
-        %   average_force_gonio
-        %   average_angle_array
-        %   average_emg_gm_gonio
-        %   average_emg_gl_gonio
-        %	average_emg_sol_gonio
-        
-        % data_SOL / data_GMMTJ / data_GMFAS
-        % from M-file average_passive_trials_EMG
-        % average of 2 trials
-        % output array "data_SOL" etc contains:
-        %   average_force_gonio
-        %   average_angle_array
-        %   average_displ_gonio
-        %   average_emg_gm_gonio
-        %   average_emg_gl_gonio
-        %	average_emg_sol_gonio
-        
-        % data_GMFAS_licht_GM
-        % average of 2 trials
-        % contains:
-        %   averaged angle (currently calculated from gonio)
-        %   averaged fasicle length
-        %   averaged pennation angle
-        %   fascicle elongation
-        %   fascicle strain
-        %   --- OR containing 5x zeros (if nonexistent)
-
-        
-        % extract angle range common to all trials for current subject
-        angle_start = 0 - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999 %VAR
-        angle_stop = out_ROM_trial_max;
-
-        % identify locations of start/stop angles in above mentioned arrays
-        loc_angle_start = find(data_force_gonio(:,col_angle_DFG)>=angle_start,1,'first');
-        loc_angle_stop = find(data_force_gonio(:,col_angle_DFG)>=angle_stop,1,'first');
-        loc_angle_licht_start = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_start,1,'first');
-        loc_angle_licht_stop = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_stop,1,'first');
         
         
-        
-        % contents of below angle_vars arrays / angle_vars contain:
-                %   1 angle
-                %   2 F 
-                %   3 EMG_gm 
-                %   4 EMG_gl 
-                %   5 EMG_sol 
-
-                %   6 elong AT
-                %   7 elong GMtend
-                %   8 elong MTU/calf        
-                %   9 displ*** GMFAS     
-                %  10 elong GMapo       
-                %  11 elong msc GM         
-
-                %  12 L_AT              
-                %  13 L_GMtend          
-                %  14 L_MTU/calf
-                %  15 --- (GMFAS)
-                %  16 L_GMapo           
-                %  17 L_msc_GM             
-
-                %  18 Torque            
-
-                %  19 elong msc SOL
-                %  20 L msc SOL
-
-                % 21 strain AT
-                % 22 strain GMtend
-                % 23 strain MTJ
-                % 24 ------ (GMFAS)
-                % 25 strain GMapo
-                % 26 strain msc GM
-                
-                % 27 strain msc SOL
-        
-                % 28 elong msc GM (from Lichtwark/Fukunaga)
-                % 29 elong SEE (from Lichtwark/Fukunaga)
-                % 30 strain msc GM (from Lichtwark/Fukunaga)
-                % 31 strain SEE (from Lichtwark/Fukunaga)
-                
-                % 32 length fascicles GM (from Lichtwark)
-                % 33 pennation GM (from Lichtwark)
-                % 34 elongation fascicles GM (from Lichtwark)
-                % 35 strain fascicles GM (from Lichtwark)
-                
-                % 36 length msc GM (from Lichtwark/Fukunaga)
-                % 37 length SEE (from Lichtwark/Fukunaga)
-                
-                % 38 angle (repeated - without normalization)
-                
-         if input_project == 1 % BD study
-         %% BD study
-            if trial_subjectno > 100 % BD subject
-                %% BD subjects
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                BD_angle_vars{BD_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9     GMFAS displacement
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15     empty - GMFAS
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18 Torque
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24     empty - GMFAS
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                % NB: length/elongation of leg, Fukunaga muscle/SEE, GM
-                %   fascicles - already normalizsed in MTU_ arrays, before
-                %   assembled into angle_vars arrays
-                % NB: other variables (from scans of SOL MTJ, GM MTJ):
-                %   normalizing to first value in array (=zero degree), instead 
-                %   of using constants from datamaster. Tested and values are 
-                %   the same except rounding at 2nd or 3rd decimal
-                BD_angle_vars_norm_indlength{BD_count} = BD_angle_vars{BD_count};
-                BD_angle_vars_norm_indlength{BD_count}(:,1) = BD_angle_vars{1,BD_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                BD_angle_vars_norm_indlength{BD_count}(:,2) = BD_angle_vars{1,BD_count}(:,2)*100/max(BD_angle_vars{1,BD_count}(:,2));   % 2 force - to maximal force in trial
-                BD_angle_vars_norm_indlength{BD_count}(:,12) = (BD_angle_vars{1,BD_count}(:,12)-BD_angle_vars{1,BD_count}(1,12)) *100/BD_angle_vars{1,BD_count}(1,12); % 12 length - to initial length of free AT
-                BD_angle_vars_norm_indlength{BD_count}(:,13) = (BD_angle_vars{1,BD_count}(:,13)-BD_angle_vars{1,BD_count}(1,13)) *100/BD_angle_vars{1,BD_count}(1,13); % 13 length - to initial length of GM tend
-                BD_angle_vars_norm_indlength{BD_count}(:,14) = (BD_angle_vars{1,BD_count}(:,14)-BD_angle_vars{1,BD_count}(1,14)) *100/BD_angle_vars{1,BD_count}(1,14); % 14 leg length - to initial leg length
-                BD_angle_vars_norm_indlength{BD_count}(:,16) = (BD_angle_vars{1,BD_count}(:,16)-BD_angle_vars{1,BD_count}(1,16)) *100/BD_angle_vars{1,BD_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                BD_angle_vars_norm_indlength{BD_count}(:,17) = (BD_angle_vars{1,BD_count}(:,17)-BD_angle_vars{1,BD_count}(1,17)) *100/BD_angle_vars{1,BD_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                BD_angle_vars_norm_indlength{BD_count}(:,18) = BD_angle_vars{1,BD_count}(:,18)*100/max(BD_angle_vars{1,BD_count}(:,18));  %        18 torque - to max torque in trial
-                BD_angle_vars_norm_indlength{BD_count}(:,20) = (BD_angle_vars{1,BD_count}(:,20)-BD_angle_vars{1,BD_count}(1,20)) *100/BD_angle_vars{1,BD_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-                
-                % resample for plots
-                
-                % tweak for NaN EMG data - replace with 1000
-                % LATER - change to the more elegant method used for CON_PRE_angle_vars_STAT
-                BD_angle_vars_norm_indlength{1,BD_count}(isnan(BD_angle_vars_norm_indlength{1,BD_count})) = 1000;       
-                % spline
-                BD_angle_vars_norm{BD_count} = spline(BD_angle_vars_norm_indlength{1,BD_count}(:,1)',BD_angle_vars_norm_indlength{1,BD_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if BD_angle_vars_norm{BD_count}(1,3) == 1000
-                    BD_angle_vars_norm{BD_count}(:,3:5) = NaN;
-                end
-                
-% plot to show interpolation of NORMALIZED angles, from ca 0.20 % intervals (unequal
-% intervals, depending on sample frequency and gonio angle development) to
-% 0.05 % of ROM intervals
-%         sub = 1;
-%         var = 33; %pennation
-%         figure
-%         hold on
-%         plot(BD_angle_vars_norm_indlength{1,sub}(:,1),BD_angle_vars_norm_indlength{1,sub}(:,var))
-%         plot(BD_angle_vars_norm{1,sub}(:,1),BD_angle_vars_norm{1,sub}(:,var),'o')
-%         legend('orig','stat spline')
-
-                
-                
-                %% END BD subjects
-            else
-                %% CON subjects
-
-                % all data in ONE cell, common angles, RAW data:
-                CON_angle_vars{CON_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                
-                
-                
-                % all data in ONE cell, NORMALIZED data:
-                CON_angle_vars_norm_indlength{CON_count} = CON_angle_vars{CON_count};
-                CON_angle_vars_norm_indlength{CON_count}(:,1) = CON_angle_vars{1,CON_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_angle_vars_norm_indlength{CON_count}(:,2) = CON_angle_vars{1,CON_count}(:,2)*100/max(CON_angle_vars{1,CON_count}(:,2));   % 2 force - to maximal force in trial
-                CON_angle_vars_norm_indlength{CON_count}(:,12) = (CON_angle_vars{1,CON_count}(:,12)-CON_angle_vars{1,CON_count}(1,12)) *100/CON_angle_vars{1,CON_count}(1,12); % 12 length - to initial length of free AT
-                CON_angle_vars_norm_indlength{CON_count}(:,13) = (CON_angle_vars{1,CON_count}(:,13)-CON_angle_vars{1,CON_count}(1,13)) *100/CON_angle_vars{1,CON_count}(1,13); % 13 length - to initial length of GM tend
-                CON_angle_vars_norm_indlength{CON_count}(:,14) = (CON_angle_vars{1,CON_count}(:,14)-CON_angle_vars{1,CON_count}(1,14)) *100/CON_angle_vars{1,CON_count}(1,14); % 14 leg length - to initial leg length
-                CON_angle_vars_norm_indlength{CON_count}(:,16) = (CON_angle_vars{1,CON_count}(:,16)-CON_angle_vars{1,CON_count}(1,16)) *100/CON_angle_vars{1,CON_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_angle_vars_norm_indlength{CON_count}(:,17) = (CON_angle_vars{1,CON_count}(:,17)-CON_angle_vars{1,CON_count}(1,17)) *100/CON_angle_vars{1,CON_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_angle_vars_norm_indlength{CON_count}(:,18) = CON_angle_vars{1,CON_count}(:,18)*100/max(CON_angle_vars{1,CON_count}(:,18));  %        18 torque - to max torque in trial
-                CON_angle_vars_norm_indlength{CON_count}(:,20) = (CON_angle_vars{1,CON_count}(:,20)-CON_angle_vars{1,CON_count}(1,20)) *100/CON_angle_vars{1,CON_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-                
-                % tweak for NaN EMG data - replace  with 1000
-                CON_angle_vars_norm_indlength{1,CON_count}(isnan(CON_angle_vars_norm_indlength{1,CON_count})) = 1000;       
-                % spline
-                CON_angle_vars_norm{CON_count} = spline(CON_angle_vars_norm_indlength{1,CON_count}(:,1)',CON_angle_vars_norm_indlength{1,CON_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_angle_vars_norm{CON_count}(1,3) == 1000
-                    CON_angle_vars_norm{CON_count}(:,3:5) = NaN;
-                end
-                %% END CON subjects
-            end
-         %%
-        else % project == 2 == intervention
-         %% intervention study =================================================================================================================
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                %% STR PRE
-                % all data in ONE cell, common angles, RAW data:
-                STR_PRE_angle_vars{STR_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-                
-                % tweak for NaN EMG data - replace  with 1000
-                STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
-                % spline
-                STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
-                    STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
-                end
-                %% END STR PRE
-                
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                %% STR POST
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                STR_POST_angle_vars{STR_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
-                % spline
-                STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
-                    STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
-                end
-
-                %% END STR POST
-                
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                %% CON PRE
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                CON_PRE_angle_vars{CON_PRE_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-                % MMM TODO - consider types of normalization for intervention study
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
-                % spline
-                CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
-                    CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
-                end
-                %% END CON PRE
-
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                %% CON POST
-                % all data in ONE cell, up to each subject's max angle, RAW data:
-                CON_POST_angle_vars{CON_POST_count} = [ ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
-                    MTU_elong_array(:,2) ...                                        6
-                    MTU_elong_array(:,3) ...                                        7
-                    MTU_elong_array(:,4) ...                                        8
-                    MTU_elong_array(:,5) ...                                        9
-                    MTU_elong_array(:,6) ...                                        10
-                    MTU_elong_array(:,7) ...                                        11
-                    MTU_length_array(:,2) ...                                       12
-                    MTU_length_array(:,3) ...                                       13
-                    MTU_length_array(:,4) ...                                       14
-                    MTU_length_array(:,5) ...                                       15
-                    MTU_length_array(:,6) ...                                       16
-                    MTU_length_array(:,7) ...                                       17
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
-                    MTU_elong_array(:,8) ...                                        19
-                    MTU_length_array(:,8) ...                                       20
-                    MTU_strain_array(:,2) ...                                       21
-                    MTU_strain_array(:,3) ...                                       22
-                    MTU_strain_array(:,4) ...                                       23
-                    MTU_strain_array(:,5) ...                                       24
-                    MTU_strain_array(:,6) ...                                       25
-                    MTU_strain_array(:,7) ...                                       26
-                    MTU_strain_array(:,8) ...                                       27
-                    MTU_elong_array(:,9) ...                                        28
-                    MTU_elong_array(:,10) ...                                       29
-                    MTU_strain_array(:,9) ...                                       30
-                    MTU_strain_array(:,10) ...                                      31
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_faslen) ...   32
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_penn) ...  33
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_elong) ...   34
-                    data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,col_licht_fas_strain) ...   35
-                    MTU_length_array(:,9) ...                                        36
-                    MTU_length_array(:,10) ...                                       37
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
-                    ];
-
-                % all data in ONE cell, NORMALIZED data:
-                CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-                
-                % tweak for NaN EMG data - replace  with 1000
-                CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
-                % spline
-                CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,1)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
-                    CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
-                end
-                %% END CON POST
-
-            end
-         %% 
-        end
-        %%
-        
-        
-        
-        %% prepare prone arrays for group plots & stats
-         if input_project == 1 % BD study
-         %% BD study
-            if trial_subjectno > 100 % BD subject
-                %% BD subjects
-                BD_prone(BD_count,:) = MTU_prone_vars;
-                %% END BD subjects
-            else
-                %% CON subjects
-                CON_prone(CON_count,:) = MTU_prone_vars;
-                %% END CON subjects
-            end
-         %%
-        else % project == 2 == intervention
-         %% intervention study
-            if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
-                STR_PRE_prone(STR_PRE_count,:) = MTU_prone_vars;
-            elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
-                STR_POST_prone(STR_POST_count,:) = MTU_prone_vars;
-            elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
-                CON_PRE_prone(CON_PRE_count,:) = MTU_prone_vars;
-            elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
-                CON_POST_prone(CON_POST_count,:) = MTU_prone_vars;
-            end
-         %% 
-        end
-        %%
-        
-        
-        
-        %% prepare arrays for individual trial data to file
-
-        % txt trial ID
-        all_passive_output_txt(line,:) = [dm_subjectno(line) dm_timepoint(line) dm_side(line) dm_trial(line)];
-        
-        % add data to a common array for all subjects    
-        all_passive_output(line,:) = [out_ROM_trial_max out_ROM_ind_max out_ROM_common_max out_ROM_submax_1 out_ROM_submax_2...
-        	out_F_trial_max_ROM out_F_trial_max_F out_F_ind_max out_F_common_max out_F_zero out_F_submax_1 out_F_submax_2...
-        	out_T_trial_max_ROM out_T_trial_max_F out_T_ind_max out_T_common_max out_T_zero out_T_submax_1 out_T_submax_2...
-        	out_angle_trial_max out_angle_ind_max out_angle_common_max out_angle_ind_rmax out_angle_ind_lmax...
-        	out_pstiff_trial_max out_pstiff_ind_max out_pstiff_common_max out_pstiff_15 out_pstiff_submax_1 out_pstiff_submax_2 out_pstiff_index...
-        	out_displ_SOL_trial_max out_displ_SOL_ind_max out_displ_SOL_common_max out_displ_SOL_submax_1 out_displ_SOL_submax_2...
-            out_displ_GMMTJ_trial_max out_displ_GMMTJ_ind_max out_displ_GMMTJ_common_max out_displ_GMMTJ_submax_1 out_displ_GMMTJ_submax_2...
-            out_displ_GMFAS_trial_max out_displ_GMFAS_ind_max out_displ_GMFAS_common_max out_displ_GMFAS_submax_1 out_displ_GMFAS_submax_2...
-        	out_length_AT_trial_max out_length_GMtend_trial_max out_length_leg_trial_max out_length_GMapo_trial_max out_length_msc_GM_trial_max out_length_msc_SOL_trial_max...
-        	out_length_AT_ind_max out_length_GMtend_ind_max out_length_leg_ind_max out_length_GMapo_ind_max out_length_msc_GM_ind_max out_length_msc_SOL_ind_max...
-        	out_length_AT_common_max out_length_GMtend_common_max out_length_leg_common_max out_length_GMapo_common_max out_length_msc_GM_common_max out_length_msc_SOL_common_max...
-        	out_length_AT_submax_1 out_length_GMtend_submax_1 out_length_leg_submax_1 out_length_GMapo_submax_1 out_length_msc_GM_submax_1 out_length_msc_SOL_submax_1...
-        	out_length_AT_submax_2 out_length_GMtend_submax_2 out_length_leg_submax_2 out_length_GMapo_submax_2 out_length_msc_GM_submax_2 out_length_msc_SOL_submax_2...
-        	out_elong_AT_trial_max out_elong_GMtend_trial_max out_elong_leg_trial_max out_elong_GMapo_trial_max out_elong_msc_GM_trial_max out_elong_msc_SOL_trial_max...
-        	out_elong_AT_ind_max out_elong_GMtend_ind_max out_elong_leg_ind_max out_elong_GMapo_ind_max out_elong_msc_GM_ind_max out_elong_msc_SOL_ind_max...
-        	out_elong_AT_common_max out_elong_GMtend_common_max out_elong_leg_common_max out_elong_GMapo_common_max out_elong_msc_GM_common_max out_elong_msc_SOL_common_max...
-        	out_elong_AT_submax_1 out_elong_GMtend_submax_1 out_elong_leg_submax_1 out_elong_GMapo_submax_1 out_elong_msc_GM_submax_1 out_elong_msc_SOL_submax_1...
-        	out_elong_AT_submax_2 out_elong_GMtend_submax_2 out_elong_leg_submax_2 out_elong_GMapo_submax_2 out_elong_msc_GM_submax_2 out_elong_msc_SOL_submax_2...
-        	out_strain_AT_trial_max out_strain_GMtend_trial_max out_strain_leg_trial_max out_strain_GMapo_trial_max out_strain_msc_GM_trial_max out_strain_msc_SOL_trial_max...
-        	out_strain_AT_ind_max out_strain_GMtend_ind_max out_strain_leg_ind_max out_strain_GMapo_ind_max out_strain_msc_GM_ind_max out_strain_msc_SOL_ind_max...
-        	out_strain_AT_common_max out_strain_GMtend_common_max out_strain_leg_common_max out_strain_GMapo_common_max out_strain_msc_GM_common_max out_strain_msc_SOL_common_max...
-        	out_strain_AT_submax_1 out_strain_GMtend_submax_1 out_strain_leg_submax_1 out_strain_GMapo_submax_1 out_strain_msc_GM_submax_1 out_strain_msc_SOL_submax_1...
-        	out_strain_AT_submax_2 out_strain_GMtend_submax_2 out_strain_leg_submax_2 out_strain_GMapo_submax_2 out_strain_msc_GM_submax_2 out_strain_msc_SOL_submax_2...
-            out_length_GMtend_Fuku_trial_max out_length_GMtend_Fuku_ind_max out_length_GMtend_Fuku_common_max out_length_GMtend_Fuku_submax_1 out_length_GMtend_Fuku_submax_2 ...
-            out_elong_GMtend_Fuku_trial_max out_elong_GMtend_Fuku_ind_max out_elong_GMtend_Fuku_common_max out_elong_GMtend_Fuku_submax_1 out_elong_GMtend_Fuku_submax_2 ...
-            out_strain_GMtend_Fuku_trial_max out_strain_GMtend_Fuku_ind_max out_strain_GMtend_Fuku_common_max out_strain_GMtend_Fuku_submax_1 out_strain_GMtend_Fuku_submax_2 ...
-            out_length_msc_GM_Fuku_trial_max out_length_msc_GM_Fuku_ind_max out_length_msc_GM_Fuku_common_max out_length_msc_GM_Fuku_submax_1 out_length_msc_GM_Fuku_submax_2 ...
-            out_elong_msc_GM_Fuku_trial_max out_elong_msc_GM_Fuku_ind_max out_elong_msc_GM_Fuku_common_max out_elong_msc_GM_Fuku_submax_1 out_elong_msc_GM_Fuku_submax_2 ...
-            out_strain_msc_GM_Fuku_trial_max out_strain_msc_GM_Fuku_ind_max out_strain_msc_GM_Fuku_common_max out_strain_msc_GM_Fuku_submax_1 out_strain_msc_GM_Fuku_submax_2 ...
-        	out_licht_faslen_GM_trial_max out_licht_faslen_GM_ind_max out_licht_faslen_GM_common_max out_licht_faslen_GM_zero out_licht_faslen_GM_submax_1 out_licht_faslen_GM_submax_2...
-            out_licht_pennation_GM_trial_max out_licht_pennation_GM_ind_max out_licht_pennation_GM_common_max out_licht_pennation_GM_zero out_licht_pennation_GM_submax_1 out_licht_pennation_GM_submax_2...
-        	out_licht_fas_elong_GM_trial_max out_licht_fas_elong_GM_ind_max out_licht_fas_elong_GM_common_max out_licht_fas_elong_GM_zero out_licht_fas_elong_GM_submax_1 out_licht_fas_elong_GM_submax_2...
-            out_licht_fas_strain_GM_trial_max out_licht_fas_strain_GM_ind_max out_licht_fas_strain_GM_common_max out_licht_fas_strain_GM_zero out_licht_fas_strain_GM_submax_1 out_licht_fas_strain_GM_submax_2...
-        	out_licht_faslen_SOL_trial_max out_licht_faslen_SOL_ind_max out_licht_faslen_SOL_common_max out_licht_faslen_SOL_zero out_licht_faslen_SOL_submax_1 out_licht_faslen_SOL_submax_2...
-            out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_zero out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2...
-            out_contrib_GM_trial_max out_contrib_GM_ind_max out_contrib_GM_common_max out_contrib_GM_submax_1 out_contrib_GM_submax_2...
-            out_elong_AT_max out_elong_GMtend_max out_elong_leg_max out_elong_GMapo_max out_elong_msc_GM_max out_elong_msc_SOL_max ...
-            out_strain_AT_max out_strain_GMtend_max out_strain_leg_max out_strain_GMapo_max out_strain_msc_GM_max out_strain_msc_SOL_max ...
-            out_length_AT_max out_length_GMtend_max out_length_leg_max out_length_GMapo_max out_length_msc_GM_max out_length_msc_SOL_max ...
-            out_elong_GMtend_Fuku_max out_elong_msc_GM_Fuku_max out_strain_GMtend_Fuku_max out_strain_msc_GM_Fuku_max out_length_GMtend_Fuku_max out_length_msc_GM_Fuku_max ...
-            out_licht_faslen_GM_max out_licht_fas_elong_GM_max out_licht_fas_strain_GM_max out_licht_pennation_GM_max out_licht_faslen_SOL_max out_licht_pennation_SOL_max ...
-            out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2 out_emg_gm_zero...
-            out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2 out_emg_gl_zero...
-            out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2 out_emg_sol_zero...
-            out_emg_gm_max out_emg_gl_max out_emg_sol_max ...
-            ];
-        
-        
-        % TEMP output fascicle data
-%        all_GMfas_output(line,:) = [trial_GMfas_length MTU_length_array(1,col_GMmsc_Fukunaga) max(MTU_length_array(:,col_GMmsc_Fukunaga)) out_ROM_trial_max];
-        %%
-
-        save all_data_passive_inloop
-        close all
-        
+        %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        save all_data_passive
     end
-    %% LOOP FINISHED  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    save all_data_passive
-    
     
     
     %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2461,16 +2444,12 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
         CON_POST_prone(CON_POST_count+1:end,:) = [];
     end
-    %% Truncate angle_vars cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
     
-    
-    
-    
-    
-    %% OUTPUT individual trial data TO FILE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% OUTPUT individual trial data XLS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % write xls
-        if toggle_normalization == 0
+        if input_normalize == 0
             appendix = '_abs';
         else
             appendix = '_norm';
@@ -2489,9 +2468,11 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
     % TEMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyymmdd_HHMM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
-    %% OUTPUT individual trial data TO FILE FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
+    %% OUTPUT individual trial data for Graphpad Prism %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % MMM TODO GOON
+
     
     %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -2805,14 +2786,10 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             clear out_arrays_abs_table out_arrays_norm_table out_arrays_abs_diff_table out_arrays_norm_diff_table
         end
     end
-    %% OUTPUT group arrays for STATS, TO FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     
-    
-    
-    
     %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if input_project == 1 && toggle_normalization == 1
+    if input_project == 1 && input_normalize == 1
 
         %%% adjust relevant axes:
         axis_el_GMFAS = [-1 35 0 5];
@@ -2831,13 +2808,10 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
         txt_elong = 'Elongation (% of resting MTU length/elong)';
         txt_length = 'Length (% of resting MTU length)';
         
-    elseif input_project == 2 && toggle_normalization == 1
+    elseif input_project == 2 && input_normalize == 1
         % MMM TODO - second round of normalization for intervention - to MTU length/elongation?
     end
-    %% GROUP CALCULATIONS - normalization to % of leg lengths for BD study %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   
-    
-    
+          
     
     %% GROUP CALCULATIONS - create variables of MEAN + STDAV for plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -3463,7 +3437,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
 
         %%    
     end
-    %% GROUP CALCULATIONS - NUMBERS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
     %% GROUP CALCULATIONS - create AVERAGE ARRAYS for plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3685,7 +3658,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
 
         %%
     end
-    %% GROUP CALCULATIONS - ARRAYS FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
     %% PLOT GROUP FIGURES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -8823,10 +8795,6 @@ function [] = passiveUS(input_project, input_plot, input_normalize)
             end
         
     end
-    %% PLOT GROUP FIGURES FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    
-   
-
-    
+        
 end

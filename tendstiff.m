@@ -142,7 +142,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
-        load all_data_stiff_inloop
+        load all_data_stiff %_inloop
         line_start = line+1; % all_data_stiff_inloop ended on a line - resume with next line
         input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
     else
@@ -690,49 +690,51 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     
     %% IND: write graphpad prism files
     % TODO - split in GM vs SOL?
-
-    filename_basis = strcat('data_output/prism_stiff/all_stiff_', datestr(now, 'yyyymmdd_HHMM'), '_');
-        
-    % create output file header
-    j = 1;
-    prism_array_head2 = strcat(all_stiff_output_txt{j,2}, '_', all_stiff_output_txt{j,3});
-    prism_array_head3 = strcat(all_stiff_output_txt{j+1,2}, '_', all_stiff_output_txt{j+1,3});
-    prism_array_head4 = strcat(all_stiff_output_txt{j+2,2}, '_', all_stiff_output_txt{j+2,3});
-    prism_array_head5 = strcat(all_stiff_output_txt{j+3,2}, '_', all_stiff_output_txt{j+3,3});
-    prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
     
-    % for each output variable (column):
-    loc_relevant_var = 7; % first column that has data for prism. 7 = start of force
-    for i = loc_relevant_var:size(all_stiff_output,2)
-        
-        % reset
-        prism_array(1:size(all_stiff_output_txt,1)/4,1:5) = NaN;
-        write_line = 1;
-        
-        % filename with output variable
-        filename_variable = strcat(filename_basis, all_stiff_output_head{i+4}, '.xlsx');
-                
-        for j = 1:4:size(all_stiff_output_txt,1) % number of lines / trials
+    if input_project == 2
+        filename_basis = strcat('data_output/prism_stiff/all_stiff_', datestr(now, 'yyyymmdd_HHMM'), '_');
 
-            % column 1 = subject no
-            prism_array(write_line,1) = str2double(all_stiff_output_txt{j,1});
-            
-            % column 2-5 = data
-            prism_array(write_line,2) = all_stiff_output(j,i);
-            prism_array(write_line,3) = all_stiff_output(j+1,i);
-            prism_array(write_line,4) = all_stiff_output(j+2,i);
-            prism_array(write_line,5) = all_stiff_output(j+3,i);
-            write_line = write_line + 1;
+        % create output file header
+        j = 1;
+        prism_array_head2 = strcat(all_stiff_output_txt{j,2}, '_', all_stiff_output_txt{j,3});
+        prism_array_head3 = strcat(all_stiff_output_txt{j+1,2}, '_', all_stiff_output_txt{j+1,3});
+        prism_array_head4 = strcat(all_stiff_output_txt{j+2,2}, '_', all_stiff_output_txt{j+2,3});
+        prism_array_head5 = strcat(all_stiff_output_txt{j+3,2}, '_', all_stiff_output_txt{j+3,3});
+        prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
+
+        % for each output variable (column):
+        loc_relevant_var = 7; % first column that has data for prism. 7 = start of force
+        for i = loc_relevant_var:size(all_stiff_output,2)
+
+            % reset
+            prism_array(1:size(all_stiff_output_txt,1)/4,1:5) = NaN;
+            write_line = 1;
+
+            % filename with output variable
+            filename_variable = strcat(filename_basis, all_stiff_output_head{i+4}, '.xlsx');
+
+            for j = 1:4:size(all_stiff_output_txt,1) % number of lines / trials
+
+                % column 1 = subject no
+                prism_array(write_line,1) = str2double(all_stiff_output_txt{j,1});
+
+                % column 2-5 = data
+                prism_array(write_line,2) = all_stiff_output(j,i);
+                prism_array(write_line,3) = all_stiff_output(j+1,i);
+                prism_array(write_line,4) = all_stiff_output(j+2,i);
+                prism_array(write_line,5) = all_stiff_output(j+3,i);
+                write_line = write_line + 1;
+            end
+
+            % write header
+            xlswrite(filename_variable, prism_array_header, 1, 'A1')
+            % write data
+            xlswrite(filename_variable, prism_array, 1, 'A2')
         end
-        
-        % write header
-        xlswrite(filename_variable, prism_array_header, 1, 'A1')
-        % write data
-        xlswrite(filename_variable, prism_array, 1, 'A2')
     end
-        
     
-    %% GRP: plot FIT, force-elong per subject (groupwise)
+    
+    %% GRP: plot FITS: force-elong per group  //  mean figures
     % ind: plot the fit up until IND cutoff ELONGATION (x axis determines)
     % grp: mean fit curve, up until weakest subject FORCE
     %      reusing variable: stiff_common_force

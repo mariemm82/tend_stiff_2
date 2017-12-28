@@ -246,7 +246,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
 %         col_SOLmsc = 8;
 %         col_GMmsc_Fukunaga = 9;
 %         col_SEE_Fukunaga = 10;
-%      pennation angle = 11;
-% faslen = 12;
+%         pennation angle = 11;
+%         faslen = 12;
     
 end

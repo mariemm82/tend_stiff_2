@@ -18,10 +18,11 @@
 
 
 % MMM TODO!!! 
+% 
+% add to datamaster, GM and AT length at zero ---> send to calc_MTU_len
+% 
 % RUN, check output ind xls arrays + data plots - was reordering
 % successful?
-% 
-% check angle_vars ... _norm - are they needed (GOON)
 % 
 % add plots of the 10 datasets normalized to leg length/elong? see orange
 % lines
@@ -78,9 +79,9 @@ function [] = passiveUS(input_project, input_plot)
     us_zerodispframes = 1; % No of US frames to average as zero displacement
     noraxonfreq = 1500; % sampling frequency of noraxon data
     freq_default = 100; % output frequency for noraxon data without US video (MVC, etc)
-    angle_step_plots = 0.05; % resampled, averaged data extracted every x degrees for PLOTS
     angle_step_stats_abs = 0.5; % every x degrees
-    angle_step_stats_norm = 10;  % every x percent
+    %angle_step_plots = 0.05; % resampled, averaged data extracted every x degrees for PLOTS
+    %angle_step_stats_norm = 10;  % every x percent
 
     % variables for NORM conversion factors - some from manifacturers, some from calibration trials, some calculated from actual data
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b convert_norm_direction_b
@@ -138,56 +139,58 @@ function [] = passiveUS(input_project, input_plot)
     txt_displ = 'Displacement (mm)';
     txt_emg = 'EMG (% of MVC)';
     txt_gonio = 'Gonio angle (°)';
+    
+    angle_max = 30;
+    
+    axis_EMG = [-1 angle_max 0 35];
 
-    axis_EMG = [-1 37 0 35];
+    axis_len_MTU = [-30 angle_max 300 550];
+    axis_el_MTU = [-1 angle_max -1 50];
+    axis_str_MTU = [-1 angle_max -0.5 8];
 
-    axis_len_MTU = [-1 37 300 550];
-    axis_el_MTU = [-1 37 -1 50];
-    axis_str_MTU = [-1 37 -0.5 8];
+    axis_penn_GMFAS = [-30 angle_max 5 30];
+    axis_len_GMFAS = [-30 angle_max 35 80];
+    axis_el_GMFAS = [-1 angle_max -10 30];
+    axis_str_GMFAS = [-1 angle_max -10 25];
 
-    axis_penn_GMFAS = [-1 37 5 20];
-    axis_len_GMFAS = [-1 37 40 95];
-    axis_el_GMFAS = [-1 37 -2 45];
-    axis_str_GMFAS = [-1 37 -1 22];
+    axis_el_SEE_arch = [-1 angle_max -1 40];
+    axis_str_SEE_arch = [-1 angle_max -5 12];
+    axis_len_SEE_arch = [-30 angle_max 300 500];
 
-    axis_el_SEE_arch = [-1 37 -1 40];
-    axis_str_SEE_arch = [-1 37 -0.5 12];
-    axis_len_SEE_arch = [-1 37 250 500];
+    axis_el_GMmsc_arch = [-1 angle_max -0.5 24];
+    axis_str_GMmsc_arch = [-1 angle_max -10 60];
+    axis_len_GMmsc_arch = [-1 angle_max 40 70];
 
-    axis_el_GMmsc_arch = [-1 37 -0.5 24];
-    axis_str_GMmsc_arch = [-1 37 -0.5 40];
-    axis_len_GMmsc_arch = [-1 37 40 70];
+    axis_displ_GMFAS = [-1 angle_max -2 4.5];
+    axis_displ_SOL = [-1 angle_max -3 11];
 
-    axis_displ_GMFAS = [-1 37 -2 4.5];
-    axis_displ_SOL = [-1 37 -3 11];
+    axis_el_SOL = [-1 angle_max 5 40];
+    axis_str_SOL = [-1 angle_max 3 15];
+    axis_len_SOL = [-1 angle_max 150 350];
 
-    axis_el_SOL = [-1 37 -1 15];
-    axis_str_SOL = [-1 37 -0.5 6];
-    axis_len_SOL = [-1 37 0 350];
+    axis_el_GMmsc = [-1 angle_max 5 40];
+    axis_str_GMmsc = [-1 angle_max 0 20];
+    axis_len_GMmsc = [-1 angle_max 120 400];
 
-    axis_el_GMmsc = [-1 37 -0.5 15];
-    axis_str_GMmsc = [-1 37 -0.5 6];
-    axis_len_GMmsc = [-1 37 0 350];
+    axis_el_GMapo = [-1 angle_max -7 3];
+    axis_str_GMapo = [-1 angle_max -6 3];
+    axis_len_GMapo = [-1 angle_max 50 150];
 
-    axis_el_GMapo = [-1 37 -7 3];
-    axis_str_GMapo = [-1 37 -6 3];
-    axis_len_GMapo = [-1 37 0 150];
+    axis_el_GMtend = [-1 angle_max -2 15];
+    axis_str_GMtend = [-1 angle_max -0.5 8];
+    axis_len_GMtend = [-1 angle_max 100 250];
 
-    axis_el_GMtend = [-1 37 -2 15];
-    axis_str_GMtend = [-1 37 -0.5 8];
-    axis_len_GMtend = [-1 37 0 300];
+    axis_el_AT = [-1 angle_max -1 22];
+    axis_str_AT = [-1 angle_max -1 45];
+    axis_len_AT = [-1 angle_max 20 140];
 
-    axis_el_AT = [-1 37 -1 22];
-    axis_str_AT = [-1 37 -1 45];
-    axis_len_AT = [-1 37 0 140];
+    axis_force = [-1 angle_max 0 1900];
+    axis_torque = [-1 angle_max 0 100];
+    % axis_PP = [-5 100 0 105];
 
-    axis_force = [-1 37 0 1900];
-    axis_torque = [-1 37 0 100];
-    axis_PP = [-5 100 0 105];
-
-    axis_ind_elong = [-1 37 -6 30];
-    axis_ind_strain = [-1 37 -6 30];
-    axis_ind_len_MTU = [-1 35 0 550];
+    axis_ind_elong = [-1 angle_max -6 30];
+    axis_ind_strain = [-1 angle_max -6 30];
+    axis_ind_len_MTU = [-1 angle_max 400 550];
 
 
     %% READ max angles and forces from "create_angles_passive.m"
@@ -307,33 +310,33 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_prone(ceil(linestotal),12) = zeros;
         STR_PRE_angle_vars{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+%         STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+%         STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+%         STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         STR_POST_no(ceil(linestotal)) = zeros;
         STR_POST_prone(ceil(linestotal),12) = zeros;
         STR_POST_angle_vars{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+%         STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+%         STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+%         STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         CON_PRE_no(ceil(linestotal)) = zeros;
         CON_PRE_prone(ceil(linestotal),12) = zeros;
         CON_PRE_angle_vars{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+%         CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
+%         CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+%         CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         CON_POST_no(ceil(linestotal)) = zeros;
         CON_POST_prone(ceil(linestotal),12) = zeros;
         CON_POST_angle_vars{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-        CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+%         CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
+%         CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
+%         CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
 
         %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1940,28 +1943,28 @@ function [] = passiveUS(input_project, input_plot)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
-                % all data in ONE cell, NORMALIZED data:
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
-                % spline
-                STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
-                    STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
-                end
+%                 % all data in ONE cell, NORMALIZED data:
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
+%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+% 
+%                 % resample for plots
+% 
+%                 % tweak for NaN EMG data - replace  with 1000
+%                 STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
+%                 % spline
+%                 STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
+%                 % replace 1000 with NaN
+%                 if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
+%                     STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
+%                 end
 
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
                 %% STR POST
@@ -2023,29 +2026,29 @@ function [] = passiveUS(input_project, input_plot)
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
-
-                % all data in ONE cell, NORMALIZED data:
-                STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
-                STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
-                % spline
-                STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
-                    STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
-                end
+% 
+%                 % all data in ONE cell, NORMALIZED data:
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
+%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+% 
+%                 % resample for plots
+% 
+%                 % tweak for NaN EMG data - replace  with 1000
+%                 STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
+%                 % spline
+%                 STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
+%                 % replace 1000 with NaN
+%                 if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
+%                     STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
+%                 end
 
             elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
                 %% CON PRE
@@ -2108,28 +2111,28 @@ function [] = passiveUS(input_project, input_plot)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
-                % all data in ONE cell, NORMALIZED data:
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
-                CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
-                % spline
-                CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
-                    CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
-                end
+%                 % all data in ONE cell, NORMALIZED data:
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
+%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+% 
+%                 % resample for plots
+% 
+%                 % tweak for NaN EMG data - replace  with 1000
+%                 CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
+%                 % spline
+%                 CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
+%                 % replace 1000 with NaN
+%                 if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
+%                     CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
+%                 end
 
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
                 %% CON POST
@@ -2192,28 +2195,28 @@ function [] = passiveUS(input_project, input_plot)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
                     ];
 
-                % all data in ONE cell, NORMALIZED data:
-                CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
-                CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-
-                % resample for plots
-
-                % tweak for NaN EMG data - replace  with 1000
-                CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
-                % spline
-                CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,col_AV_angle)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
-                % replace 1000 with NaN
-                if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
-                    CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
-                end
+%                 % all data in ONE cell, NORMALIZED data:
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
+%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
+% 
+%                 % resample for plots
+% 
+%                 % tweak for NaN EMG data - replace  with 1000
+%                 CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
+%                 % spline
+%                 CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,col_AV_angle)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
+%                 % replace 1000 with NaN
+%                 if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
+%                     CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
+%                 end
 
             end
 
@@ -2313,17 +2316,18 @@ function [] = passiveUS(input_project, input_plot)
     
     %% Truncate angle_vars cells 
         STR_PRE_angle_vars(STR_PRE_count+1:end) = [];
-        STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
         STR_PRE_prone(STR_PRE_count+1:end,:) = [];
         STR_POST_angle_vars(STR_POST_count+1:end) = [];
-        STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
         STR_POST_prone(STR_POST_count+1:end,:) = [];
         CON_PRE_angle_vars(CON_PRE_count+1:end) = [];
-        CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
         CON_PRE_prone(CON_PRE_count+1:end,:) = [];
         CON_POST_angle_vars(CON_POST_count+1:end) = [];
-        CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
         CON_POST_prone(CON_POST_count+1:end,:) = [];
+
+%         STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
+%         STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
+%         CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
+%         CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
         
     
     %% OUTPUT individual trial data XLS 
@@ -2369,19 +2373,17 @@ function [] = passiveUS(input_project, input_plot)
 
 
     
-    % GOON here - what are _norm arrays actually used for?
-    
     if CON_PRE_count > 0 && CON_POST_count > 0 && STR_PRE_count > 0 && STR_POST_count > 0
         
         % preallocate
         STR_PRE_angle_vars_STAT{STR_PRE_count} = zeros;
-        STR_PRE_angle_vars_norm_STAT{STR_PRE_count} = zeros;
+%        STR_PRE_angle_vars_norm_STAT{STR_PRE_count} = zeros;
         STR_POST_angle_vars_STAT{STR_POST_count} = zeros;
-        STR_POST_angle_vars_norm_STAT{STR_POST_count} = zeros;
+%        STR_POST_angle_vars_norm_STAT{STR_POST_count} = zeros;
         CON_PRE_angle_vars_STAT{CON_PRE_count} = zeros;
-        CON_PRE_angle_vars_norm_STAT{CON_PRE_count} = zeros;
+%        CON_PRE_angle_vars_norm_STAT{CON_PRE_count} = zeros;
         CON_POST_angle_vars_STAT{CON_POST_count} = zeros;
-        CON_POST_angle_vars_norm_STAT{CON_POST_count} = zeros;
+%        CON_POST_angle_vars_norm_STAT{CON_POST_count} = zeros;
         
         % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
         loc_commonROM = min([cellfun('length',STR_PRE_angle_vars) cellfun('length',STR_POST_angle_vars) cellfun('length',CON_PRE_angle_vars) cellfun('length',CON_POST_angle_vars)]); % location of largest common ROM
@@ -2393,36 +2395,36 @@ function [] = passiveUS(input_project, input_plot)
             resample_axis = (0:angle_step_stats_abs:STR_PRE_angle_vars{1,i}(loc_commonROM,1))';
             STR_PRE_angle_vars_STAT{i} = STR_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
             STR_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-            resample_axis = 0:angle_step_stats_norm:100;
-            STR_PRE_angle_vars_norm_STAT{i} = STR_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-            STR_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+ %           resample_axis = 0:angle_step_stats_norm:100;
+ %           STR_PRE_angle_vars_norm_STAT{i} = STR_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+ %           STR_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:STR_POST_count
             locate_NaN_cols = ~all(isnan(STR_POST_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:STR_POST_angle_vars{1,i}(loc_commonROM,1))';
             STR_POST_angle_vars_STAT{i} = STR_POST_angle_vars{1,i}(1:numel(resample_axis),:);
             STR_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-            resample_axis = 0:angle_step_stats_norm:100;
-            STR_POST_angle_vars_norm_STAT{i} = STR_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-            STR_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+  %          resample_axis = 0:angle_step_stats_norm:100;
+  %          STR_POST_angle_vars_norm_STAT{i} = STR_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+  %          STR_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_PRE_count
             locate_NaN_cols = ~all(isnan(CON_PRE_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:CON_PRE_angle_vars{1,i}(loc_commonROM,1))';
             CON_PRE_angle_vars_STAT{i} = CON_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
             CON_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-            resample_axis = 0:angle_step_stats_norm:100;
-            CON_PRE_angle_vars_norm_STAT{i} = CON_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-            CON_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+ %           resample_axis = 0:angle_step_stats_norm:100;
+ %           CON_PRE_angle_vars_norm_STAT{i} = CON_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+ %           CON_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_POST_count
             locate_NaN_cols = ~all(isnan(CON_POST_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:CON_POST_angle_vars{1,i}(loc_commonROM,1))';
             CON_POST_angle_vars_STAT{i} = CON_POST_angle_vars{1,i}(1:numel(resample_axis),:);
             CON_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-            resample_axis = 0:angle_step_stats_norm:100;
-            CON_POST_angle_vars_norm_STAT{i} = CON_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-            CON_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
+  %          resample_axis = 0:angle_step_stats_norm:100;
+  %          CON_POST_angle_vars_norm_STAT{i} = CON_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
+  %          CON_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         
         % create table headers (subject numbers)
@@ -2460,27 +2462,27 @@ function [] = passiveUS(input_project, input_plot)
         
         % preallocate output arrays
         cols_abs = size(STR_PRE_angle_vars_STAT{1},1);
-        cols_norm = size(STR_PRE_angle_vars_norm_STAT{1},1);
         rows = STR_PRE_count+STR_POST_count+CON_PRE_count+CON_POST_count + 1; % adding 1 for column for joint angles
         rows_diff = STR_PRE_count+CON_PRE_count + 1; % adding 1 for column for joint angles
         out_arrays_abs(cols_abs,rows) = zeros;
-        out_arrays_norm(cols_norm,rows) = zeros;
         out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
-        out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
+ %       cols_norm = size(STR_PRE_angle_vars_norm_STAT{1},1);
+  %      out_arrays_norm(cols_norm,rows) = zeros;
+   %     out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
 
         % organize and output table for each of the selected variables
         for var = 1:length(out_arrays_input_cols)
             % reset output arrays
             out_arrays_abs(cols_abs,rows) = zeros;
-            out_arrays_norm(cols_norm,rows) = zeros;
             out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
-            out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
+%            out_arrays_norm(cols_norm,rows) = zeros;
+%            out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
             
             % add as first column, joint angles: abs and normalized angles
             out_arrays_abs(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
-            out_arrays_norm(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
             out_arrays_abs_diff(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
-            out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
+%            out_arrays_norm(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
+%            out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
             
             % add values: pre and post
             
@@ -2488,32 +2490,32 @@ function [] = passiveUS(input_project, input_plot)
             for subj = 1:STR_PRE_count
                 % absolute values
                 out_arrays_abs(:,subj+1) = STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                % normalized values
-                out_arrays_norm(:,subj+1) = STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+ %               % normalized values
+ %               out_arrays_norm(:,subj+1) = STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % add STR POST second
             for subj = 1:STR_POST_count
                 % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                % normalized values
-                out_arrays_norm(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+%                % normalized values
+ %               out_arrays_norm(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % add CON PRE
             for subj = 1:CON_PRE_count
                 % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                % normalized values
-                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+%                % normalized values
+%                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % add CON POST
             for subj = 1:CON_POST_count
                 % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                % normalized values
-                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+  %              % normalized values
+  %              out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % add values: difference between PRE-POST
@@ -2522,16 +2524,16 @@ function [] = passiveUS(input_project, input_plot)
                 for subj = 1:STR_PRE_count
                     % absolute values
                     out_arrays_abs_diff(:,subj+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                    % normalized values
-                    out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+%                    % normalized values
+%                    out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
                 end
 
                 % add CON second
                 for subj = 1:CON_PRE_count
                     % absolute values
                     out_arrays_abs_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-                    % normalized values
-                    out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
+   %                 % normalized values
+   %                 out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
                 end
             end
             
@@ -2541,9 +2543,9 @@ function [] = passiveUS(input_project, input_plot)
             filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
-            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyymmdd_HHMM'));
-            writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
+%            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
+%            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyymmdd_HHMM'));
+%            writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
             
             % difference values
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
@@ -2551,11 +2553,11 @@ function [] = passiveUS(input_project, input_plot)
                 filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyymmdd_HHMM'));
                 writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
 
-                out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyymmdd_HHMM'));
-                writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
+%                out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
+%                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyymmdd_HHMM'));
+%                writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
             end
-            clear out_arrays_abs_table out_arrays_norm_table out_arrays_abs_diff_table out_arrays_norm_diff_table
+            clear out_arrays_abs_table out_arrays_abs_diff_table % out_arrays_norm_table out_arrays_norm_diff_table
         end
     end
          
@@ -2995,20 +2997,20 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_angle_vars_mean = nanmean(STR_PRE_angle_vars_mean_tmp, 3);
         %STR_PRE_angle_vars_SD = nanstd(STR_PRE_angle_vars_mean_tmp,1,3);
 
-        %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-        % preallocate
-        STR_PRE_angle_vars_norm_mean_tmp(length(STR_PRE_angle_vars_norm{:,1}),n_o_array_elements,STR_PRE_count) = zeros;
-
-        % STR_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-        for i = 1:STR_PRE_count
-            STR_PRE_angle_vars_norm_mean_tmp(:,:,i) = STR_PRE_angle_vars_norm{i}(:,:);
-        end
-        STR_PRE_angle_vars_norm_mean = nanmean(STR_PRE_angle_vars_norm_mean_tmp, 3);
+%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+% 
+%         % preallocate
+%         STR_PRE_angle_vars_norm_mean_tmp(length(STR_PRE_angle_vars_norm{:,1}),n_o_array_elements,STR_PRE_count) = zeros;
+% 
+%         % STR_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+%         for i = 1:STR_PRE_count
+%             STR_PRE_angle_vars_norm_mean_tmp(:,:,i) = STR_PRE_angle_vars_norm{i}(:,:);
+%         end
+%         STR_PRE_angle_vars_norm_mean = nanmean(STR_PRE_angle_vars_norm_mean_tmp, 3);
 
         %%% clean up
 
-        clear STR_PRE_angle_vars_mean_tmp STR_PRE_angle_vars_norm_mean_tmp
+        clear STR_PRE_angle_vars_mean_tmp % STR_PRE_angle_vars_norm_mean_tmp
     end
 
 
@@ -3032,20 +3034,20 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
         %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
 
-        %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-        % preallocate
-        STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
-
-        % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-        for i = 1:STR_POST_count
-            STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
-        end
-        STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
+%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+% 
+%         % preallocate
+%         STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
+% 
+%         % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+%         for i = 1:STR_POST_count
+%             STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
+%         end
+%         STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
 
         %%% clean up
 
-        clear STR_POST_angle_vars_mean_tmp STR_POST_angle_vars_norm_mean_tmp
+        clear STR_POST_angle_vars_mean_tmp % STR_POST_angle_vars_norm_mean_tmp
     end
 
 
@@ -3069,19 +3071,19 @@ function [] = passiveUS(input_project, input_plot)
         CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
         %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
 
-        %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-        % preallocate
-        CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
-
-        % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-        for i = 1:CON_PRE_count
-            CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
-        end
-        CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
+%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+% 
+%         % preallocate
+%         CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
+% 
+%         % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+%         for i = 1:CON_PRE_count
+%             CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
+%         end
+%         CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
 
         %%% clean up
-        clear CON_PRE_angle_vars_mean_tmp CON_PRE_angle_vars_norm_mean_tmp
+        clear CON_PRE_angle_vars_mean_tmp % CON_PRE_angle_vars_norm_mean_tmp
     end
 
 
@@ -3105,24 +3107,24 @@ function [] = passiveUS(input_project, input_plot)
         CON_POST_angle_vars_mean = nanmean(CON_POST_angle_vars_mean_tmp, 3);
         %CON_POST_angle_vars_SD = nanstd(CON_POST_angle_vars_mean_tmp,1,3);
 
-        %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-
-        % preallocate
-        CON_POST_angle_vars_norm_mean_tmp(length(CON_POST_angle_vars_norm{:,1}),n_o_array_elements,CON_POST_count) = zeros;
-
-        % CON_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-        for i = 1:CON_POST_count
-            CON_POST_angle_vars_norm_mean_tmp(:,:,i) = CON_POST_angle_vars_norm{i}(:,:);
-        end
-        CON_POST_angle_vars_norm_mean = nanmean(CON_POST_angle_vars_norm_mean_tmp, 3);
+%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
+% 
+%         % preallocate
+%         CON_POST_angle_vars_norm_mean_tmp(length(CON_POST_angle_vars_norm{:,1}),n_o_array_elements,CON_POST_count) = zeros;
+% 
+%         % CON_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
+%         for i = 1:CON_POST_count
+%             CON_POST_angle_vars_norm_mean_tmp(:,:,i) = CON_POST_angle_vars_norm{i}(:,:);
+%         end
+%         CON_POST_angle_vars_norm_mean = nanmean(CON_POST_angle_vars_norm_mean_tmp, 3);
 
         %%% clean up
 
-        clear CON_POST_angle_vars_mean_tmp CON_POST_angle_vars_norm_mean_tmp
+        clear CON_POST_angle_vars_mean_tmp % CON_POST_angle_vars_norm_mean_tmp
     end
 
     
-    %% GROUP figures - CREATE PLOTS 
+    %% GROUP figures - CREATE PLOTS /// GROUP PLOTS 
     
         if plot_check
             %% FORCE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3154,7 +3156,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('force vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('force vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3168,11 +3170,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('force vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('force vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3186,7 +3189,8 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Force (N)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3194,7 +3198,7 @@ function [] = passiveUS(input_project, input_plot)
             % - but will not be plot unless equal amount of 4 legs/timepoints - rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND force vs angle - SUBJECT ', CON_PRE_ID{i}, ' PRE-POST');
+                    plottitle = horzcat('IND force vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3213,22 +3217,22 @@ function [] = passiveUS(input_project, input_plot)
 
             
             
-            if plot_check
-                plottitle = horzcat('force vs angle - 4 NORMALIZED');
-                figure('Name',plottitle)
-                hold on
-                plot(STR_PRE_angle_vars_norm_mean(:,col_AV_angle), STR_PRE_angle_vars_norm_mean(:,col_AV_F),'Color',col_lightred,'LineStyle','--','LineWidth',1)
-                plot(STR_POST_angle_vars_norm_mean(:,col_AV_angle), STR_POST_angle_vars_norm_mean(:,col_AV_F),'r','LineStyle','-','LineWidth',1)
-                plot(CON_PRE_angle_vars_norm_mean(:,col_AV_angle), CON_PRE_angle_vars_norm_mean(:,col_AV_F),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
-                plot(CON_POST_angle_vars_norm_mean(:,col_AV_angle), CON_POST_angle_vars_norm_mean(:,col_AV_F),'b','LineStyle','-','LineWidth',1)
-                
-                axis(axis_PP)
-                xlabel('Gonio angle (% of ind max)')
-                ylabel('Force (% of ind max)')
-                title(plottitle,'Interpreter', 'none')
-                legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
-                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
-            end
+%             if plot_check
+%                 plottitle = horzcat('force vs angle - 4 NORMALIZED');
+%                 figure('Name',plottitle)
+%                 hold on
+%                 plot(STR_PRE_angle_vars_norm_mean(:,col_AV_angle), STR_PRE_angle_vars_norm_mean(:,col_AV_F),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+%                 plot(STR_POST_angle_vars_norm_mean(:,col_AV_angle), STR_POST_angle_vars_norm_mean(:,col_AV_F),'r','LineStyle','-','LineWidth',1)
+%                 plot(CON_PRE_angle_vars_norm_mean(:,col_AV_angle), CON_PRE_angle_vars_norm_mean(:,col_AV_F),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+%                 plot(CON_POST_angle_vars_norm_mean(:,col_AV_angle), CON_POST_angle_vars_norm_mean(:,col_AV_F),'b','LineStyle','-','LineWidth',1)
+%                 
+%                 axis(axis_PP)
+%                 xlabel('Gonio angle (% of ind max)')
+%                 ylabel('Force (% of ind max)')
+%                 title(plottitle,'Interpreter', 'none')
+%                 legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+%                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+%             end
             
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -3259,7 +3263,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('torque vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('torque vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3273,11 +3277,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('torque vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('torque vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3291,14 +3296,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Torque (Nm)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND torque vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND torque vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3344,7 +3350,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('free AT length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('free AT length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3358,11 +3364,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('free AT length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3376,7 +3383,8 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3429,7 +3437,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('free AT elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('free AT elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3443,11 +3451,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('free AT elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3461,14 +3470,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3514,7 +3524,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('free AT strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('free AT strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3528,11 +3538,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('free AT strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3546,14 +3557,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3599,7 +3611,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3613,11 +3625,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3631,14 +3644,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3684,7 +3698,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3698,11 +3712,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3716,14 +3731,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3769,7 +3785,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3783,11 +3799,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3801,14 +3818,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3854,7 +3872,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3868,11 +3886,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3886,14 +3905,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3939,7 +3959,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3953,11 +3973,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3971,14 +3992,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4024,7 +4046,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4038,11 +4060,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4056,14 +4079,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4109,7 +4133,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4123,11 +4147,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4141,14 +4166,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4194,7 +4220,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4208,11 +4234,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4226,14 +4253,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4279,7 +4307,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4293,11 +4321,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4311,14 +4340,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle SOL strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4364,7 +4394,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4378,11 +4408,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4396,14 +4427,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4449,7 +4481,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4463,11 +4495,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4481,14 +4514,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4534,7 +4568,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4548,11 +4582,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4566,14 +4601,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4624,7 +4660,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4647,11 +4683,13 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
+
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4674,14 +4712,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4727,7 +4766,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4741,11 +4780,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4759,14 +4799,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4812,7 +4853,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4826,11 +4867,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('muscle GM (architecture) strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4844,14 +4886,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND muscle GM (architecture) strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4902,7 +4945,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from archi) length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4925,11 +4968,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from archi) length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4952,14 +4996,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5005,7 +5050,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5019,11 +5064,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5037,14 +5083,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5090,7 +5137,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('SEE (from archi) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5104,11 +5151,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('SEE (from archi) strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5122,14 +5170,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND SEE (from archi) strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5180,7 +5229,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5203,11 +5252,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5230,14 +5280,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5276,14 +5327,14 @@ function [] = passiveUS(input_project, input_plot)
                 
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5295,13 +5346,14 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5313,16 +5365,17 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5332,7 +5385,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_elong_GMfas_licht),'b','LineStyle','-','LineWidth',1)
                 axis(axis_el_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_elong)
                     title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     print(horzcat('data_plots/',plottitle),'-dpng')
@@ -5361,14 +5414,14 @@ function [] = passiveUS(input_project, input_plot)
                 
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM fascicle strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5380,13 +5433,14 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5398,16 +5452,17 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM fascicle strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5417,7 +5472,7 @@ function [] = passiveUS(input_project, input_plot)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_strain_GMfas_licht),'b','LineStyle','-','LineWidth',1)
                 axis(axis_str_GMFAS)
                 xlabel(txt_gonio)
-                ylabel(txt_length)
+                ylabel(txt_strain)
                     title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     print(horzcat('data_plots/',plottitle),'-dpng')
@@ -5453,12 +5508,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle,'Interpreter', 'none')
-                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southwest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             if plot_check
-                plottitle = horzcat('GM pennation angle vs ankle angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('GM pennation angle vs ankle angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5481,11 +5536,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM pennation angle vs ankle angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('GM pennation angle vs ankle angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5508,14 +5564,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel('Pennation angle (°)')
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM pennation angle vs ankle angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND GM pennation angle vs ankle angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5566,7 +5623,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('MTU length vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('MTU length vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5589,11 +5646,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU length vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('MTU length vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5616,14 +5674,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU length vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5669,7 +5728,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5683,11 +5742,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5701,14 +5761,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU elongation vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5756,7 +5817,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check && plot_old
-                plottitle = horzcat('MTU strain vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('MTU strain vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5770,11 +5831,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check && plot_old
-                plottitle = horzcat('MTU strain vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('MTU strain vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5788,14 +5850,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU strain vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND MTU strain vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5841,7 +5904,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('displacement GMFAS vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('displacement GMFAS vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5855,11 +5918,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('displacement GMFAS vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('displacement GMFAS vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5873,14 +5937,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_displ)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND displacement GMFAS vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND displacement GMFAS vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5896,9 +5961,7 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
-            
-            %% Length +- SD, 3 MTU components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % add LATER if needed - already done for BD study
+
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -5929,7 +5992,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas.med. vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('EMG gas.med. vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5943,11 +6006,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas.med. vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('EMG gas.med. vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5961,14 +6025,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.med. vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG gas.med. vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6014,7 +6079,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas.lat. vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('EMG gas.lat. vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6028,11 +6093,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas.lat. vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('EMG gas.lat. vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6046,14 +6112,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.lat. vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG gas.lat. vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6099,7 +6166,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('EMG soleus vs angle - 2 STRETCH PRE-POST');
+                plottitle = horzcat('EMG soleus vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6113,11 +6180,12 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG soleus vs angle - 3 CONTROL PRE-POST');
+                plottitle = horzcat('EMG soleus vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6131,14 +6199,15 @@ function [] = passiveUS(input_project, input_plot)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
-                %legend
+                fig=get(gca,'Children');
+                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG soleus vs angle - SUBJECT ', CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND EMG soleus vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

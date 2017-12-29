@@ -116,21 +116,23 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     %% Length of free Achilles tendon
 
     % Initial length = measured seated in Achilles machine, ankle 0 degrees, US still images of "railway" across lower leg. Length in mm.
-    AT_SOL_length = str2double(in_resting_at_SOL_length);
+    resting_AT_SOL_length = str2double(in_resting_at_SOL_length);
     % reshape displacement:
     AT_SOL_displ = spline(angle_displ_SOL(:,1), angle_displ_SOL(:,2), angle_array);
-    % convert to length + reshape
-    % OLD, error:    tend_AT_length_array = spline(angle_displ_SOL(:,1), (AT_SOL_length + angle_displ_SOL(:,2)), angle_array);
-    tend_AT_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_SOL_length - AT_SOL_displ;
+    % convert to length + reshape:
+    % SOL MTJ displacement = elongation of proximal portion.
+    % AT elongation = elongation of MTJ - elongation proximal portion.
+    % AT elongation = MTU elongation - SOL MTJ displacement.
+    % AT length = MTU elongation - SOL MTJ displacement + AT length at zero.
+    tend_AT_length_array = (MTU_GM_length-MTU_GM_length(1)) + resting_AT_SOL_length - AT_SOL_displ;
     
     
     %% Length of Achilles tendon up to GM insertion ("GM tendon")
-    AT_GM_length = str2double(in_resting_at_GM_length);
+    resting_AT_GM_length = str2double(in_resting_at_GM_length);
     % reshape displacement:
     AT_GM_displ = spline(angle_displ_GMMTJ(:,1), angle_displ_GMMTJ(:,2), angle_array);
     % convert to length + reshape
-    % OLD, error:     tend_GM_length_array = spline(angle_displ_GMMTJ(:,1), (AT_GM_length + angle_displ_GMMTJ(:,2)), angle_array);
-    tend_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + AT_GM_length - AT_GM_displ;
+    tend_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + resting_AT_GM_length - AT_GM_displ;
     
         
     %% GMFAS displacement: spline to fit same angle array
@@ -204,14 +206,14 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
         ]; 
 
     % calculate additional resting lengths:
-    resting_apo_length = AT_GM_length - AT_SOL_length;
-    resting_msc_GM_length = resting_calf_length_abs - AT_GM_length;
-    resting_msc_SOL_length = MTU_length_HH_SOL_abs_rest - AT_SOL_length;
+    resting_apo_length = resting_AT_GM_length - resting_AT_SOL_length;
+    resting_msc_GM_length = resting_calf_length_abs - resting_AT_GM_length;
+    resting_msc_SOL_length = MTU_length_HH_SOL_abs_rest - resting_AT_SOL_length;
     
     MTU_elong_array = [...
         angle_array ...
-        tend_AT_length_array-AT_SOL_length ...% based on resting free AT length           OLD: tend_AT_length_array-tend_AT_length_array(1)
-        tend_GM_length_array-AT_GM_length ... % based on resting whole AT length          OLD: tend_GM_length_array-tend_GM_length_array(1)
+        tend_AT_length_array-resting_AT_SOL_length ...% based on resting free AT length           OLD: tend_AT_length_array-tend_AT_length_array(1)
+        tend_GM_length_array-resting_AT_GM_length ... % based on resting whole AT length          OLD: tend_GM_length_array-tend_GM_length_array(1)
         MTU_GM_length-resting_calf_length_abs ...        % based on resting leg length
         GMFAS_displ_array ...                            % DISPLACEMENT from GMFAS tracking
         apo_GM_array-resting_apo_length ...              % based on resting length                 OLD: apo_GM_array-apo_GM_array(1)
@@ -223,8 +225,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     
     MTU_strain_array = [ ...
         angle_array ...
-        (tend_AT_length_array-AT_SOL_length) / AT_SOL_length*100 ...
-        (tend_GM_length_array-AT_GM_length) / AT_GM_length*100 ...     
+        (tend_AT_length_array-resting_AT_SOL_length) / resting_AT_SOL_length*100 ...
+        (tend_GM_length_array-resting_AT_GM_length) / resting_AT_GM_length*100 ...     
         (MTU_GM_length-resting_calf_length_abs) / resting_calf_length_abs*100 ...
         zeros(length(angle_array),1) ...                                                  % GMFAS has no length --> no strain
         (apo_GM_array-resting_apo_length) / resting_apo_length*100 ...
@@ -234,7 +236,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     	SEE_strain_Fukunaga ...
         ]; 
     
-    resting_vars = [resting_ankle_angle AT_SOL_length AT_GM_length resting_calf_length_abs resting_msc_GM_length 0 resting_apo_length resting_msc_SOL_length resting_GM_msc_len resting_SEE_len resting_GM_pennation resting_GM_faslen];
+    resting_vars = [resting_ankle_angle resting_AT_SOL_length resting_AT_GM_length resting_calf_length_abs resting_msc_GM_length 0 resting_apo_length resting_msc_SOL_length resting_GM_msc_len resting_SEE_len resting_GM_pennation resting_GM_faslen];
     % matching the following col references:
 %         col_angle_elong = 1;
 %         col_AT = 2;

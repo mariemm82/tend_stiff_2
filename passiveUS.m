@@ -19,17 +19,17 @@
 
 % MMM TODO!!! 
 % 
-% add to datamaster, GM and AT length at zero ---> send to calc_MTU_len
-% 
 % RUN, check output ind xls arrays + data plots - was reordering
 % successful?
 % 
 % add plots of the 10 datasets normalized to leg length/elong? see orange
 % lines
 % 
-% consider further normalization of data
+% Passive trials, fascicle elongation:
+% one additional idea of analysis would have been to look at contributions at given force levels (obtained from passive torques and moment arms)
 % 
-% graphpad output, as for stiff
+% consider further normalization of data
+
 
 
 
@@ -41,6 +41,58 @@ function [] = passiveUS(input_project, input_plot)
     % to restart the script AFTER the lopp (load the looped data from file):
     if input_project == 3
         resume_after_loop = 1;
+            all_passive_output_head = {...
+'Subject', 'Time', 'Side', 'Trial', ...
+'ROM trial (deg)', 'ROM subject (L_R_PRE_POST)', 'ROM common (all subjects)', 'Submax - 10deg', 'Submax - 67perc ROM', ...
+'force at trial ROM (N)', 'force at subject max ROM', 'force at subject max force', 'force at common max ROM', 'force at 0 deg', 'force at 10deg', 'force at 67perc ROM', ...
+'torque at trial ROM (N)', 'torque at subject max ROM', 'torque at subject max torque', 'torque at common max ROM', 'torque at 0 deg', 'torque at 10deg', 'torque at 67perc ROM', ...
+'angle at trial max force (deg)', 'angle at subject max force', 'angle at common max force', 'angle at ind R max force', 'angle at ind L max force', ...            
+'Stiffness at trial ROM (Nmperdeg)', 'Stiffness at subject max ROM', 'Stiffness at common max ROM', 'Stiffness at 15 deg', 'Stiffness at 10deg', 'Stiffness at 67perc ROM',...
+'Stiffness index (Nmper_deg_sq)', ... %', 'length,', 'elong,', 'strain
+'out_length_AT_trial_max', 'out_length_AT_ind_max', 'out_length_AT_common_max', 'out_length_AT_submax_1', 'out_length_AT_submax_2', 'out_length_AT_max',...
+'out_length_GMtend_trial_max', 'out_length_GMtend_ind_max', 'out_length_GMtend_common_max', 'out_length_GMtend_submax_1', 'out_length_GMtend_submax_2', 'out_length_GMtend_max',...
+'out_length_GMapo_trial_max', 'out_length_GMapo_ind_max', 'out_length_GMapo_common_max', 'out_length_GMapo_submax_1', 'out_length_GMapo_submax_2', 'out_length_GMapo_max',...
+'out_length_msc_GM_trial_max', 'out_length_msc_GM_ind_max', 'out_length_msc_GM_common_max', 'out_length_msc_GM_submax_1', 'out_length_msc_GM_submax_2', 'out_length_msc_GM_max',...
+'out_length_msc_SOL_trial_max', 'out_length_msc_SOL_ind_max', 'out_length_msc_SOL_common_max', 'out_length_msc_SOL_submax_1', 'out_length_msc_SOL_submax_2', 'out_length_msc_SOL_max',...
+'out_length_leg_trial_max', 'out_length_leg_ind_max', 'out_length_leg_common_max', 'out_length_leg_submax_1', 'out_length_leg_submax_2', 'out_length_leg_max',...
+'out_length_SEE_Fuku_trial_max', 'out_length_SEE_Fuku_ind_max', 'out_length_SEE_Fuku_common_max', 'out_length_SEE_Fuku_submax_1', 'out_length_SEE_Fuku_submax_2', 'out_length_SEE_Fuku_max',...
+'out_length_msc_GM_Fuku_trial_max', 'out_length_msc_GM_Fuku_ind_max', 'out_length_msc_GM_Fuku_common_max', 'out_length_msc_GM_Fuku_submax_1', 'out_length_msc_GM_Fuku_submax_2', 'out_length_msc_GM_Fuku_max',...
+'out_elong_AT_trial_max', 'out_elong_AT_ind_max', 'out_elong_AT_common_max', 'out_elong_AT_submax_1', 'out_elong_AT_submax_2', 'out_elong_AT_max',...
+'out_elong_GMtend_trial_max', 'out_elong_GMtend_ind_max', 'out_elong_GMtend_common_max', 'out_elong_GMtend_submax_1', 'out_elong_GMtend_submax_2', 'out_elong_GMtend_max',...
+'out_elong_GMapo_trial_max', 'out_elong_GMapo_ind_max', 'out_elong_GMapo_common_max', 'out_elong_GMapo_submax_1', 'out_elong_GMapo_submax_2', 'out_elong_GMapo_max',...
+'out_elong_msc_GM_trial_max', 'out_elong_msc_GM_ind_max', 'out_elong_msc_GM_common_max', 'out_elong_msc_GM_submax_1', 'out_elong_msc_GM_submax_2', 'out_elong_msc_GM_max',...
+'out_elong_msc_SOL_trial_max', 'out_elong_msc_SOL_ind_max', 'out_elong_msc_SOL_common_max', 'out_elong_msc_SOL_submax_1', 'out_elong_msc_SOL_submax_2', 'out_elong_msc_SOL_max',...
+'out_elong_leg_trial_max', 'out_elong_leg_ind_max', 'out_elong_leg_common_max', 'out_elong_leg_submax_1', 'out_elong_leg_submax_2', 'out_elong_leg_max',...
+'out_elong_SEE_Fuku_trial_max', 'out_elong_SEE_Fuku_ind_max', 'out_elong_SEE_Fuku_common_max', 'out_elong_SEE_Fuku_submax_1', 'out_elong_SEE_Fuku_submax_2', 'out_elong_SEE_Fuku_max',...
+'out_elong_msc_GM_Fuku_trial_max', 'out_elong_msc_GM_Fuku_ind_max', 'out_elong_msc_GM_Fuku_common_max', 'out_elong_msc_GM_Fuku_submax_1', 'out_elong_msc_GM_Fuku_submax_2', 'out_elong_msc_GM_Fuku_max',...
+'out_strain_AT_trial_max', 'out_strain_AT_ind_max', 'out_strain_AT_common_max', 'out_strain_AT_submax_1', 'out_strain_AT_submax_2', 'out_strain_AT_max',...
+'out_strain_GMtend_trial_max', 'out_strain_GMtend_ind_max', 'out_strain_GMtend_common_max', 'out_strain_GMtend_submax_1', 'out_strain_GMtend_submax_2', 'out_strain_GMtend_max',...
+'out_strain_GMapo_trial_max', 'out_strain_GMapo_ind_max', 'out_strain_GMapo_common_max', 'out_strain_GMapo_submax_1', 'out_strain_GMapo_submax_2', 'out_strain_GMapo_max',...
+'out_strain_msc_GM_trial_max', 'out_strain_msc_GM_ind_max', 'out_strain_msc_GM_common_max', 'out_strain_msc_GM_submax_1', 'out_strain_msc_GM_submax_2', 'out_strain_msc_GM_max',...
+'out_strain_msc_SOL_trial_max', 'out_strain_msc_SOL_ind_max', 'out_strain_msc_SOL_common_max', 'out_strain_msc_SOL_submax_1', 'out_strain_msc_SOL_submax_2', 'out_strain_msc_SOL_max',...
+'out_strain_leg_trial_max', 'out_strain_leg_ind_max', 'out_strain_leg_common_max', 'out_strain_leg_submax_1', 'out_strain_leg_submax_2', 'out_strain_leg_max',...
+'out_strain_SEE_Fuku_trial_max', 'out_strain_SEE_Fuku_ind_max', 'out_strain_SEE_Fuku_common_max', 'out_strain_SEE_Fuku_submax_1', 'out_strain_SEE_Fuku_submax_2', 'out_strain_SEE_Fuku_max',...
+'out_strain_msc_GM_Fuku_trial_max', 'out_strain_msc_GM_Fuku_ind_max', 'out_strain_msc_GM_Fuku_common_max', 'out_strain_msc_GM_Fuku_submax_1', 'out_strain_msc_GM_Fuku_submax_2', 'out_strain_msc_GM_Fuku_max',... %', 'licht', 'GM', 'and', 'SOL
+'out_norm_length_leg_trial_max', 'out_norm_length_leg_ind_max', 'out_norm_length_leg_common_max', 'out_norm_length_leg_submax_1', 'out_norm_length_leg_submax_2', 'out_norm_length_leg_max',...
+'out_norm_length_SEE_Fuku_trial_max', 'out_norm_length_SEE_Fuku_ind_max', 'out_norm_length_SEE_Fuku_common_max', 'out_norm_length_SEE_Fuku_submax_1', 'out_norm_length_SEE_Fuku_submax_2', 'out_norm_length_SEE_Fuku_max',...
+'out_norm_length_msc_GM_Fuku_trial_max', 'out_norm_length_msc_GM_Fuku_ind_max', 'out_norm_length_msc_GM_Fuku_common_max', 'out_norm_length_msc_GM_Fuku_submax_1', 'out_norm_length_msc_GM_Fuku_submax_2', 'out_norm_length_msc_GM_Fuku_max',...
+'out_norm_elong_leg_trial_max', 'out_norm_elong_leg_ind_max', 'out_norm_elong_leg_common_max', 'out_norm_elong_leg_submax_1', 'out_norm_elong_leg_submax_2', 'out_norm_elong_leg_max',...
+'out_norm_elong_SEE_Fuku_trial_max', 'out_norm_elong_SEE_Fuku_ind_max', 'out_norm_elong_SEE_Fuku_common_max', 'out_norm_elong_SEE_Fuku_submax_1', 'out_norm_elong_SEE_Fuku_submax_2', 'out_norm_elong_SEE_Fuku_max',...
+'out_norm_elong_msc_GM_Fuku_trial_max', 'out_norm_elong_msc_GM_Fuku_ind_max', 'out_norm_elong_msc_GM_Fuku_common_max', 'out_norm_elong_msc_GM_Fuku_submax_1', 'out_norm_elong_msc_GM_Fuku_submax_2', 'out_norm_elong_msc_GM_Fuku_max',...
+'out_norm_elong_percent_SEE_Fuku_trial_max', 'out_norm_elong_percent_SEE_Fuku_ind_max', 'out_norm_elong_percent_SEE_Fuku_common_max', 'out_norm_elong_percent_SEE_Fuku_submax_1', 'out_norm_elong_percent_SEE_Fuku_submax_2', 'out_norm_elong_percent_SEE_Fuku_max',...
+'out_norm_elong_percent_msc_GM_Fuku_trial_max', 'out_norm_elong_percent_msc_GM_Fuku_ind_max', 'out_norm_elong_percent_msc_GM_Fuku_common_max', 'out_norm_elong_percent_msc_GM_Fuku_submax_1', 'out_norm_elong_percent_msc_GM_Fuku_submax_2', 'out_norm_elong_percent_msc_GM_Fuku_max',... %', 'normalized', 'GM', 'fascicle', 'length', 'and', 'elong
+'out_licht_pennation_GM_trial_max', 'out_licht_pennation_GM_ind_max', 'out_licht_pennation_GM_common_max', 'out_licht_pennation_GM_submax_1', 'out_licht_pennation_GM_submax_2', 'out_licht_pennation_GM_max', 'out_licht_pennation_GM_zero',...
+'out_licht_fas_length_GM_trial_max', 'out_licht_fas_length_GM_ind_max', 'out_licht_fas_length_GM_common_max', 'out_licht_fas_length_GM_submax_1', 'out_licht_fas_length_GM_submax_2', 'out_licht_fas_length_GM_max', 'out_licht_fas_length_GM_zero',...
+'out_licht_fas_elong_GM_trial_max', 'out_licht_fas_elong_GM_ind_max', 'out_licht_fas_elong_GM_common_max', 'out_licht_fas_elong_GM_submax_1', 'out_licht_fas_elong_GM_submax_2', 'out_licht_fas_elong_GM_max', 'out_licht_fas_elong_GM_zero',...
+'out_licht_fas_strain_GM_trial_max', 'out_licht_fas_strain_GM_ind_max', 'out_licht_fas_strain_GM_common_max', 'out_licht_fas_strain_GM_submax_1', 'out_licht_fas_strain_GM_submax_2', 'out_licht_fas_strain_GM_max', 'out_licht_fas_strain_GM_zero',...
+'out_licht_pennation_SOL_trial_max', 'out_licht_pennation_SOL_ind_max', 'out_licht_pennation_SOL_common_max', 'out_licht_pennation_SOL_submax_1', 'out_licht_pennation_SOL_submax_2', 'out_licht_pennation_SOL_max', 'out_licht_pennation_SOL_zero',... %', 'normalized', 'SEE', '&', 'muscle
+'out_licht_fas_length_SOL_trial_max', 'out_licht_fas_length_SOL_ind_max', 'out_licht_fas_length_SOL_common_max', 'out_licht_fas_length_SOL_submax_1', 'out_licht_fas_length_SOL_submax_2', 'out_licht_fas_length_SOL_max', 'out_licht_fas_length_SOL_zero',...
+'out_norm_licht_fas_length_GM_trial_max', 'out_norm_licht_fas_length_GM_ind_max', 'out_norm_licht_fas_length_GM_common_max', 'out_norm_licht_fas_length_GM_submax_1', 'out_norm_licht_fas_length_GM_submax_2', 'out_norm_licht_fas_length_GM_max', 'out_norm_licht_fas_length_GM_zero',...
+'out_norm_licht_fas_elong_GM_trial_max', 'out_norm_licht_fas_elong_GM_ind_max', 'out_norm_licht_fas_elong_GM_common_max', 'out_norm_licht_fas_elong_GM_submax_1', 'out_norm_licht_fas_elong_GM_max', 'out_norm_licht_fas_elong_GM_submax_2', 'out_norm_licht_fas_elong_GM_zero',... %', 'misc
+'out_emg_gm_trial_max', 'out_emg_gm_ind_max', 'out_emg_gm_common_max', 'out_emg_gm_submax_1', 'out_emg_gm_submax_2', 'out_emg_gm_max', 'out_emg_gm_zero',...
+'out_emg_gl_trial_max', 'out_emg_gl_ind_max', 'out_emg_gl_common_max', 'out_emg_gl_submax_1', 'out_emg_gl_submax_2', 'out_emg_gl_max', 'out_emg_gl_zero',...
+'out_emg_sol_trial_max', 'out_emg_sol_ind_max', 'out_emg_sol_common_max', 'out_emg_sol_submax_1', 'out_emg_sol_submax_2', 'out_emg_sol_max', 'out_emg_sol_zero',...
+                }; % PROJECTSPECIFIC
     else
         resume_after_loop = 0;
     end
@@ -139,53 +191,58 @@ function [] = passiveUS(input_project, input_plot)
     txt_displ = 'Displacement (mm)';
     txt_emg = 'EMG (% of MVC)';
     txt_gonio = 'Gonio angle (°)';
+    txt_elong_norm = 'Elongation (% of MTU length)';
+    txt_length_norm = 'Length (% of MTU length)';
+    txt_elong_norm_perc = 'Length (% of MTU ELONG)';
     
-    angle_max = 30;
+    angle_max = 35;
     
-    axis_EMG = [-1 angle_max 0 35];
+    axis_EMG = [-1 angle_max 0 25];
 
-    axis_len_MTU = [-30 angle_max 300 550];
-    axis_el_MTU = [-1 angle_max -1 50];
+    axis_displ_GMFAS = [-1 angle_max -3 5];
+
+    axis_el_MTU = [-1 angle_max 10 50];
     axis_str_MTU = [-1 angle_max -0.5 8];
+    axis_len_MTU = [-30 angle_max 400 550];
 
-    axis_penn_GMFAS = [-30 angle_max 5 30];
-    axis_len_GMFAS = [-30 angle_max 35 80];
+    axis_penn_GMFAS = [-30 angle_max 5 25];
+    axis_len_GMFAS = [-30 angle_max 45 90];
     axis_el_GMFAS = [-1 angle_max -10 30];
-    axis_str_GMFAS = [-1 angle_max -10 25];
+    axis_str_GMFAS = [-1 angle_max -10 45];
 
-    axis_el_SEE_arch = [-1 angle_max -1 40];
-    axis_str_SEE_arch = [-1 angle_max -5 12];
+    axis_el_SEE_arch = [-1 angle_max -1 45];
+    axis_str_SEE_arch = [-1 angle_max -2 12];
     axis_len_SEE_arch = [-30 angle_max 300 500];
 
-    axis_el_GMmsc_arch = [-1 angle_max -0.5 24];
+    axis_el_GMmsc_arch = [-1 angle_max -5 35];
     axis_str_GMmsc_arch = [-1 angle_max -10 60];
-    axis_len_GMmsc_arch = [-1 angle_max 40 70];
+    axis_len_GMmsc_arch = [-1 angle_max 50 90];
 
-    axis_displ_GMFAS = [-1 angle_max -2 4.5];
     axis_displ_SOL = [-1 angle_max -3 11];
 
-    axis_el_SOL = [-1 angle_max 5 40];
+    axis_el_GMmsc = [-1 angle_max -5 55];
+    axis_str_GMmsc = [-1 angle_max -1 22];
+    axis_len_GMmsc = [-1 angle_max 200 380];
+
+    axis_el_SOL = [-1 angle_max 10 45];
     axis_str_SOL = [-1 angle_max 3 15];
-    axis_len_SOL = [-1 angle_max 150 350];
-
-    axis_el_GMmsc = [-1 angle_max 5 40];
-    axis_str_GMmsc = [-1 angle_max 0 20];
-    axis_len_GMmsc = [-1 angle_max 120 400];
-
-    axis_el_GMapo = [-1 angle_max -7 3];
-    axis_str_GMapo = [-1 angle_max -6 3];
+    axis_len_SOL = [-1 angle_max 200 310];
+    
+    axis_el_GMapo = [-1 angle_max -10 10];
+    axis_str_GMapo = [-1 angle_max -10 10];
     axis_len_GMapo = [-1 angle_max 50 150];
 
-    axis_el_GMtend = [-1 angle_max -2 15];
-    axis_str_GMtend = [-1 angle_max -0.5 8];
-    axis_len_GMtend = [-1 angle_max 100 250];
+    axis_el_AT = [-1 angle_max -15 20];
+    axis_str_AT = [-1 angle_max -30 30];
+    axis_len_AT = [-1 angle_max 20 100];
 
-    axis_el_AT = [-1 angle_max -1 22];
-    axis_str_AT = [-1 angle_max -1 45];
-    axis_len_AT = [-1 angle_max 20 140];
+    axis_el_GMtend = [-1 angle_max -18 15];
+    axis_str_GMtend = [-1 angle_max -8 10];
+    axis_len_GMtend = [-1 angle_max 120 210];
 
-    axis_force = [-1 angle_max 0 1900];
-    axis_torque = [-1 angle_max 0 100];
+    axis_torque = [-1 angle_max 0 80];
+
+    axis_force = [-1 angle_max 0 1600];
     % axis_PP = [-5 100 0 105];
 
     axis_ind_elong = [-1 angle_max -6 30];
@@ -225,6 +282,7 @@ function [] = passiveUS(input_project, input_plot)
     global dm_ROM_gmfas1_NX dm_ROM_gmfas1_US dm_ROM_gmfas1_US_frame dm_ROM_gmfas2_NX dm_ROM_gmfas2_US dm_ROM_gmfas2_US_frame  dm_ROM_gmfas1_licht dm_ROM_gmfas2_licht
     global dm_MVC_PF %dm_MVC_DF %dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_CPM_sol_US dm_CPM_sol_US_frame 
     global dm_leg_length dm_at_SOL_length dm_at_GM_length dm_GMmsc_penn dm_GMmsc_faslen dm_ankle_angle_rest
+    global dm_at_SOL_zero dm_at_GM_zero
     global at_momentarm 
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
@@ -234,7 +292,7 @@ function [] = passiveUS(input_project, input_plot)
     %% Prepare for LOOP or resume_after_loop
     if resume_after_loop == 1
         % load complete loop data:
-        load all_data_passive
+        load all_data_passive_endloop
         % continue after loop is finished
     else % run loop from beginning
 
@@ -243,42 +301,36 @@ function [] = passiveUS(input_project, input_plot)
         % common arrays for all subjects:
             all_passive_output_head = {...
 'Subject', 'Time', 'Side', 'Trial', ...
-'ROM trial (°)', 'ROM subject (L/R/PRE/POST)', 'ROM common (all subjects)', 'Submax - 10°', 'Submax - 67% ROM', ...
-'force @ trial ROM (N)', 'force @ subject max ROM', 'force @ subject max force', 'force @ common max ROM', 'force @ 0 deg', 'force @ 10°', 'force @ 67% ROM', ...
-'torque @ trial ROM (N)', 'torque @ subject max ROM', 'torque @ subject max torque', 'torque @ common max ROM', 'torque @ 0 deg', 'torque @ 10°', 'torque @ 67% ROM', ...
-'angle @ trial max force (°)', 'angle @ subject max force', 'angle @ common max force', 'angle @ ind R max force', 'angle @ ind L max force', ...            
-'Stiffness @ trial ROM (Nm/°)', 'Stiffness @ subject max ROM', 'Stiffness @ common max ROM', 'Stiffness @ 15 deg', 'Stiffness @ 10°', 'Stiffness @ 67% ROM',...
-'Stiffness index (Nm/°^2)', ... %', 'length,', 'elong,', 'strain
+'ROM trial (deg)', 'ROM subject (L_R_PRE_POST)', 'ROM common (all subjects)', 'Submax - 10deg', 'Submax - 67perc ROM', ...
+'force at trial ROM (N)', 'force at subject max ROM', 'force at subject max force', 'force at common max ROM', 'force at 0 deg', 'force at 10deg', 'force at 67perc ROM', ...
+'torque at trial ROM (N)', 'torque at subject max ROM', 'torque at subject max torque', 'torque at common max ROM', 'torque at 0 deg', 'torque at 10deg', 'torque at 67perc ROM', ...
+'angle at trial max force (deg)', 'angle at subject max force', 'angle at common max force', 'angle at ind R max force', 'angle at ind L max force', ...            
+'Stiffness at trial ROM (Nmperdeg)', 'Stiffness at subject max ROM', 'Stiffness at common max ROM', 'Stiffness at 15 deg', 'Stiffness at 10deg', 'Stiffness at 67perc ROM',...
+'Stiffness index (Nmper_deg_sq)', ... %', 'length,', 'elong,', 'strain
 'out_length_AT_trial_max', 'out_length_AT_ind_max', 'out_length_AT_common_max', 'out_length_AT_submax_1', 'out_length_AT_submax_2', 'out_length_AT_max',...
 'out_length_GMtend_trial_max', 'out_length_GMtend_ind_max', 'out_length_GMtend_common_max', 'out_length_GMtend_submax_1', 'out_length_GMtend_submax_2', 'out_length_GMtend_max',...
-'out_length_leg_trial_max', 'out_length_leg_ind_max', 'out_length_leg_common_max', 'out_length_leg_submax_1', 'out_length_leg_submax_2', 'out_length_leg_max',...
 'out_length_GMapo_trial_max', 'out_length_GMapo_ind_max', 'out_length_GMapo_common_max', 'out_length_GMapo_submax_1', 'out_length_GMapo_submax_2', 'out_length_GMapo_max',...
 'out_length_msc_GM_trial_max', 'out_length_msc_GM_ind_max', 'out_length_msc_GM_common_max', 'out_length_msc_GM_submax_1', 'out_length_msc_GM_submax_2', 'out_length_msc_GM_max',...
 'out_length_msc_SOL_trial_max', 'out_length_msc_SOL_ind_max', 'out_length_msc_SOL_common_max', 'out_length_msc_SOL_submax_1', 'out_length_msc_SOL_submax_2', 'out_length_msc_SOL_max',...
+'out_length_leg_trial_max', 'out_length_leg_ind_max', 'out_length_leg_common_max', 'out_length_leg_submax_1', 'out_length_leg_submax_2', 'out_length_leg_max',...
 'out_length_SEE_Fuku_trial_max', 'out_length_SEE_Fuku_ind_max', 'out_length_SEE_Fuku_common_max', 'out_length_SEE_Fuku_submax_1', 'out_length_SEE_Fuku_submax_2', 'out_length_SEE_Fuku_max',...
 'out_length_msc_GM_Fuku_trial_max', 'out_length_msc_GM_Fuku_ind_max', 'out_length_msc_GM_Fuku_common_max', 'out_length_msc_GM_Fuku_submax_1', 'out_length_msc_GM_Fuku_submax_2', 'out_length_msc_GM_Fuku_max',...
 'out_elong_AT_trial_max', 'out_elong_AT_ind_max', 'out_elong_AT_common_max', 'out_elong_AT_submax_1', 'out_elong_AT_submax_2', 'out_elong_AT_max',...
 'out_elong_GMtend_trial_max', 'out_elong_GMtend_ind_max', 'out_elong_GMtend_common_max', 'out_elong_GMtend_submax_1', 'out_elong_GMtend_submax_2', 'out_elong_GMtend_max',...
-'out_elong_leg_trial_max', 'out_elong_leg_ind_max', 'out_elong_leg_common_max', 'out_elong_leg_submax_1', 'out_elong_leg_submax_2', 'out_elong_leg_max',...
 'out_elong_GMapo_trial_max', 'out_elong_GMapo_ind_max', 'out_elong_GMapo_common_max', 'out_elong_GMapo_submax_1', 'out_elong_GMapo_submax_2', 'out_elong_GMapo_max',...
 'out_elong_msc_GM_trial_max', 'out_elong_msc_GM_ind_max', 'out_elong_msc_GM_common_max', 'out_elong_msc_GM_submax_1', 'out_elong_msc_GM_submax_2', 'out_elong_msc_GM_max',...
 'out_elong_msc_SOL_trial_max', 'out_elong_msc_SOL_ind_max', 'out_elong_msc_SOL_common_max', 'out_elong_msc_SOL_submax_1', 'out_elong_msc_SOL_submax_2', 'out_elong_msc_SOL_max',...
+'out_elong_leg_trial_max', 'out_elong_leg_ind_max', 'out_elong_leg_common_max', 'out_elong_leg_submax_1', 'out_elong_leg_submax_2', 'out_elong_leg_max',...
 'out_elong_SEE_Fuku_trial_max', 'out_elong_SEE_Fuku_ind_max', 'out_elong_SEE_Fuku_common_max', 'out_elong_SEE_Fuku_submax_1', 'out_elong_SEE_Fuku_submax_2', 'out_elong_SEE_Fuku_max',...
 'out_elong_msc_GM_Fuku_trial_max', 'out_elong_msc_GM_Fuku_ind_max', 'out_elong_msc_GM_Fuku_common_max', 'out_elong_msc_GM_Fuku_submax_1', 'out_elong_msc_GM_Fuku_submax_2', 'out_elong_msc_GM_Fuku_max',...
 'out_strain_AT_trial_max', 'out_strain_AT_ind_max', 'out_strain_AT_common_max', 'out_strain_AT_submax_1', 'out_strain_AT_submax_2', 'out_strain_AT_max',...
 'out_strain_GMtend_trial_max', 'out_strain_GMtend_ind_max', 'out_strain_GMtend_common_max', 'out_strain_GMtend_submax_1', 'out_strain_GMtend_submax_2', 'out_strain_GMtend_max',...
-'out_strain_leg_trial_max', 'out_strain_leg_ind_max', 'out_strain_leg_common_max', 'out_strain_leg_submax_1', 'out_strain_leg_submax_2', 'out_strain_leg_max',...
 'out_strain_GMapo_trial_max', 'out_strain_GMapo_ind_max', 'out_strain_GMapo_common_max', 'out_strain_GMapo_submax_1', 'out_strain_GMapo_submax_2', 'out_strain_GMapo_max',...
 'out_strain_msc_GM_trial_max', 'out_strain_msc_GM_ind_max', 'out_strain_msc_GM_common_max', 'out_strain_msc_GM_submax_1', 'out_strain_msc_GM_submax_2', 'out_strain_msc_GM_max',...
 'out_strain_msc_SOL_trial_max', 'out_strain_msc_SOL_ind_max', 'out_strain_msc_SOL_common_max', 'out_strain_msc_SOL_submax_1', 'out_strain_msc_SOL_submax_2', 'out_strain_msc_SOL_max',...
+'out_strain_leg_trial_max', 'out_strain_leg_ind_max', 'out_strain_leg_common_max', 'out_strain_leg_submax_1', 'out_strain_leg_submax_2', 'out_strain_leg_max',...
 'out_strain_SEE_Fuku_trial_max', 'out_strain_SEE_Fuku_ind_max', 'out_strain_SEE_Fuku_common_max', 'out_strain_SEE_Fuku_submax_1', 'out_strain_SEE_Fuku_submax_2', 'out_strain_SEE_Fuku_max',...
 'out_strain_msc_GM_Fuku_trial_max', 'out_strain_msc_GM_Fuku_ind_max', 'out_strain_msc_GM_Fuku_common_max', 'out_strain_msc_GM_Fuku_submax_1', 'out_strain_msc_GM_Fuku_submax_2', 'out_strain_msc_GM_Fuku_max',... %', 'licht', 'GM', 'and', 'SOL
-'out_licht_faslen_GM_trial_max', 'out_licht_faslen_GM_ind_max', 'out_licht_faslen_GM_common_max', 'out_licht_faslen_GM_submax_1', 'out_licht_faslen_GM_submax_2', 'out_licht_faslen_GM_max', 'out_licht_faslen_GM_zero',...
-'out_licht_pennation_GM_trial_max', 'out_licht_pennation_GM_ind_max', 'out_licht_pennation_GM_common_max', 'out_licht_pennation_GM_submax_1', 'out_licht_pennation_GM_submax_2', 'out_licht_pennation_GM_max', 'out_licht_pennation_GM_zero',...
-'out_licht_fas_elong_GM_trial_max', 'out_licht_fas_elong_GM_ind_max', 'out_licht_fas_elong_GM_common_max', 'out_licht_fas_elong_GM_submax_1', 'out_licht_fas_elong_GM_submax_2', 'out_licht_fas_elong_GM_max', 'out_licht_fas_elong_GM_zero',...
-'out_licht_fas_strain_GM_trial_max', 'out_licht_fas_strain_GM_ind_max', 'out_licht_fas_strain_GM_common_max', 'out_licht_fas_strain_GM_submax_1', 'out_licht_fas_strain_GM_submax_2', 'out_licht_fas_strain_GM_max', 'out_licht_fas_strain_GM_zero',...
-'out_licht_faslen_SOL_trial_max', 'out_licht_faslen_SOL_ind_max', 'out_licht_faslen_SOL_common_max', 'out_licht_faslen_SOL_submax_1', 'out_licht_faslen_SOL_submax_2', 'out_licht_faslen_SOL_max', 'out_licht_faslen_SOL_zero',...
-'out_licht_pennation_SOL_trial_max', 'out_licht_pennation_SOL_ind_max', 'out_licht_pennation_SOL_common_max', 'out_licht_pennation_SOL_submax_1', 'out_licht_pennation_SOL_submax_2', 'out_licht_pennation_SOL_max', 'out_licht_pennation_SOL_zero',... %', 'normalized', 'SEE', '&', 'muscle
 'out_norm_length_leg_trial_max', 'out_norm_length_leg_ind_max', 'out_norm_length_leg_common_max', 'out_norm_length_leg_submax_1', 'out_norm_length_leg_submax_2', 'out_norm_length_leg_max',...
 'out_norm_length_SEE_Fuku_trial_max', 'out_norm_length_SEE_Fuku_ind_max', 'out_norm_length_SEE_Fuku_common_max', 'out_norm_length_SEE_Fuku_submax_1', 'out_norm_length_SEE_Fuku_submax_2', 'out_norm_length_SEE_Fuku_max',...
 'out_norm_length_msc_GM_Fuku_trial_max', 'out_norm_length_msc_GM_Fuku_ind_max', 'out_norm_length_msc_GM_Fuku_common_max', 'out_norm_length_msc_GM_Fuku_submax_1', 'out_norm_length_msc_GM_Fuku_submax_2', 'out_norm_length_msc_GM_Fuku_max',...
@@ -287,6 +339,12 @@ function [] = passiveUS(input_project, input_plot)
 'out_norm_elong_msc_GM_Fuku_trial_max', 'out_norm_elong_msc_GM_Fuku_ind_max', 'out_norm_elong_msc_GM_Fuku_common_max', 'out_norm_elong_msc_GM_Fuku_submax_1', 'out_norm_elong_msc_GM_Fuku_submax_2', 'out_norm_elong_msc_GM_Fuku_max',...
 'out_norm_elong_percent_SEE_Fuku_trial_max', 'out_norm_elong_percent_SEE_Fuku_ind_max', 'out_norm_elong_percent_SEE_Fuku_common_max', 'out_norm_elong_percent_SEE_Fuku_submax_1', 'out_norm_elong_percent_SEE_Fuku_submax_2', 'out_norm_elong_percent_SEE_Fuku_max',...
 'out_norm_elong_percent_msc_GM_Fuku_trial_max', 'out_norm_elong_percent_msc_GM_Fuku_ind_max', 'out_norm_elong_percent_msc_GM_Fuku_common_max', 'out_norm_elong_percent_msc_GM_Fuku_submax_1', 'out_norm_elong_percent_msc_GM_Fuku_submax_2', 'out_norm_elong_percent_msc_GM_Fuku_max',... %', 'normalized', 'GM', 'fascicle', 'length', 'and', 'elong
+'out_licht_pennation_GM_trial_max', 'out_licht_pennation_GM_ind_max', 'out_licht_pennation_GM_common_max', 'out_licht_pennation_GM_submax_1', 'out_licht_pennation_GM_submax_2', 'out_licht_pennation_GM_max', 'out_licht_pennation_GM_zero',...
+'out_licht_fas_length_GM_trial_max', 'out_licht_fas_length_GM_ind_max', 'out_licht_fas_length_GM_common_max', 'out_licht_fas_length_GM_submax_1', 'out_licht_fas_length_GM_submax_2', 'out_licht_fas_length_GM_max', 'out_licht_fas_length_GM_zero',...
+'out_licht_fas_elong_GM_trial_max', 'out_licht_fas_elong_GM_ind_max', 'out_licht_fas_elong_GM_common_max', 'out_licht_fas_elong_GM_submax_1', 'out_licht_fas_elong_GM_submax_2', 'out_licht_fas_elong_GM_max', 'out_licht_fas_elong_GM_zero',...
+'out_licht_fas_strain_GM_trial_max', 'out_licht_fas_strain_GM_ind_max', 'out_licht_fas_strain_GM_common_max', 'out_licht_fas_strain_GM_submax_1', 'out_licht_fas_strain_GM_submax_2', 'out_licht_fas_strain_GM_max', 'out_licht_fas_strain_GM_zero',...
+'out_licht_pennation_SOL_trial_max', 'out_licht_pennation_SOL_ind_max', 'out_licht_pennation_SOL_common_max', 'out_licht_pennation_SOL_submax_1', 'out_licht_pennation_SOL_submax_2', 'out_licht_pennation_SOL_max', 'out_licht_pennation_SOL_zero',... %', 'normalized', 'SEE', '&', 'muscle
+'out_licht_fas_length_SOL_trial_max', 'out_licht_fas_length_SOL_ind_max', 'out_licht_fas_length_SOL_common_max', 'out_licht_fas_length_SOL_submax_1', 'out_licht_fas_length_SOL_submax_2', 'out_licht_fas_length_SOL_max', 'out_licht_fas_length_SOL_zero',...
 'out_norm_licht_fas_length_GM_trial_max', 'out_norm_licht_fas_length_GM_ind_max', 'out_norm_licht_fas_length_GM_common_max', 'out_norm_licht_fas_length_GM_submax_1', 'out_norm_licht_fas_length_GM_submax_2', 'out_norm_licht_fas_length_GM_max', 'out_norm_licht_fas_length_GM_zero',...
 'out_norm_licht_fas_elong_GM_trial_max', 'out_norm_licht_fas_elong_GM_ind_max', 'out_norm_licht_fas_elong_GM_common_max', 'out_norm_licht_fas_elong_GM_submax_1', 'out_norm_licht_fas_elong_GM_max', 'out_norm_licht_fas_elong_GM_submax_2', 'out_norm_licht_fas_elong_GM_zero',... %', 'misc
 'out_emg_gm_trial_max', 'out_emg_gm_ind_max', 'out_emg_gm_common_max', 'out_emg_gm_submax_1', 'out_emg_gm_submax_2', 'out_emg_gm_max', 'out_emg_gm_zero',...
@@ -821,7 +879,7 @@ function [] = passiveUS(input_project, input_plot)
             %10      GM muscle Fukunaga (longitudinal aspect of one fascicle)
 
             % column choices MTU ELONGATION / LENGTH / STRAIN
-            col_angle_MTU = 1;
+            col_angle = 1;
             col_AT = 2;
             col_GMtend = 3;
             col_leg = 4;
@@ -856,7 +914,7 @@ function [] = passiveUS(input_project, input_plot)
             end
 
             % calculate MTU lengths
-            [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle);
+            [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle, dm_at_SOL_zero{line}, dm_at_GM_zero{line});
              % NB: prone_vars contains pennation angle and fascicle length
              %     in the columns normally used for GMFAS displacement and apo
 
@@ -909,11 +967,11 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND MTU length vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_leg),'LineWidth',2,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
-                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',2,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
-                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
-                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
-                plot(MTU_length_array(:,col_angle_MTU),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+                plot(MTU_length_array(:,col_angle),MTU_length_array(:,col_leg),'LineWidth',2,'Color','blue') % AT + GM apo + GM msc = full GM MTU / calf length
+                plot(MTU_length_array(:,col_angle),MTU_length_array(:,col_SEE_Fukunaga),'LineWidth',2,'LineStyle','-','Color','red') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_length_array(:,col_angle),MTU_length_array(:,col_SOLmsc)+MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','black') % AT + SOL msc = SOL MTU
+                plot(MTU_length_array(:,col_angle),MTU_length_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % AT + GM apo = GM tendon (linear)
+                plot(MTU_length_array(:,col_angle),MTU_length_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
                 % plot vertical lines to show color coding of subsequent figs
                 plot([0,0], [MTU_length_array(1,col_leg), MTU_length_array(1,col_GMtend)],'Color','cyan')
                 plot([1,1], [MTU_length_array(1,col_leg), MTU_length_array(1,col_SEE_Fukunaga)],'Color','cyan','LineWidth',2)
@@ -932,13 +990,13 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND MTU elongation (linear) vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
-                plot(MTU_elong_array(:,col_angle_elong),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_GMFAS),'LineWidth',0.8,'Color','yellow') % GM FAS displacement
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
                 axis(axis_ind_elong)
                 ylabel(txt_elong)
                 xlabel(txt_gonio)
@@ -953,9 +1011,9 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND MTU elongation (Lichtwark) vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-                plot(MTU_elong_array(:,col_angle_MTU),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_elong_array(:,col_angle),MTU_elong_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,4),'LineWidth',1.5,'Color','yellow') % fascicle elongation
                 axis(axis_ind_elong)
                 ylabel(txt_elong)
@@ -968,12 +1026,12 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND MTU strain vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
-                plot(MTU_strain_array(:,col_angle_elong),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_AT),'LineWidth',0.8,'Color','green') % AT
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_GMtend),'LineWidth',0.8,'Color','red') % GM tendon = AT + GM apo
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_GMmsc),'LineWidth',0.8,'Color','cyan') % GM msc
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
                 if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
                     text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
                 end
@@ -991,9 +1049,9 @@ function [] = passiveUS(input_project, input_plot)
                 plottitle = horzcat('IND MTU strain v2 vs angle, ', subject_id);
                 figure('Name',plottitle);
                 hold on
-                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
-                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
-                plot(MTU_strain_array(:,col_angle_MTU),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_leg),'LineWidth',1.5,'Color','blue') % MTU = AT + GM apo + msc
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_SEE_Fukunaga),'LineWidth',1.5,'Color','red','LineStyle','-') % SEE from anthropometry Lichtwark/Fukunaga
+                plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_GMmsc_Fukunaga),'LineWidth',1.5,'Color','cyan','LineStyle','-') % GM msc from anthropometry Lichtwark/Fukunaga
                 plot(data_GMFAS_licht_GM(:,1), data_GMFAS_licht_GM(:,5),'LineWidth',1.5,'Color','yellow') % fascicle strain
                 axis(axis_ind_strain)
                 ylabel(txt_strain)
@@ -1126,7 +1184,7 @@ function [] = passiveUS(input_project, input_plot)
 %             out_displ_GMFAS_submax_2 = data_GMFAS(loc_frame,col_displ); 
             
             % elongations, strains @ trial max
-            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_trial_max,1,'first'); 
+            loc_frame = find(MTU_elong_array(:,col_angle)>=out_ROM_trial_max,1,'first'); 
             
             out_elong_AT_trial_max = MTU_elong_array(loc_frame,col_AT);
             out_elong_GMtend_trial_max = MTU_elong_array(loc_frame,col_GMtend);
@@ -1165,7 +1223,7 @@ function [] = passiveUS(input_project, input_plot)
             out_norm_elong_percent_SEE_Fuku_trial_max = MTU_normalized(loc_frame,8);
             
             % elongations, strains @ ind max
-            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_ind_max,1,'first'); 
+            loc_frame = find(MTU_elong_array(:,col_angle)>=out_ROM_ind_max,1,'first'); 
             out_elong_AT_ind_max = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_ind_max = MTU_elong_array(loc_frame,col_GMtend);
             out_elong_leg_ind_max = MTU_elong_array(loc_frame,col_leg);
@@ -1202,7 +1260,7 @@ function [] = passiveUS(input_project, input_plot)
             out_norm_elong_percent_SEE_Fuku_ind_max = MTU_normalized(loc_frame,8);
 
             % elongations, strains @ common max
-            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_common_max,1,'first'); 
+            loc_frame = find(MTU_elong_array(:,col_angle)>=out_ROM_common_max,1,'first'); 
             out_elong_AT_common_max = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_common_max = MTU_elong_array(loc_frame,col_GMtend);
             out_elong_leg_common_max = MTU_elong_array(loc_frame,col_leg);
@@ -1239,7 +1297,7 @@ function [] = passiveUS(input_project, input_plot)
             out_norm_elong_percent_SEE_Fuku_common_max = MTU_normalized(loc_frame,8);
 
             % elongations, strains @ submax1
-            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_1,1,'first'); 
+            loc_frame = find(MTU_elong_array(:,col_angle)>=out_ROM_submax_1,1,'first'); 
             if isempty(loc_frame)
                 out_elong_AT_submax_1 = NaN;
                 out_elong_GMtend_submax_1 = NaN;
@@ -1310,7 +1368,7 @@ function [] = passiveUS(input_project, input_plot)
             end
                 
             % elongations, strains @ submax2
-            loc_frame = find(MTU_elong_array(:,col_angle_MTU)>=out_ROM_submax_2,1,'first');
+            loc_frame = find(MTU_elong_array(:,col_angle)>=out_ROM_submax_2,1,'first');
             out_elong_AT_submax_2 = MTU_elong_array(loc_frame,col_AT); 
             out_elong_GMtend_submax_2 = MTU_elong_array(loc_frame,col_GMtend);
             out_elong_leg_submax_2 = MTU_elong_array(loc_frame,col_leg);
@@ -1426,17 +1484,17 @@ function [] = passiveUS(input_project, input_plot)
             % preallocate / set zero values:
 
             % --- GM pennation and fascicle length
-            out_licht_faslen_GM_trial_max = NaN;
+            out_licht_fas_length_GM_trial_max = NaN;
             out_licht_pennation_GM_trial_max = NaN;
-            out_licht_faslen_GM_common_max = NaN;
+            out_licht_fas_length_GM_common_max = NaN;
             out_licht_pennation_GM_common_max = NaN;
-            out_licht_faslen_GM_ind_max = NaN;
+            out_licht_fas_length_GM_ind_max = NaN;
             out_licht_pennation_GM_ind_max = NaN;
-            out_licht_faslen_GM_zero = NaN;
+            out_licht_fas_length_GM_zero = NaN;
             out_licht_pennation_GM_zero = NaN;
-            out_licht_faslen_GM_submax_1 = NaN;
+            out_licht_fas_length_GM_submax_1 = NaN;
             out_licht_pennation_GM_submax_1 = NaN;
-            out_licht_faslen_GM_submax_2 = NaN;
+            out_licht_fas_length_GM_submax_2 = NaN;
             out_licht_pennation_GM_submax_2 = NaN;
             
             % --- GM elongation and strain
@@ -1468,17 +1526,17 @@ function [] = passiveUS(input_project, input_plot)
             out_norm_licht_fas_length_GM_submax_2 = NaN;
             
             % --- SOL pennation and fascicle length
-            out_licht_faslen_SOL_trial_max = NaN;
+            out_licht_fas_length_SOL_trial_max = NaN;
             out_licht_pennation_SOL_trial_max = NaN;
-            out_licht_faslen_SOL_common_max = NaN;
+            out_licht_fas_length_SOL_common_max = NaN;
             out_licht_pennation_SOL_common_max = NaN;
-            out_licht_faslen_SOL_ind_max = NaN;
+            out_licht_fas_length_SOL_ind_max = NaN;
             out_licht_pennation_SOL_ind_max = NaN;
-            out_licht_faslen_SOL_zero = NaN;
+            out_licht_fas_length_SOL_zero = NaN;
             out_licht_pennation_SOL_zero = NaN;
-            out_licht_faslen_SOL_submax_1 = NaN;
+            out_licht_fas_length_SOL_submax_1 = NaN;
             out_licht_pennation_SOL_submax_1 = NaN;
-            out_licht_faslen_SOL_submax_2 = NaN;
+            out_licht_fas_length_SOL_submax_2 = NaN;
             out_licht_pennation_SOL_submax_2 = NaN;
 
 
@@ -1487,7 +1545,7 @@ function [] = passiveUS(input_project, input_plot)
             else
                 % at trial max angle:
                 loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
-                out_licht_faslen_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
+                out_licht_fas_length_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen);
                 out_licht_pennation_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn);
                 out_licht_fas_elong_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                 out_licht_fas_strain_GM_trial_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1495,13 +1553,13 @@ function [] = passiveUS(input_project, input_plot)
                 out_norm_licht_fas_length_GM_trial_max = MTU_normalized_licht(loc_frame,2);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                     out_licht_pennation_SOL_trial_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
 
                 % at individual max angle (across sides/timepoints):
                 loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
-                out_licht_faslen_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_fas_length_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                 out_licht_pennation_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
                 out_licht_fas_elong_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                 out_licht_fas_strain_GM_ind_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1509,13 +1567,13 @@ function [] = passiveUS(input_project, input_plot)
                 out_norm_licht_fas_length_GM_ind_max = MTU_normalized_licht(loc_frame,2);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                     out_licht_pennation_SOL_ind_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
 
                 % at subject common max angle:
                 loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
-                out_licht_faslen_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_fas_length_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                 out_licht_pennation_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
                 out_licht_fas_elong_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                 out_licht_fas_strain_GM_common_max = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1523,13 +1581,13 @@ function [] = passiveUS(input_project, input_plot)
                 out_norm_licht_fas_length_GM_common_max = MTU_normalized_licht(loc_frame,2);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                     out_licht_pennation_SOL_common_max = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
 
                 % at zero angle:
                 loc_frame = find(data_GMFAS(:,2)>=0,1,'first'); 
-                out_licht_faslen_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_fas_length_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                 out_licht_pennation_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
                 out_licht_fas_elong_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                 out_licht_fas_strain_GM_zero = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1537,7 +1595,7 @@ function [] = passiveUS(input_project, input_plot)
                 out_norm_licht_fas_length_GM_zero = MTU_normalized_licht(loc_frame,2);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                     out_licht_pennation_SOL_zero = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
 
@@ -1548,7 +1606,7 @@ function [] = passiveUS(input_project, input_plot)
                     %
                 else
                     % GM data exist:
-                    out_licht_faslen_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                     out_licht_pennation_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
                     out_licht_fas_elong_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                     out_licht_fas_strain_GM_submax_1 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1556,14 +1614,14 @@ function [] = passiveUS(input_project, input_plot)
                     out_norm_licht_fas_length_GM_submax_1 = MTU_normalized_licht(loc_frame,2);
                     if (length((data_GMFAS_licht_SOL)) == 3) == 0
                         % SOL exists
-                        out_licht_faslen_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                        out_licht_fas_length_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                         out_licht_pennation_SOL_submax_1 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                     end
                 end
 
                 % at submax_2 angle:
                 loc_frame = find(data_GMFAS(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
-                out_licht_faslen_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
+                out_licht_fas_length_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_faslen); 
                 out_licht_pennation_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_penn); 
                 out_licht_fas_elong_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_elong);
                 out_licht_fas_strain_GM_submax_2 = data_GMFAS_licht_GM(loc_frame,col_licht_fas_strain);
@@ -1571,7 +1629,7 @@ function [] = passiveUS(input_project, input_plot)
                 out_norm_licht_fas_length_GM_submax_2 = MTU_normalized_licht(loc_frame,2);
                 if (length((data_GMFAS_licht_SOL)) == 3) == 0
                     % SOL exists
-                    out_licht_faslen_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
+                    out_licht_fas_length_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_faslen); 
                     out_licht_pennation_SOL_submax_2 = data_GMFAS_licht_SOL(loc_frame,col_licht_penn); 
                 end
             end
@@ -1604,16 +1662,16 @@ function [] = passiveUS(input_project, input_plot)
             out_length_SEE_Fuku_max = max(MTU_length_array(:,col_SEE_Fukunaga));
             out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
 
-            out_licht_faslen_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
+            out_licht_fas_length_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
             out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
             out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_elong));
             out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_strain));
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
-                out_licht_faslen_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
+                out_licht_fas_length_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
                 out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
             else
-                out_licht_faslen_SOL_max = NaN;
+                out_licht_fas_length_SOL_max = NaN;
                 out_licht_pennation_SOL_max = NaN;
             end
             
@@ -1867,17 +1925,17 @@ function [] = passiveUS(input_project, input_plot)
             col_AV_strain_GMfas_licht = 36;
             col_AV_pennation_GMfas_licht = 37;
             
-            col_AV_norm_len_leg_fuku = 38;
+            col_AV_norm_len_leg = 38;
             col_AV_norm_len_msc_GM_fuku = 39;
             col_AV_norm_len_SEE_fuku = 40;
-            col_AV_norm_elong_leg_fuku = 41;
+            col_AV_norm_elong_leg = 41;
             col_AV_norm_elong_msc_GM_fuku = 42;
             col_AV_norm_elong_SEE_fuku = 43;
             col_AV_norm_percent_elong_msc_GM_fuku = 44;
             col_AV_norm_percent_elong_SEE_fuku = 45;
             
-            col_AV_norm_len_GMfas_fuku = 46; % MTU_normalized_licht
-            col_AV_norm_elong_GMfas_fuku = 47; % MTU_normalized_licht
+            col_AV_norm_len_GMfas_licht = 46; % MTU_normalized_licht
+            col_AV_norm_elong_GMfas_licht = 47; % MTU_normalized_licht
             
             %col_AV_angle2 = 48; %(repeated - without normalization)
 
@@ -2248,38 +2306,30 @@ function [] = passiveUS(input_project, input_plot)
                 ...                % length, elong, strain
                 out_length_AT_trial_max out_length_AT_ind_max out_length_AT_common_max out_length_AT_submax_1 out_length_AT_submax_2 out_length_AT_max...
                 out_length_GMtend_trial_max out_length_GMtend_ind_max out_length_GMtend_common_max out_length_GMtend_submax_1 out_length_GMtend_submax_2 out_length_GMtend_max...
-                out_length_leg_trial_max out_length_leg_ind_max out_length_leg_common_max out_length_leg_submax_1 out_length_leg_submax_2 out_length_leg_max...
                 out_length_GMapo_trial_max out_length_GMapo_ind_max out_length_GMapo_common_max out_length_GMapo_submax_1 out_length_GMapo_submax_2 out_length_GMapo_max...
                 out_length_msc_GM_trial_max out_length_msc_GM_ind_max out_length_msc_GM_common_max out_length_msc_GM_submax_1 out_length_msc_GM_submax_2 out_length_msc_GM_max...
                 out_length_msc_SOL_trial_max out_length_msc_SOL_ind_max out_length_msc_SOL_common_max out_length_msc_SOL_submax_1 out_length_msc_SOL_submax_2 out_length_msc_SOL_max...
+                out_length_leg_trial_max out_length_leg_ind_max out_length_leg_common_max out_length_leg_submax_1 out_length_leg_submax_2 out_length_leg_max...
                 out_length_SEE_Fuku_trial_max out_length_SEE_Fuku_ind_max out_length_SEE_Fuku_common_max out_length_SEE_Fuku_submax_1 out_length_SEE_Fuku_submax_2 out_length_SEE_Fuku_max...
                 out_length_msc_GM_Fuku_trial_max out_length_msc_GM_Fuku_ind_max out_length_msc_GM_Fuku_common_max out_length_msc_GM_Fuku_submax_1 out_length_msc_GM_Fuku_submax_2 out_length_msc_GM_Fuku_max...
                 ...
                 out_elong_AT_trial_max out_elong_AT_ind_max out_elong_AT_common_max out_elong_AT_submax_1 out_elong_AT_submax_2 out_elong_AT_max...
                 out_elong_GMtend_trial_max out_elong_GMtend_ind_max out_elong_GMtend_common_max out_elong_GMtend_submax_1 out_elong_GMtend_submax_2 out_elong_GMtend_max...
-                out_elong_leg_trial_max out_elong_leg_ind_max out_elong_leg_common_max out_elong_leg_submax_1 out_elong_leg_submax_2 out_elong_leg_max...
                 out_elong_GMapo_trial_max out_elong_GMapo_ind_max out_elong_GMapo_common_max out_elong_GMapo_submax_1 out_elong_GMapo_submax_2 out_elong_GMapo_max...
                 out_elong_msc_GM_trial_max out_elong_msc_GM_ind_max out_elong_msc_GM_common_max out_elong_msc_GM_submax_1 out_elong_msc_GM_submax_2 out_elong_msc_GM_max...
                 out_elong_msc_SOL_trial_max out_elong_msc_SOL_ind_max out_elong_msc_SOL_common_max out_elong_msc_SOL_submax_1 out_elong_msc_SOL_submax_2 out_elong_msc_SOL_max...
+                out_elong_leg_trial_max out_elong_leg_ind_max out_elong_leg_common_max out_elong_leg_submax_1 out_elong_leg_submax_2 out_elong_leg_max...
                 out_elong_SEE_Fuku_trial_max out_elong_SEE_Fuku_ind_max out_elong_SEE_Fuku_common_max out_elong_SEE_Fuku_submax_1 out_elong_SEE_Fuku_submax_2 out_elong_SEE_Fuku_max...
                 out_elong_msc_GM_Fuku_trial_max out_elong_msc_GM_Fuku_ind_max out_elong_msc_GM_Fuku_common_max out_elong_msc_GM_Fuku_submax_1 out_elong_msc_GM_Fuku_submax_2 out_elong_msc_GM_Fuku_max...
                 ...
                 out_strain_AT_trial_max out_strain_AT_ind_max out_strain_AT_common_max out_strain_AT_submax_1 out_strain_AT_submax_2 out_strain_AT_max...
                 out_strain_GMtend_trial_max out_strain_GMtend_ind_max out_strain_GMtend_common_max out_strain_GMtend_submax_1 out_strain_GMtend_submax_2 out_strain_GMtend_max...
-                out_strain_leg_trial_max out_strain_leg_ind_max out_strain_leg_common_max out_strain_leg_submax_1 out_strain_leg_submax_2 out_strain_leg_max...
                 out_strain_GMapo_trial_max out_strain_GMapo_ind_max out_strain_GMapo_common_max out_strain_GMapo_submax_1 out_strain_GMapo_submax_2 out_strain_GMapo_max...
                 out_strain_msc_GM_trial_max out_strain_msc_GM_ind_max out_strain_msc_GM_common_max out_strain_msc_GM_submax_1 out_strain_msc_GM_submax_2 out_strain_msc_GM_max...
                 out_strain_msc_SOL_trial_max out_strain_msc_SOL_ind_max out_strain_msc_SOL_common_max out_strain_msc_SOL_submax_1 out_strain_msc_SOL_submax_2 out_strain_msc_SOL_max...
+                out_strain_leg_trial_max out_strain_leg_ind_max out_strain_leg_common_max out_strain_leg_submax_1 out_strain_leg_submax_2 out_strain_leg_max...
                 out_strain_SEE_Fuku_trial_max out_strain_SEE_Fuku_ind_max out_strain_SEE_Fuku_common_max out_strain_SEE_Fuku_submax_1 out_strain_SEE_Fuku_submax_2 out_strain_SEE_Fuku_max...
                 out_strain_msc_GM_Fuku_trial_max out_strain_msc_GM_Fuku_ind_max out_strain_msc_GM_Fuku_common_max out_strain_msc_GM_Fuku_submax_1 out_strain_msc_GM_Fuku_submax_2 out_strain_msc_GM_Fuku_max...
-                ...                % licht GM and SOL
-                out_licht_faslen_GM_trial_max out_licht_faslen_GM_ind_max out_licht_faslen_GM_common_max out_licht_faslen_GM_submax_1 out_licht_faslen_GM_submax_2 out_licht_faslen_GM_max out_licht_faslen_GM_zero ...
-                out_licht_pennation_GM_trial_max out_licht_pennation_GM_ind_max out_licht_pennation_GM_common_max out_licht_pennation_GM_submax_1 out_licht_pennation_GM_submax_2 out_licht_pennation_GM_max out_licht_pennation_GM_zero...
-                out_licht_fas_elong_GM_trial_max out_licht_fas_elong_GM_ind_max out_licht_fas_elong_GM_common_max out_licht_fas_elong_GM_submax_1 out_licht_fas_elong_GM_submax_2 out_licht_fas_elong_GM_max out_licht_fas_elong_GM_zero...
-                out_licht_fas_strain_GM_trial_max out_licht_fas_strain_GM_ind_max out_licht_fas_strain_GM_common_max out_licht_fas_strain_GM_submax_1 out_licht_fas_strain_GM_submax_2 out_licht_fas_strain_GM_max out_licht_fas_strain_GM_zero...
-                ...
-                out_licht_faslen_SOL_trial_max out_licht_faslen_SOL_ind_max out_licht_faslen_SOL_common_max  out_licht_faslen_SOL_submax_1 out_licht_faslen_SOL_submax_2 out_licht_faslen_SOL_max out_licht_faslen_SOL_zero...
-                out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2 out_licht_pennation_SOL_max out_licht_pennation_SOL_zero...
                 ...                % normalized SEE & muscle
                 out_norm_length_leg_trial_max out_norm_length_leg_ind_max out_norm_length_leg_common_max out_norm_length_leg_submax_1 out_norm_length_leg_submax_2 out_norm_length_leg_max...
                 out_norm_length_SEE_Fuku_trial_max out_norm_length_SEE_Fuku_ind_max out_norm_length_SEE_Fuku_common_max out_norm_length_SEE_Fuku_submax_1 out_norm_length_SEE_Fuku_submax_2 out_norm_length_SEE_Fuku_max...
@@ -2291,6 +2341,14 @@ function [] = passiveUS(input_project, input_plot)
                 ...
                 out_norm_elong_percent_SEE_Fuku_trial_max out_norm_elong_percent_SEE_Fuku_ind_max out_norm_elong_percent_SEE_Fuku_common_max out_norm_elong_percent_SEE_Fuku_submax_1 out_norm_elong_percent_SEE_Fuku_submax_2 out_norm_elong_percent_SEE_Fuku_max...
                 out_norm_elong_percent_msc_GM_Fuku_trial_max out_norm_elong_percent_msc_GM_Fuku_ind_max out_norm_elong_percent_msc_GM_Fuku_common_max out_norm_elong_percent_msc_GM_Fuku_submax_1 out_norm_elong_percent_msc_GM_Fuku_submax_2 out_norm_elong_percent_msc_GM_Fuku_max...
+                ...                % licht GM and SOL
+                out_licht_pennation_GM_trial_max out_licht_pennation_GM_ind_max out_licht_pennation_GM_common_max out_licht_pennation_GM_submax_1 out_licht_pennation_GM_submax_2 out_licht_pennation_GM_max out_licht_pennation_GM_zero...
+                out_licht_fas_length_GM_trial_max out_licht_fas_length_GM_ind_max out_licht_fas_length_GM_common_max out_licht_fas_length_GM_submax_1 out_licht_fas_length_GM_submax_2 out_licht_fas_length_GM_max out_licht_fas_length_GM_zero ...
+                out_licht_fas_elong_GM_trial_max out_licht_fas_elong_GM_ind_max out_licht_fas_elong_GM_common_max out_licht_fas_elong_GM_submax_1 out_licht_fas_elong_GM_submax_2 out_licht_fas_elong_GM_max out_licht_fas_elong_GM_zero...
+                out_licht_fas_strain_GM_trial_max out_licht_fas_strain_GM_ind_max out_licht_fas_strain_GM_common_max out_licht_fas_strain_GM_submax_1 out_licht_fas_strain_GM_submax_2 out_licht_fas_strain_GM_max out_licht_fas_strain_GM_zero...
+                ...
+                out_licht_pennation_SOL_trial_max out_licht_pennation_SOL_ind_max out_licht_pennation_SOL_common_max out_licht_pennation_SOL_submax_1 out_licht_pennation_SOL_submax_2 out_licht_pennation_SOL_max out_licht_pennation_SOL_zero...
+                out_licht_fas_length_SOL_trial_max out_licht_fas_length_SOL_ind_max out_licht_fas_length_SOL_common_max  out_licht_fas_length_SOL_submax_1 out_licht_fas_length_SOL_submax_2 out_licht_fas_length_SOL_max out_licht_fas_length_SOL_zero...
                 ...                % normalized GM fascicle length and elong
                 out_norm_licht_fas_length_GM_trial_max out_norm_licht_fas_length_GM_ind_max out_norm_licht_fas_length_GM_common_max out_norm_licht_fas_length_GM_submax_1 out_norm_licht_fas_length_GM_submax_2  out_norm_licht_fas_length_GM_max out_norm_licht_fas_length_GM_zero ...
                 out_norm_licht_fas_elong_GM_trial_max out_norm_licht_fas_elong_GM_ind_max out_norm_licht_fas_elong_GM_common_max  out_norm_licht_fas_elong_GM_submax_1 out_norm_licht_fas_elong_GM_max out_norm_licht_fas_elong_GM_submax_2 out_norm_licht_fas_elong_GM_zero...
@@ -2350,7 +2408,45 @@ function [] = passiveUS(input_project, input_plot)
     
     
     %% OUTPUT individual trial data for Graphpad Prism 
-    % MMM TODO
+    filename_basis = strcat('data_output/prism_passive/all_passive', '_');   % datestr(now, 'yyyymmdd_HHMM'), '_');
+    
+    % create output file header
+    j = 1;
+    prism_array_head2 = strcat(all_passive_output_txt{j,2}, '_', all_passive_output_txt{j,4});
+    prism_array_head3 = strcat(all_passive_output_txt{j+1,2}, '_', all_passive_output_txt{j+1,4});
+    prism_array_head4 = strcat(all_passive_output_txt{j+2,2}, '_', all_passive_output_txt{j+2,4});
+    prism_array_head5 = strcat(all_passive_output_txt{j+3,2}, '_', all_passive_output_txt{j+3,4});
+    prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
+    
+    % for each output variable (column):
+    loc_relevant_var = 1; % first column of all_passive_data that has data for prism
+    for i = loc_relevant_var:size(all_passive_output,2)
+        
+        % reset
+        prism_array(1:size(all_passive_output_txt,1)/4,1:5) = NaN;
+        write_line = 1;
+        
+        % filename with output variable
+        filename_variable = strcat(filename_basis, all_passive_output_head{i+4}, '.xlsx');
+        
+        for j = 1:4:size(all_passive_output_txt,1) % number of lines / trials
+            
+            % column 1 = subject no
+            prism_array(write_line,1) = str2double(all_passive_output_txt{j,1});
+            
+            % column 2-5 = data
+            prism_array(write_line,2) = all_passive_output(j,i);
+            prism_array(write_line,3) = all_passive_output(j+1,i);
+            prism_array(write_line,4) = all_passive_output(j+2,i);
+            prism_array(write_line,5) = all_passive_output(j+3,i);
+            write_line = write_line + 1;
+        end
+        
+        % write header
+        xlswrite(filename_variable, prism_array_header, 1, 'A1')
+        % write data
+        xlswrite(filename_variable, prism_array, 1, 'A2')
+    end
 
     
     %% OUTPUT group arrays for STATS, TO FILE
@@ -2540,7 +2636,7 @@ function [] = passiveUS(input_project, input_plot)
             % create tables and save as file
             % pre and post values
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
+            filename_output = strcat('data_output/F24_arrays_angle_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
 %            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
@@ -2550,7 +2646,7 @@ function [] = passiveUS(input_project, input_plot)
             % difference values
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
                 out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyymmdd_HHMM'));
+                filename_output = strcat('data_output/F24_arrays_angle', out_arrays_input_labels{var} , '_abs_P-P_', datestr(now, 'yyyymmdd_HHMM'));
                 writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
 
 %                out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
@@ -2590,7 +2686,10 @@ function [] = passiveUS(input_project, input_plot)
  %               STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(end,j));
             end
         end
+        
         % calculate mean and SD of max values across subjects
+        
+        % misc
         STR_PRE_ROM_mean = mean(STR_PRE_max(:,col_AV_angle));
         STR_PRE_ROM_SD = std(STR_PRE_max(:,col_AV_angle));
         STR_PRE_F_mean = mean(STR_PRE_max(:,col_AV_F));
@@ -2602,6 +2701,7 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_EMG_sol_mean = nanmean(STR_PRE_max(:,col_AV_EMG_sol));
         STR_PRE_EMG_sol_SD = nanstd(STR_PRE_max(:,col_AV_EMG_sol));
 
+        % elong
         STR_PRE_elong_AT_mean = mean(STR_PRE_max(:,col_AV_elong_AT)); % elong AT
         STR_PRE_elong_AT_SD = std(STR_PRE_max(:,col_AV_elong_AT));
         STR_PRE_elong_GMtend_mean = mean(STR_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
@@ -2617,6 +2717,7 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_elong_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_elong_msc_SOL)); 
         STR_PRE_elong_msc_SOL_SD = std(STR_PRE_max(:,col_AV_elong_msc_SOL));
 
+        % length
         STR_PRE_L_at_SOL_mean = mean(STR_PRE_max(:,col_AV_len_AT)); % L AT
         STR_PRE_L_at_SOL_SD = std(STR_PRE_max(:,col_AV_len_AT));
         STR_PRE_L_at_GM_mean = mean(STR_PRE_max(:,col_AV_len_GMtend)); % L GM tend
@@ -2631,6 +2732,7 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_L_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_len_msc_SOL)); 
         STR_PRE_L_msc_SOL_SD = std(STR_PRE_max(:,col_AV_len_msc_SOL));
 
+        % strain
         STR_PRE_strain_at_SOL_mean = mean(STR_PRE_max(:,col_AV_strain_AT)); % L AT
         STR_PRE_strain_at_SOL_SD = std(STR_PRE_max(:,col_AV_strain_AT));
         STR_PRE_strain_at_GM_mean = mean(STR_PRE_max(:,col_AV_strain_GMtend)); % L GM tend
@@ -2645,15 +2747,18 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_strain_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_strain_msc_SOL)); 
         STR_PRE_strain_msc_SOL_SD = std(STR_PRE_max(:,col_AV_strain_msc_SOL));
 
+        % elong licht msc/SEE
         STR_PRE_elong_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_elong_msc_GM_fuku)); 
         STR_PRE_elong_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_elong_msc_GM_fuku));
-        STR_PRE_elong_tend_GM_licht_mean = mean(STR_PRE_max(:,col_AV_elong_SEE_fuku)); 
-        STR_PRE_elong_tend_GM_licht_SD = std(STR_PRE_max(:,col_AV_elong_SEE_fuku));
+        STR_PRE_elong_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_elong_SEE_fuku)); 
+        STR_PRE_elong_SEE_licht_SD = std(STR_PRE_max(:,col_AV_elong_SEE_fuku));
+        % strain licht msc/SEE
         STR_PRE_strain_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_strain_msc_GM_fuku)); 
         STR_PRE_strain_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_strain_msc_GM_fuku));
-        STR_PRE_strain_tend_GM_licht_mean = mean(STR_PRE_max(:,col_AV_strain_SEE_fuku)); 
-        STR_PRE_strain_tend_GM_licht_SD = std(STR_PRE_max(:,col_AV_strain_SEE_fuku));
-
+        STR_PRE_strain_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_strain_SEE_fuku)); 
+        STR_PRE_strain_SEE_licht_SD = std(STR_PRE_max(:,col_AV_strain_SEE_fuku));
+        
+        %licht fascicle
         STR_PRE_length_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
         STR_PRE_length_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
         STR_PRE_pennation_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_pennation_GMfas_licht)); 
@@ -2663,11 +2768,39 @@ function [] = passiveUS(input_project, input_plot)
         STR_PRE_strain_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
         STR_PRE_strain_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
 
+        % length licht msc/SEE
         STR_PRE_length_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_len_msc_GM_fuku)); 
         STR_PRE_length_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_len_msc_GM_fuku));
-        STR_PRE_length_tend_GM_licht_mean = mean(STR_PRE_max(:,col_AV_len_SEE_fuku)); 
-        STR_PRE_length_tend_GM_licht_SD = std(STR_PRE_max(:,col_AV_len_SEE_fuku));
+        STR_PRE_length_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_len_SEE_fuku)); 
+        STR_PRE_length_SEE_licht_SD = std(STR_PRE_max(:,col_AV_len_SEE_fuku));
 
+        % normalized 10 vars
+        STR_PRE_length_norm_MTU_mean = mean(STR_PRE_max(:,col_AV_norm_len_leg)); % L leg
+        STR_PRE_length_norm_MTU_SD = std(STR_PRE_max(:,col_AV_norm_len_leg));
+        STR_PRE_elong_norm_MTU_mean = mean(STR_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
+        STR_PRE_elong_norm_MTU_SD = std(STR_PRE_max(:,col_AV_norm_elong_leg));
+
+        STR_PRE_length_norm_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        STR_PRE_length_norm_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
+        STR_PRE_elong_norm_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        STR_PRE_elong_norm_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
+
+        STR_PRE_length_norm_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
+        STR_PRE_length_norm_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_SEE_fuku));
+        STR_PRE_elong_norm_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
+        STR_PRE_elong_norm_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku));
+
+        STR_PRE_elong_norm_percent_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        STR_PRE_elong_norm_percent_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        STR_PRE_elong_norm_percent_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        STR_PRE_elong_norm_percent_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
+
+        STR_PRE_length_norm_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_PRE_length_norm_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_PRE_elong_norm_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_PRE_elong_norm_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        
+        % misc
         STR_PRE_torque_mean = mean(STR_PRE_max(:,col_AV_T));
         STR_PRE_torque_SD = std(STR_PRE_max(:,col_AV_T));
         % determine common angle range
@@ -2768,6 +2901,31 @@ function [] = passiveUS(input_project, input_plot)
         STR_POST_length_tend_GM_licht_mean = mean(STR_POST_max(:,col_AV_len_SEE_fuku)); 
         STR_POST_length_tend_GM_licht_SD = std(STR_POST_max(:,col_AV_len_SEE_fuku));
 
+        STR_POST_length_norm_MTU_mean = mean(STR_POST_max(:,col_AV_norm_len_leg)); % L leg
+        STR_POST_length_norm_MTU_SD = std(STR_POST_max(:,col_AV_norm_len_leg));
+        STR_POST_elong_norm_MTU_mean = mean(STR_POST_max(:,col_AV_norm_elong_leg)); % elong leg
+        STR_POST_elong_norm_MTU_SD = std(STR_POST_max(:,col_AV_norm_elong_leg));
+
+        STR_POST_length_norm_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        STR_POST_length_norm_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku));
+        STR_POST_elong_norm_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        STR_POST_elong_norm_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
+
+        STR_POST_length_norm_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_SEE_fuku)); 
+        STR_POST_length_norm_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_len_SEE_fuku));
+        STR_POST_elong_norm_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
+        STR_POST_elong_norm_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_SEE_fuku));
+
+        STR_POST_elong_norm_percent_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        STR_POST_elong_norm_percent_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        STR_POST_elong_norm_percent_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        STR_POST_elong_norm_percent_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
+
+        STR_POST_length_norm_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_POST_length_norm_GMfas_licht_SD = std(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_POST_elong_norm_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_POST_elong_norm_GMfas_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        
         STR_POST_torque_mean = mean(STR_POST_max(:,col_AV_T));
         STR_POST_torque_SD = std(STR_POST_max(:,col_AV_T));
         % determine common angle range
@@ -2868,6 +3026,31 @@ function [] = passiveUS(input_project, input_plot)
         CON_PRE_length_tend_GM_licht_mean = mean(CON_PRE_max(:,col_AV_len_SEE_fuku)); 
         CON_PRE_length_tend_GM_licht_SD = std(CON_PRE_max(:,col_AV_len_SEE_fuku));
 
+        CON_PRE_length_norm_MTU_mean = mean(CON_PRE_max(:,col_AV_norm_len_leg)); % L leg
+        CON_PRE_length_norm_MTU_SD = std(CON_PRE_max(:,col_AV_norm_len_leg));
+        CON_PRE_elong_norm_MTU_mean = mean(CON_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
+        CON_PRE_elong_norm_MTU_SD = std(CON_PRE_max(:,col_AV_norm_elong_leg));
+
+        CON_PRE_length_norm_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        CON_PRE_length_norm_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
+        CON_PRE_elong_norm_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        CON_PRE_elong_norm_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
+
+        CON_PRE_length_norm_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
+        CON_PRE_length_norm_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_SEE_fuku));
+        CON_PRE_elong_norm_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
+        CON_PRE_elong_norm_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku));
+
+        CON_PRE_elong_norm_percent_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        CON_PRE_elong_norm_percent_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        CON_PRE_elong_norm_percent_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        CON_PRE_elong_norm_percent_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
+
+        CON_PRE_length_norm_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_PRE_length_norm_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_PRE_elong_norm_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_PRE_elong_norm_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        
         CON_PRE_torque_mean = mean(CON_PRE_max(:,col_AV_T));
         CON_PRE_torque_SD = std(CON_PRE_max(:,col_AV_T));
         % determine common angle range
@@ -2968,6 +3151,31 @@ function [] = passiveUS(input_project, input_plot)
         CON_POST_length_tend_GM_licht_mean = mean(CON_POST_max(:,col_AV_len_SEE_fuku)); 
         CON_POST_length_tend_GM_licht_SD = std(CON_POST_max(:,col_AV_len_SEE_fuku));
 
+        CON_POST_length_norm_MTU_mean = mean(CON_POST_max(:,col_AV_norm_len_leg)); % L leg
+        CON_POST_length_norm_MTU_SD = std(CON_POST_max(:,col_AV_norm_len_leg));
+        CON_POST_elong_norm_MTU_mean = mean(CON_POST_max(:,col_AV_norm_elong_leg)); % elong leg
+        CON_POST_elong_norm_MTU_SD = std(CON_POST_max(:,col_AV_norm_elong_leg));
+
+        CON_POST_length_norm_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        CON_POST_length_norm_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku));
+        CON_POST_elong_norm_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        CON_POST_elong_norm_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
+
+        CON_POST_length_norm_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_SEE_fuku)); 
+        CON_POST_length_norm_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_len_SEE_fuku));
+        CON_POST_elong_norm_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
+        CON_POST_elong_norm_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_SEE_fuku));
+
+        CON_POST_elong_norm_percent_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        CON_POST_elong_norm_percent_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        CON_POST_elong_norm_percent_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        CON_POST_elong_norm_percent_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
+
+        CON_POST_length_norm_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_POST_length_norm_GMfas_licht_SD = std(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_POST_elong_norm_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_POST_elong_norm_GMfas_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        
         CON_POST_torque_mean = mean(CON_POST_max(:,col_AV_T));
         CON_POST_torque_SD = std(CON_POST_max(:,col_AV_T));
         % determine common angle range
@@ -3171,7 +3379,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel('Force (N)')
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3190,7 +3398,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel('Force (N)')
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3214,9 +3422,7 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
-
-            
-            
+           
 %             if plot_check
 %                 plottitle = horzcat('force vs angle - 4 NORMALIZED');
 %                 figure('Name',plottitle)
@@ -3233,6 +3439,8 @@ function [] = passiveUS(input_project, input_plot)
 %                 legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
 %                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
 %             end
+
+
             
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -3278,7 +3486,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel('Torque (Nm)')
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3297,7 +3505,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel('Torque (Nm)')
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3365,7 +3573,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3384,7 +3592,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3452,7 +3660,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3471,7 +3679,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3539,7 +3747,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3558,7 +3766,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3626,7 +3834,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3645,7 +3853,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3713,7 +3921,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3732,7 +3940,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3800,7 +4008,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3819,7 +4027,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3887,7 +4095,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3906,7 +4114,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -3974,7 +4182,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -3993,7 +4201,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4061,7 +4269,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4080,7 +4288,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4148,7 +4356,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4167,7 +4375,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4235,7 +4443,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4254,7 +4462,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4322,7 +4530,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4341,7 +4549,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4409,7 +4617,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4428,7 +4636,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4496,7 +4704,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4515,7 +4723,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4583,7 +4791,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4602,7 +4810,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4646,10 +4854,10 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_msc_GM_licht_mean, CON_POST_length_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMmsc_Fukunaga),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMmsc_Fukunaga),'bo')
+                plot(STR_PRE_prone_mean(col_angle),STR_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle),STR_POST_prone_mean(col_GMmsc_Fukunaga),'ro')
+                plot(CON_PRE_prone_mean(col_angle),CON_PRE_prone_mean(col_GMmsc_Fukunaga), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle),CON_POST_prone_mean(col_GMmsc_Fukunaga),'bo')
                 
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
@@ -4672,11 +4880,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMmsc_Fukunaga),'square')
+                    plot(STR_PRE_prone(i,col_angle),STR_PRE_prone(i,col_GMmsc_Fukunaga),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMmsc_Fukunaga),'o')
+                    plot(STR_POST_prone(i,col_angle),STR_POST_prone(i,col_GMmsc_Fukunaga),'o')
                 end
 
                 axis(axis_len_GMmsc_arch)
@@ -4701,11 +4909,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMmsc_Fukunaga),'square')
+                    plot(CON_PRE_prone(i,col_angle),CON_PRE_prone(i,col_GMmsc_Fukunaga),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMmsc_Fukunaga),'o')
+                    plot(CON_POST_prone(i,col_angle),CON_POST_prone(i,col_GMmsc_Fukunaga),'o')
                 end
                 
                 axis(axis_len_GMmsc_arch)
@@ -4781,7 +4989,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4800,7 +5008,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4868,7 +5076,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -4887,7 +5095,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -4911,7 +5119,7 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) length vs angle - 1');
                 figure('Name',plottitle)
@@ -4921,8 +5129,8 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_len_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                 plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_len_SEE_fuku),'b','LineStyle','-','LineWidth',1)
                 
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_length_tend_GM_licht_mean, STR_PRE_length_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_SEE_licht_mean, STR_PRE_length_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
                 herrorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
                 errorbar(STR_POST_ROM_mean, STR_POST_length_tend_GM_licht_mean, STR_POST_length_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
@@ -4931,10 +5139,10 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_tend_GM_licht_mean, CON_POST_length_tend_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_SEE_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_SEE_Fukunaga),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_SEE_Fukunaga),'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_SEE_Fukunaga),'bo')
+                plot(STR_PRE_prone_mean(col_angle),STR_PRE_prone_mean(col_SEE_Fukunaga), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle),STR_POST_prone_mean(col_SEE_Fukunaga),'ro')
+                plot(CON_PRE_prone_mean(col_angle),CON_PRE_prone_mean(col_SEE_Fukunaga),'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle),CON_POST_prone_mean(col_SEE_Fukunaga),'bo')
 
                 axis(axis_len_SEE_arch)
                 xlabel(txt_gonio)
@@ -4957,11 +5165,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_SEE_Fukunaga),'square')
+                    plot(STR_PRE_prone(i,col_angle),STR_PRE_prone(i,col_SEE_Fukunaga),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_SEE_Fukunaga),'o')
+                    plot(STR_POST_prone(i,col_angle),STR_POST_prone(i,col_SEE_Fukunaga),'o')
                 end
                 
                 axis(axis_len_SEE_arch)
@@ -4985,11 +5193,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_SEE_Fukunaga),'square')
+                    plot(CON_PRE_prone(i,col_angle),CON_PRE_prone(i,col_SEE_Fukunaga),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_SEE_Fukunaga),'o')
+                    plot(CON_POST_prone(i,col_angle),CON_POST_prone(i,col_SEE_Fukunaga),'o')
                 end
                 
                 axis(axis_len_SEE_arch)
@@ -5021,7 +5229,7 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
 
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
                 figure('Name',plottitle)
@@ -5031,8 +5239,8 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                 plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
                 
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_tend_GM_licht_mean, STR_PRE_elong_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_SEE_licht_mean, STR_PRE_elong_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
                 herrorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
                 errorbar(STR_POST_ROM_mean, STR_POST_elong_tend_GM_licht_mean, STR_POST_elong_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
@@ -5065,7 +5273,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5084,7 +5292,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5108,7 +5316,7 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
 
-            %% SEE Lichtwark/Fukunaga (approx. GM tendon): Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SEE Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('SEE (from archi) strain vs angle - 1');
                 figure('Name',plottitle)
@@ -5118,8 +5326,8 @@ function [] = passiveUS(input_project, input_plot)
                 plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_strain_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                 plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_strain_SEE_fuku),'b','LineStyle','-','LineWidth',1)
                 
-                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_tend_GM_licht_mean, STR_PRE_ROM_SD, '*m')
-                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_tend_GM_licht_mean, STR_PRE_strain_tend_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_strain_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_strain_SEE_licht_mean, STR_PRE_strain_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
                 herrorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_ROM_SD, 'r.')
                 errorbar(STR_POST_ROM_mean, STR_POST_strain_tend_GM_licht_mean, STR_POST_strain_tend_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
                 
@@ -5152,7 +5360,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5171,7 +5379,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5215,10 +5423,10 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_length_GMfas_licht_mean, CON_POST_length_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_GMfaslen), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_GMfaslen),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_GMfaslen), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_GMfaslen),'bo')
+                plot(STR_PRE_prone_mean(col_angle),STR_PRE_prone_mean(col_GMfaslen), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle),STR_POST_prone_mean(col_GMfaslen),'ro')
+                plot(CON_PRE_prone_mean(col_angle),CON_PRE_prone_mean(col_GMfaslen), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle),CON_POST_prone_mean(col_GMfaslen),'bo')
 
                 axis(axis_len_GMFAS)
                 xlabel(txt_gonio)
@@ -5241,11 +5449,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_GMfaslen),'square')
+                    plot(STR_PRE_prone(i,col_angle),STR_PRE_prone(i,col_GMfaslen),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_GMfaslen),'o')
+                    plot(STR_POST_prone(i,col_angle),STR_POST_prone(i,col_GMfaslen),'o')
                 end
                 
                 axis(axis_len_GMFAS)
@@ -5269,11 +5477,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_GMfaslen),'square')
+                    plot(CON_PRE_prone(i,col_angle),CON_PRE_prone(i,col_GMfaslen),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_GMfaslen),'o')
+                    plot(CON_POST_prone(i,col_angle),CON_POST_prone(i,col_GMfaslen),'o')
                 end
                 
                 axis(axis_len_GMFAS)
@@ -5349,7 +5557,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5368,7 +5576,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5436,7 +5644,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5455,7 +5663,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5499,10 +5707,10 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_pennation_GMfas_licht_mean, CON_POST_pennation_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_penn_ang), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_penn_ang),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_penn_ang), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_penn_ang),'bo')
+                plot(STR_PRE_prone_mean(col_angle),STR_PRE_prone_mean(col_penn_ang), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle),STR_POST_prone_mean(col_penn_ang),'ro')
+                plot(CON_PRE_prone_mean(col_angle),CON_PRE_prone_mean(col_penn_ang), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle),CON_POST_prone_mean(col_penn_ang),'bo')
                 
                 axis(axis_penn_GMFAS)
                 xlabel(txt_gonio)
@@ -5525,11 +5733,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_penn_ang),'square')
+                    plot(STR_PRE_prone(i,col_angle),STR_PRE_prone(i,col_penn_ang),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_penn_ang),'o')
+                    plot(STR_POST_prone(i,col_angle),STR_POST_prone(i,col_penn_ang),'o')
                 end
                 
                 axis(axis_penn_GMFAS)
@@ -5553,11 +5761,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_penn_ang),'square')
+                    plot(CON_PRE_prone(i,col_angle),CON_PRE_prone(i,col_penn_ang),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_penn_ang),'o')
+                    plot(CON_POST_prone(i,col_angle),CON_POST_prone(i,col_penn_ang),'o')
                 end
                 
                 axis(axis_penn_GMFAS)
@@ -5609,10 +5817,10 @@ function [] = passiveUS(input_project, input_plot)
                 herrorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_L_MTU_mean, CON_POST_L_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                plot(STR_PRE_prone_mean(col_angle_MTU),STR_PRE_prone_mean(col_leg), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
-                plot(STR_POST_prone_mean(col_angle_MTU),STR_POST_prone_mean(col_leg),'ro')
-                plot(CON_PRE_prone_mean(col_angle_MTU),CON_PRE_prone_mean(col_leg), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
-                plot(CON_POST_prone_mean(col_angle_MTU),CON_POST_prone_mean(col_leg),'bo')
+                plot(STR_PRE_prone_mean(col_angle),STR_PRE_prone_mean(col_leg), 'Color', col_lightblue, 'Marker', 'o', 'MarkerFaceColor', col_lightblue)
+                plot(STR_POST_prone_mean(col_angle),STR_POST_prone_mean(col_leg),'ro')
+                plot(CON_PRE_prone_mean(col_angle),CON_PRE_prone_mean(col_leg), 'Color', col_lightred, 'Marker', 'o', 'MarkerFaceColor', col_lightred)
+                plot(CON_POST_prone_mean(col_angle),CON_POST_prone_mean(col_leg),'bo')
 
                 axis(axis_len_MTU)
                 xlabel(txt_gonio)
@@ -5635,11 +5843,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_PRE_count
-                    plot(STR_PRE_prone(i,col_angle_MTU),STR_PRE_prone(i,col_leg),'square')
+                    plot(STR_PRE_prone(i,col_angle),STR_PRE_prone(i,col_leg),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:STR_POST_count
-                    plot(STR_POST_prone(i,col_angle_MTU),STR_POST_prone(i,col_leg),'o')
+                    plot(STR_POST_prone(i,col_angle),STR_POST_prone(i,col_leg),'o')
                 end
                 
                 axis(axis_len_MTU)
@@ -5663,11 +5871,11 @@ function [] = passiveUS(input_project, input_plot)
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_PRE_count
-                    plot(CON_PRE_prone(i,col_angle_MTU),CON_PRE_prone(i,col_leg),'square')
+                    plot(CON_PRE_prone(i,col_angle),CON_PRE_prone(i,col_leg),'square')
                 end
                 set(gca,'ColorOrderIndex',1)
                 for i = 1:CON_POST_count
-                    plot(CON_POST_prone(i,col_angle_MTU),CON_POST_prone(i,col_leg),'o')
+                    plot(CON_POST_prone(i,col_angle),CON_POST_prone(i,col_leg),'o')
                 end
                 
                 axis(axis_len_MTU)
@@ -5743,7 +5951,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5762,7 +5970,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5832,7 +6040,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check && plot_old
@@ -5851,7 +6059,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -5919,7 +6127,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_displ)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -5938,7 +6146,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_displ)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -6007,7 +6215,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -6026,7 +6234,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -6094,7 +6302,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -6113,7 +6321,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -6181,7 +6389,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
@@ -6200,7 +6408,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
-                legend([fig(1), fig(length(fig)/2)], 'PRE', 'POST')
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             
@@ -6223,6 +6431,905 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
+            
+            
+            
+            
+            
+            %% NORMALIZED GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_len_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_len_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_len_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_msc_GM_licht_mean, STR_PRE_length_norm_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_norm_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_norm_msc_GM_licht_mean, STR_POST_length_norm_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_msc_GM_licht_mean, CON_PRE_length_norm_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_norm_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_norm_msc_GM_licht_mean, CON_POST_length_norm_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_len_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_len_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_length_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            %% NORMALIZED GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_elong_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_elong_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_elong_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_msc_GM_licht_mean, STR_PRE_elong_norm_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_msc_GM_licht_mean, STR_POST_elong_norm_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_msc_GM_licht_mean, CON_PRE_elong_norm_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_msc_GM_licht_mean, CON_POST_elong_norm_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
+            
+            %% NORMALIZED SEE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('SEE (from archi) length vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_len_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_len_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_len_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_SEE_licht_mean, STR_PRE_length_norm_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_norm_SEE_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_norm_SEE_licht_mean, STR_POST_length_norm_SEE_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_SEE_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_SEE_licht_mean, CON_PRE_length_norm_SEE_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_norm_SEE_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_norm_SEE_licht_mean, CON_POST_length_norm_SEE_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('SEE (from archi) length vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('SEE (from archi) length vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND SEE (from archi) length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_len_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_len_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_length_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            %% NORMALIZED SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_elong_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_SEE_licht_mean, STR_PRE_elong_norm_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_SEE_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_SEE_licht_mean, STR_POST_elong_norm_SEE_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_SEE_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_SEE_licht_mean, CON_PRE_elong_norm_SEE_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_SEE_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_SEE_licht_mean, CON_POST_elong_norm_SEE_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
+            %% NORMALIZED TO ELONG, GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 1 NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_percent_elong_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_percent_elong_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_percent_msc_GM_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_percent_msc_GM_licht_mean, STR_PRE_elong_norm_percent_msc_GM_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_percent_msc_GM_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_percent_msc_GM_licht_mean, STR_POST_elong_norm_percent_msc_GM_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_percent_msc_GM_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_percent_msc_GM_licht_mean, CON_PRE_elong_norm_percent_msc_GM_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_msc_GM_licht_mean, CON_POST_elong_norm_percent_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM % contrib');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm_perc)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+
+            
+            %% NORMALIZED TO ELONG, SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 1 NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_percent_elong_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_percent_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_percent_SEE_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_percent_SEE_licht_mean, STR_PRE_elong_norm_percent_SEE_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_percent_SEE_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_percent_SEE_licht_mean, STR_POST_elong_norm_percent_SEE_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_percent_SEE_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_percent_SEE_licht_mean, CON_PRE_elong_norm_percent_SEE_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_SEE_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_SEE_licht_mean, CON_POST_elong_norm_percent_SEE_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM % contrib');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm_perc)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM % contrib');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm_perc)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+
+
+            
+            
+            
+            
+            %% NORMALIZED GM fascicle (Lichtwark): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM fascicle length vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_GMfas_licht),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_len_GMfas_licht),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_len_GMfas_licht),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_len_GMfas_licht),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_GMfas_licht_mean, STR_PRE_length_norm_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_norm_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_norm_GMfas_licht_mean, STR_POST_length_norm_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_GMfas_licht_mean, CON_PRE_length_norm_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_norm_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_norm_GMfas_licht_mean, CON_POST_length_norm_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM fascicle length vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('GM fascicle length vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM fascicle length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_len_GMfas_licht),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_len_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_length_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
+            %% NORMALIZED GM fascicle (Lichtwark): Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_GMfas_licht),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_elong_GMfas_licht),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_elong_GMfas_licht),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_elong_GMfas_licht),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_GMfas_licht_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_GMfas_licht_mean, STR_PRE_elong_norm_GMfas_licht_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_GMfas_licht_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_GMfas_licht_mean, STR_POST_elong_norm_GMfas_licht_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_GMfas_licht_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_GMfas_licht_mean, CON_PRE_elong_norm_GMfas_licht_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_GMfas_licht_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_GMfas_licht_mean, CON_POST_elong_norm_GMfas_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND GM fascicle elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_GMfas_licht),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
+            
+            
+            %% NORMALIZED leg/MTU length: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('MTU length vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_leg),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_len_leg),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_len_leg),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_len_leg),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_MTU_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_length_norm_MTU_mean, STR_PRE_length_norm_MTU_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_length_norm_MTU_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_length_norm_MTU_mean, STR_POST_length_norm_MTU_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_MTU_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_length_norm_MTU_mean, CON_PRE_length_norm_MTU_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_length_norm_MTU_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_length_norm_MTU_mean, CON_POST_length_norm_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('MTU length vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_leg),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_len_leg))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('MTU length vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_leg),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_len_leg))
+                end
+                
+                %axis(axis_len_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_length_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND MTU length vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_len_leg),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_len_leg),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_len_leg),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_len_leg),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_len_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_length_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
+            %% NORMALIZED leg/MTU length: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('MTU elongation vs angle - 1 NORM');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_leg),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_norm_elong_leg),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_norm_elong_leg),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_norm_elong_leg),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_MTU_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_elong_norm_MTU_mean, STR_PRE_elong_norm_MTU_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_elong_norm_MTU_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_elong_norm_MTU_mean, STR_POST_elong_norm_MTU_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_MTU_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_elong_norm_MTU_mean, CON_PRE_elong_norm_MTU_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_MTU_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_MTU_mean, CON_POST_elong_norm_MTU_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('MTU elongation vs angle - 2 STRETCHERS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_leg),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_leg))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('MTU elongation vs angle - 3 CONTROLS ind lines PRE-POST NORM');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_leg),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_leg))
+                end
+                %axis(axis_el_GMFAS)
+                xlabel(txt_gonio)
+                ylabel(txt_elong_norm)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND MTU elongation vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST NORM');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_norm_elong_leg),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_elong_leg),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_elong_leg),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_elong_leg),'b','LineStyle','-','LineWidth',1)
+                    %axis(axis_el_GMFAS)
+                    xlabel(txt_gonio)
+                    ylabel(txt_elong_norm)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
+            
         end
         
 end

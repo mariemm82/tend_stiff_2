@@ -7,7 +7,7 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, in_resting_at_SOL_length, in_resting_at_GM_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle)
+function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, txt_at_SOL_rest_length, txt_at_GM_rest_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle, txt_at_SOL_zero_length, txt_at_GM_zero_length)
     global at_momentarm  % subject_id
 
         
@@ -116,7 +116,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     %% Length of free Achilles tendon
 
     % Initial length = measured seated in Achilles machine, ankle 0 degrees, US still images of "railway" across lower leg. Length in mm.
-    resting_AT_SOL_length = str2double(in_resting_at_SOL_length);
+    resting_AT_SOL_length = str2double(txt_at_SOL_rest_length);
+    zero_AT_SOL_length = str2double(txt_at_SOL_zero_length);
+    
     % reshape displacement:
     AT_SOL_displ = spline(angle_displ_SOL(:,1), angle_displ_SOL(:,2), angle_array);
     % convert to length + reshape:
@@ -124,15 +126,17 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     % AT elongation = elongation of MTJ - elongation proximal portion.
     % AT elongation = MTU elongation - SOL MTJ displacement.
     % AT length = MTU elongation - SOL MTJ displacement + AT length at zero.
-    tend_AT_length_array = (MTU_GM_length-MTU_GM_length(1)) + resting_AT_SOL_length - AT_SOL_displ;
+    tend_AT_length_array = (MTU_GM_length-MTU_GM_length(1)) + zero_AT_SOL_length - AT_SOL_displ;
     
     
     %% Length of Achilles tendon up to GM insertion ("GM tendon")
-    resting_AT_GM_length = str2double(in_resting_at_GM_length);
+    resting_AT_GM_length = str2double(txt_at_GM_rest_length);
+    zero_AT_GM_length = str2double(txt_at_GM_zero_length);
+    
     % reshape displacement:
     AT_GM_displ = spline(angle_displ_GMMTJ(:,1), angle_displ_GMMTJ(:,2), angle_array);
     % convert to length + reshape
-    tend_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + resting_AT_GM_length - AT_GM_displ;
+    tend_GM_length_array = (MTU_GM_length-MTU_GM_length(1)) + zero_AT_GM_length - AT_GM_displ;
     
         
     %% GMFAS displacement: spline to fit same angle array

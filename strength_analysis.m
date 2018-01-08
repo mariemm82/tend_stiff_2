@@ -1091,7 +1091,7 @@ function [] = strength_analysis(input_project, input_plot)
 
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/prism_strength/BD_isokin_torque_angle_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
+            filename_output = strcat('data_output/prism_strength/arrays_BD_strength_acrossangles_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table
@@ -1102,18 +1102,23 @@ function [] = strength_analysis(input_project, input_plot)
         % create table headers (subject numbers)
         out_arrays_headers{1+STR_PRE_count+CON_PRE_count+STR_POST_count+CON_POST_count} = [];
         out_arrays_headers{1} = 'Joint_angle';
-        for i=1:STR_PRE_count
-            out_arrays_headers{i+1} = STR_PRE_id{i};
+        % SUITABLE FOR REPLICATING DATAMASTER ORDER:
+        for i = 1:length(all_strength_output_txt)
+            out_arrays_headers(i+1) = strcat('f24_', all_strength_output_txt(i,1), '_', all_strength_output_txt(i,4), '_',  all_strength_output_txt(i,2), '_',  all_strength_output_txt(i,3));
         end
-        for i=1:CON_PRE_count
-            out_arrays_headers{i+1+STR_PRE_count} = CON_PRE_id{i};
-        end
-        for i=1:STR_POST_count
-            out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count} = STR_POST_id{i};
-        end
-        for i=1:CON_POST_count
-            out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count+STR_POST_count} = CON_POST_id{i};
-        end
+%         % SUITABLE IF SUBJECTS ARE GROUPED CORRECTLY:
+%         for i=1:STR_PRE_count
+%             out_arrays_headers{i+1} = STR_PRE_id{i};
+%         end
+%         for i=1:CON_PRE_count
+%             out_arrays_headers{i+1+STR_PRE_count} = CON_PRE_id{i};
+%         end
+%         for i=1:STR_POST_count
+%             out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count} = STR_POST_id{i};
+%         end
+%         for i=1:CON_POST_count
+%             out_arrays_headers{i+1+STR_PRE_count+CON_PRE_count+STR_POST_count} = CON_POST_id{i};
+%         end
                 
         % organize and output table with TORQUE-ANGLE data per velocity
         % (i.e. one file for DF30, one file for PF45, etc)
@@ -1128,9 +1133,13 @@ function [] = strength_analysis(input_project, input_plot)
             % reset output arrays
             out_arrays_abs(1:cols_abs,1:rows) = zeros;
 
-            % add as first column, joint angles: abs and normalized angles
+            % add as first column, joint angles
             out_arrays_abs(:,1) = angles_common2;
-
+            
+            % ROUGH CODING - the following does NOT successfully group
+            % subjects into STR/PRE/ETC - subjects are added in the order
+            % of the datamaster (same order as all_strength_...)
+            
             % add STR PRE subjects first
             for subj = 1:STR_PRE_count
                 out_arrays_abs(:,subj+1) = all_strength_isokin_angles(subj,out_arrays_input_cols(var):out_arrays_input_cols(var)+14);
@@ -1153,7 +1162,7 @@ function [] = strength_analysis(input_project, input_plot)
             
             % create tables and save as file
             out_arrays_abs_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-            filename_output = strcat('data_output/prism_strength/isokin_torque_angle', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
+            filename_output = strcat('data_output/prism_strength/arrays_strength_acrossangles_', out_arrays_input_labels{var}, '_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
 
             clear out_arrays_abs_table

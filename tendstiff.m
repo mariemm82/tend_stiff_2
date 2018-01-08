@@ -689,7 +689,9 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
     
     %% IND: write graphpad prism files
-    % TODO - split in GM vs SOL?
+    % TODO: currently, the script must be run once for all GM trials + once
+    % for all SOL trials, and filenames do not indicate what the contents
+    % is
     
     if input_project == 2
         filename_basis = strcat('data_output/prism_stiff/all_stiff_', datestr(now, 'yyyymmdd_HHMM'), '_');
@@ -1543,7 +1545,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         
     %% IND: save individual force-elong arrays (to common force) to one file common to all subjects
     if ispc
-        filename_output = strcat('data_output/prism_stiff/tendstiff_force-elong_', datestr(now, 'yyyymmdd_HHMM'), '.xls');
+        filename_output = strcat('data_output/prism_stiff/arrays_stiff_across_force-elong_', datestr(now, 'yyyymmdd_HHMM'), '.xls');
         if input_project == 1 % bd study
             if BD_SOL_count > 0
                 filename_subj_BD_SOL = cellstr(num2str(BD_SOL_no'))';

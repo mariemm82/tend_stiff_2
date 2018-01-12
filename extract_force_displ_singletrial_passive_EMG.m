@@ -125,7 +125,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     %%% force / torque 
     torque = noraxon_prepped(1:loc_ascending_end,column_norm_torque);
     force = torque / at_momentarm;
-    
+    % MMM MA
     
     
     %%% Plot synchronization check US vs Norm

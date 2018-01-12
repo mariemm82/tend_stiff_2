@@ -56,6 +56,62 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     
 
     
+    
+    
+    %%% if new gonio angle is smaller than original max, extrapolate all data
+    
+    common_angle_orig = round(min([max(gonio1) max(gonio2)]),2);
+    
+    % trial 1
+    if max(gonio_new1) < common_angle_orig
+        % extrapolate using last X degrees of existing data
+        angle_end = max(gonio_new1) - 2; %VAR
+        loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
+        % calculate linear coeffisients
+        gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
+        coeffs_torqueEND = gonio_modifiedEND\torque1(loc_angle_end:end); % NB backslash --> slope
+        coeffs_displEND = gonio_modifiedEND\displ1(loc_angle_end:end);
+        % enlarge arrays by adding values at the end
+        gonio1 = [gonio1; common_angle_orig];
+        gonio_new1 = [gonio_new1; common_angle_orig];
+        torque1 = [torque1; (common_angle_orig*coeffs_torqueEND(2)) + coeffs_torqueEND(1)];
+        displ1 = [displ1; (common_angle_orig*coeffs_displEND(2)) + coeffs_displEND(1)];
+        if length(emg_gm1) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
+            coeffs_emg_gm = gonio_modifiedEND\emg_gm1(loc_angle_end:end);
+            coeffs_emg_gl = gonio_modifiedEND\emg_gl1(loc_angle_end:end);
+            coeffs_emg_sol = gonio_modifiedEND\emg_sol1(loc_angle_end:end);
+            emg_gm1 = [emg_gm1; (common_angle_orig*coeffs_emg_gm(2)) + coeffs_emg_gm(1)];
+            emg_gl1 = [emg_gl1; (common_angle_orig*coeffs_emg_gl(2)) + coeffs_emg_gl(1)];
+            emg_sol1 = [emg_sol1; (common_angle_orig*coeffs_emg_sol(2)) + coeffs_emg_sol(1)];
+        end
+    end
+    
+    % repeat for trial 2
+    if max(gonio_new2) < common_angle_orig
+        % extrapolate using last X degrees of existing data
+        angle_end = max(gonio_new1) - 2; %VAR
+        loc_angle_end = find(gonio_new2 >= angle_end,1,'first');
+        % calculate linear coeffisients
+        gonio_modifiedEND = [ones(length(gonio_new2(loc_angle_end:end)),1) gonio_new2(loc_angle_end:end)];
+        coeffs_torqueEND = gonio_modifiedEND\torque2(loc_angle_end:end); % NB backslash --> slope
+        coeffs_displEND = gonio_modifiedEND\displ2(loc_angle_end:end);
+        % enlarge arrays by adding values at the end
+        gonio2 = [gonio2; common_angle_orig];
+        gonio_new2 = [gonio_new2; common_angle_orig];
+        torque2 = [torque2; (common_angle_orig*coeffs_torqueEND(2)) + coeffs_torqueEND(1)];
+        displ2 = [displ2; (common_angle_orig*coeffs_displEND(2)) + coeffs_displEND(1)];
+        if length(emg_gm2) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
+            coeffs_emg_gm = gonio_modifiedEND\emg_gm2(loc_angle_end:end);
+            coeffs_emg_gl = gonio_modifiedEND\emg_gl2(loc_angle_end:end);
+            coeffs_emg_sol = gonio_modifiedEND\emg_sol2(loc_angle_end:end);
+            emg_gm2 = [emg_gm2; (common_angle_orig*coeffs_emg_gm(2)) + coeffs_emg_gm(1)];
+            emg_gl2 = [emg_gl2; (common_angle_orig*coeffs_emg_gl(2)) + coeffs_emg_gl(1)];
+            emg_sol2 = [emg_sol2; (common_angle_orig*coeffs_emg_sol(2)) + coeffs_emg_sol(1)];
+        end
+    end
+    
+    
+    
     %%% if gonio angle starts after zero degrees, extrapolate all data
     
     % trial 1
@@ -191,6 +247,36 @@ else % nargin == 7, one trial submitted %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     gonio_new1(1:length(time1),1) = zeros;
     for ang = 1:length(time1)
         gonio_new1(ang) = (fit_gonio1(1) * time1(ang)^4) + (fit_gonio1(2) * time1(ang)^3) + (fit_gonio1(3) * time1(ang)^2) + (fit_gonio1(4) * time1(ang)) + fit_gonio1(5);
+    end
+    
+    
+    
+    %%% if new gonio angle is smaller than original max, extrapolate all data
+    
+    common_angle_orig = round(max(gonio1),2);
+
+    % trial 1
+    if max(gonio_new1) < common_angle_orig
+        % extrapolate using last X degrees of existing data
+        angle_end = max(gonio_new1) - 2; %VAR
+        loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
+        % calculate linear coeffisients
+        gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
+        coeffs_torqueEND = gonio_modifiedEND\torque1(loc_angle_end:end); % NB backslash --> slope
+        coeffs_displEND = gonio_modifiedEND\displ1(loc_angle_end:end);
+        % enlarge arrays by adding values at the end
+        gonio1 = [gonio1; common_angle_orig];
+        gonio_new1 = [gonio_new1; common_angle_orig];
+        torque1 = [torque1; (common_angle_orig*coeffs_torqueEND(2)) + coeffs_torqueEND(1)];
+        displ1 = [displ1; (common_angle_orig*coeffs_displEND(2)) + coeffs_displEND(1)];
+        if length(emg_gm1) > 1 % 1 = empty: call comes from create_angles_passive, EMG data not needed
+            coeffs_emg_gm = gonio_modifiedEND\emg_gm1(loc_angle_end:end);
+            coeffs_emg_gl = gonio_modifiedEND\emg_gl1(loc_angle_end:end);
+            coeffs_emg_sol = gonio_modifiedEND\emg_sol1(loc_angle_end:end);
+            emg_gm1 = [emg_gm1; (common_angle_orig*coeffs_emg_gm(2)) + coeffs_emg_gm(1)];
+            emg_gl1 = [emg_gl1; (common_angle_orig*coeffs_emg_gl(2)) + coeffs_emg_gl(1)];
+            emg_sol1 = [emg_sol1; (common_angle_orig*coeffs_emg_sol(2)) + coeffs_emg_sol(1)];
+        end
     end
     
     

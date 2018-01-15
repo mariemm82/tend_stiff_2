@@ -57,8 +57,16 @@ function [force,gonio,angle,displacement,time_us] = extract_force_displ_singletr
     end
     cprintf('red', horzcat(trial_name, ' EMG max activation: gm ', num2str(round(max(emg_GM),3)), ' %%, gl ', num2str(round(max(emg_GL),3)), ' %%, sol ', num2str(round(max(emg_SOL),3)), ' %%.\n'));
     
+    % calculate moment arm array
+    at_momentarm_dynamic = calculate_momentarm_dynamic(gonio);
+    
     % convert torque to force
-    force = torque / at_momentarm;
+    force = torque / at_momentarm_dynamic; %TODO - prikk/ ?
+    
+    
+    
+    
+    
     
     % Plot synchronization check US vs Norm
     if plot_check && plot_norm

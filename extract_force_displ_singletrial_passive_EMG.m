@@ -16,24 +16,18 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     global filepath
     
     
-    
-    % Read US data file, determine time stamps, set trigger frame as time = zero
+    %% Read US data file, determine time stamps, set trigger frame as time = zero
     % Produce US sample frequency + new US array containing time and displacement
     % aa = strcat(filepath, usdata, '.txt') % 
     [usdata_prepped,usfreq] = read_us_file(strcat(filepath, usdata, '.txt'), str2double(usdata_frame), trial_name);
     
     
-    
-    % Read Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
+    %% Read Noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
     % Produce a new noraxon data array
     noraxon_prepped = read_noraxon_passive(strcat(filepath, noraxondata), usfreq, side, trial_name);
     
     
-   
-    
-    
-    
-    %%%%%%%%%%%%%%%%%%%%% extract data from big arrays
+    %% extract data from big arrays
     
     %%% locate endpoint of ascending phase
     % Norm torque = zero during stop at maximal ROM - use this to identify ascending phase (0 to max ROM).
@@ -51,8 +45,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     end
     
     
-    
-    %%% time and angles
+    %% time and angles
     
     time = noraxon_prepped(1:loc_ascending_end,1);
     time_us = usdata_prepped(1:loc_ascending_end,1);
@@ -66,9 +59,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     % all data are synchronized)
     
     
-    
-    
-    %%% displacement
+    %% displacement
     % when gonio angle is zero, set displacement to zero
     
     % offset displacement: displacement = zero when gonio angle = zero
@@ -107,8 +98,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     displ_final = displ_raw + displ_offset;
     
     
-    
-    %%% EMG: calculate % EMG activation
+    %% EMG: calculate % EMG activation
     if strcmpi(side,'R') == 1
          emg_GM = noraxon_prepped(1:loc_ascending_end,column_r_gm)/max_EMG_GM*100; % percent
          emg_GL = noraxon_prepped(1:loc_ascending_end,column_r_gl)/max_EMG_GL*100; % percent
@@ -121,14 +111,16 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     cprintf('green', horzcat(trial_name, ' EMG max activation: gm ', num2str(round(max(emg_GM),3)), ' %%, gl ', num2str(round(max(emg_GL),3)), ' %%, sol ', num2str(round(max(emg_SOL),3)), ' %%.\n'));
     
     
+    %% force / torque 
     
-    %%% force / torque 
+    % calculate moment arm array
+    at_momentarm_dynamic = calculate_momentarm_dynamic(gonio(1:loc_ascending_end));
+    
     torque = noraxon_prepped(1:loc_ascending_end,column_norm_torque);
-    force = torque / at_momentarm;
+    force = torque / at_momentarm_dynamic;
     
     
-    
-    %%% Plot synchronization check US vs Norm
+    %% Plot synchronization check US vs Norm
     if plot_check && plot_norm
         plottitle = horzcat('SYNC check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle);

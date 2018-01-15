@@ -12,7 +12,7 @@ function [force,gonio,angle,displacement,time_us] = extract_force_displ_singletr
     
     global column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque % column_EMG_start column_EMG_end column_l_tibant column_r_tibant column_norm_velocity column_norm_direction column_achilles
     global plot_norm plot_check subject_id
-    global at_momentarm
+   % global at_momentarm
     global filepath
     
     
@@ -61,7 +61,7 @@ function [force,gonio,angle,displacement,time_us] = extract_force_displ_singletr
     at_momentarm_dynamic = calculate_momentarm_dynamic(gonio);
     
     % convert torque to force
-    force = torque / at_momentarm_dynamic; %TODO - prikk/ ?
+    force = torque ./ at_momentarm_dynamic;
     
     
     

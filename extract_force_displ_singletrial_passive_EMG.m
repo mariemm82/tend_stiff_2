@@ -12,7 +12,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     
     global column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque % column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     global plot_check subject_id plot_norm % plot_emg plot_us 
-    global at_momentarm
+   % global at_momentarm
     global filepath
     
     
@@ -117,8 +117,8 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     at_momentarm_dynamic = calculate_momentarm_dynamic(gonio(1:loc_ascending_end));
     
     torque = noraxon_prepped(1:loc_ascending_end,column_norm_torque);
-    force = torque / at_momentarm_dynamic;
-    % MMM MA
+    force = torque ./ at_momentarm_dynamic;
+
     
     
     %% Plot synchronization check US vs Norm

@@ -60,7 +60,7 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%% if new gonio angle is smaller than original max, extrapolate all data
     
-    common_angle_orig = round(min([max(gonio1) max(gonio2)]),2);
+    common_angle_orig = round(max([max(gonio1) max(gonio2)]),2);
     
     % trial 1
     if max(gonio_new1) < common_angle_orig

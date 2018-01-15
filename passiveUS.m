@@ -18,13 +18,13 @@
 
 
 % MMM TODO:
-% 
-% Passive trials, fascicle elongation:
-% one additional idea of analysis would have been to look at contributions at given force levels (obtained from passive torques and moment arms)
-% 
+% check if new output is very different after angle extrapolation
 % consider further normalization of data
-
-
+% * Moment arm at_momentarm
+% -- for create angles passive: extract_force_displ_singletrial_passive
+% -- extract_force_displ_singletrial_passive_EMG is where torque is converted to force
+% -- calculate_MTU_length - needs MA in neutral position
+% redo create angles passive
 
 
 function [] = passiveUS(input_project, input_plot)
@@ -462,7 +462,7 @@ function [] = passiveUS(input_project, input_plot)
 
             %% Calculate ACHILLES TENDON MOMENT ARM
             at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
-
+            % MMM MA
 
             %% Calculations for 2x SOL trials
 
@@ -474,7 +474,7 @@ function [] = passiveUS(input_project, input_plot)
                 SOL_gonio_1 = zeros;
                 SOL_angle_1 = zeros;
                 SOL_displacement_1 = zeros;
-            else 
+            else % MMM MA
                 [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
                 emg_all{1,1} = [SOL_gonio_1 SOL_emg_gm_1];
                 emg_all{2,1} = [SOL_gonio_1 SOL_emg_gl_1];
@@ -1100,6 +1100,7 @@ function [] = passiveUS(input_project, input_plot)
             out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
 
             % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
+            % MMM MA
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
             out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
             out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array
@@ -6210,7 +6211,7 @@ function [] = passiveUS(input_project, input_plot)
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('EMG gas.med. vs angle - 1');
+                plottitle = horzcat('EMG gas med vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_EMG_gm),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6234,10 +6235,11 @@ function [] = passiveUS(input_project, input_plot)
                 title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+                
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas.med. vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas med vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6256,7 +6258,7 @@ function [] = passiveUS(input_project, input_plot)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas.med. vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas med vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6278,7 +6280,7 @@ function [] = passiveUS(input_project, input_plot)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.med. vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
+                    plottitle = horzcat('IND EMG gas med vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6297,7 +6299,7 @@ function [] = passiveUS(input_project, input_plot)
             
             %% EMG vs angle GL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('EMG gas.lat. vs angle - 1');
+                plottitle = horzcat('EMG gas lat vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_EMG_gl),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6324,7 +6326,7 @@ function [] = passiveUS(input_project, input_plot)
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas.lat. vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas lat vs angle - 2 STRETCHERS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6343,7 +6345,7 @@ function [] = passiveUS(input_project, input_plot)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas.lat. vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas lat vs angle - 3 CONTROLS ind lines PRE-POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6365,7 +6367,7 @@ function [] = passiveUS(input_project, input_plot)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas.lat. vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
+                    plottitle = horzcat('IND EMG gas lat vs angle - 4 IND F', CON_PRE_ID{i} ,' both legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

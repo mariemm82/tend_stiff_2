@@ -137,8 +137,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
 %    global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_leg_length % dm_CPM_calc_US dm_CPM_calc_US_frame 
-    global dm_tendonlength dm_cutforce %new2014-04-14
-    global dm_rot_const
+    global dm_tendonlength dm_cutforce
+    global dm_rot_const dm_CSA
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
@@ -156,14 +156,16 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     if input_resumerun == 0
         all_stiff_output_head = {'Subject', 'Time', 'Side', 'Trial', ...
             'AT moment arm, m', 'Rotation correction, mm per deg', ... % 1-2
-            'Stiff coeff 1', 'Stiff coeff 2', 'Stiff coeff 3', 'Stiff R2', ... % 3-6
-            'Ramp ind F cutoff, N', 'Ramp ind F max', 'Ramp F at max-elong', 'MVC F plantflex', ... % 7-10
-            'Ramp common F cutoff', 'Ramp common F max',... % 11-12
+            'StiffEQ coeff 1', 'StiffEQ coeff 2', 'StiffEQ coeff 3', 'StiffEQ R2', ... % 3-6
+            'Force Ramp ind F cutoff, N', 'Force Ramp ind F max', 'Force Ramp F at max-elong', 'Force MVC F plantflex', ... % 7-10
+            'Force Ramp common F cutoff', 'Force Ramp common F max',... % 11-12
             'Stiff ind 80-100, N per mm', 'Stiff ind 90-100', ... % 13-14
             'Stiff common cutoff 80-100', 'Stiff common cutoff 90-100', 'Stiff common max 80-100', 'Stiff common max 90-100', ... % 15-18
             'Elong at ind F cutoff, mm', 'Elong ind max-elong', 'Elong at common F cutoff', 'Elong at common F max', ... % 19-22
             'Tend-length 0deg, mm', ... % 23
-            'Strain at inf F cutoff, percent', 'Strain ind max-elong', 'Strain at common F cutoff', 'Strain at common F max', ... % 24-27
+            'Strain at ind F cutoff, percent', 'Strain ind max-elong', 'Strain at common F cutoff', 'Strain at common F max', ... % 24-27
+            'Young at ind F cutoff', 'Young at ind max-elong', 'Young at common F cutoff', 'Young at common F max', ... % 28-31
+            'Tend-CSA, mm^2',... % 32
             }; % PROJECTSPECIFIC
         loc_stiff_a = 3;
         loc_stiff_b = 4;
@@ -182,6 +184,10 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         loc_tendonlength_initial = 23;
         loc_strain_common_cut = 26;
         loc_strain_common_max = 27;
+        loc_young_common_cut = 30;
+        loc_young_common_max = 31;
+        loc_tendonCSA = 32;
+        
         all_stiff_output = zeros(ceil(linestotal),length(all_stiff_output_head)-4); 
         all_stiff_output_txt = cell(ceil(linestotal),4);
     
@@ -467,7 +473,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         %    sending 3+3 trials + max forces from trials + manually set cutoff force
         % Produce stiffness equation (based on CUT data set) +
         %    force-elong-array (up to defined force level of 90% of 6-trial-common-force or 90% of manual cutoff)
-        [stiff_eq, stiff_gof, force_elong_array, loc_cutoff, elong_indmax, force_indelongmax, strain_indmax, elong_indcut, force_indcut, strain_indcut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, dm_tendonlength{line});
+        [stiff_eq, stiff_gof, force_elong_array, loc_cutoff, elong_indmax, force_indelongmax, strain_indmax, young_indmax, elong_indcut, force_indcut, strain_indcut, young_indcut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, dm_tendonlength{line}, dm_CSA{line});
 
 
         %% calculate stiffness for last 10 and 20% of ind max:
@@ -496,6 +502,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             elong_indcut elong_indmax NaN NaN ... % 19-22: ELONG, indmax + COMMON: NaN for 2x elong at force levels common to all subjects
             str2double(dm_tendonlength{line}) ... % 23
             strain_indcut strain_indmax NaN NaN... % 24-27 --- STRAIN
+            young_indcut young_indmax NaN NaN... % 28-31 --- YOUNG'S MODULUS
+            str2double(dm_CSA{line}) ... % 32
             ];
         
         
@@ -629,37 +637,66 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     cprintf('blue*',horzcat('Stiffness: Common cutoff force = ', num2str(stiff_common_force), ' N, common max force = ', num2str(round(stiff_common_force_max,0)), ' N.\n'))
 
         
-    %% IND data: calculate STRAIN/ELONGATION at COMMON force levels
+    %% IND data: calculate STRAIN - ELONGATION - YOUNG'S MODULUS at COMMON force levels
     % re-use force levels from stiffness:
     %    stiff_common_force - 90%/cutoff
     %    stiff_common_force_max - common max
     
+    % young's modulus = stress / strain
+    % stress = force per CSA (in m^2) between 80 and 100% force
+    % strain = % elongation between 80 and 100% force
+    young_percentage = 0.8; %VAR calculate between 80% and defined end (max/cutoff)
+    
     for i = 1:size(all_stiff_output,1)
         % extract ELONGATION and STRAIN from force-elong-cell containing all subjects:
         
-        % elongation and strain at common force which is cut to 90%:
+        ym_csa = (all_stiff_output(i,loc_tendonCSA)/1000/1000); % converting mm^2 to m^2
+        ym_tendlength = all_stiff_output(i,loc_tendonlength_initial);
+        
+        % CUT: elongation and strain at common force which is cut to 90%:
         loc_common_force_cut = find(force_elong_ALL{i}(:,2)>=stiff_common_force,1,'first');
         if isempty(loc_common_force_cut)
             elong_common_cut = NaN;
             strain_common_cut = NaN;
+            young_common_cut = NaN;
             cprintf('red',horzcat('WARNING: Line ', num2str(i), ' (subj ', all_stiff_output_txt{i,1}, '): Elongation @ 90%% common force not found.\n'))
         else
+            % end values
             elong_common_cut = force_elong_ALL{i}(loc_common_force_cut,1);
-            strain_common_cut = elong_common_cut / all_stiff_output(i,loc_tendonlength_initial) * 100;
+            strain_common_cut = elong_common_cut / ym_tendlength * 100;
+            force_common_cut = stiff_common_force;
+            % 80% of end force - for Young
+            loc_force_common_cut_80 = find(force_elong_ALL{i}(:,2) >= (force_common_cut * young_percentage), 1, 'first');
+            elong_common_cut_80 = force_elong_ALL{i}(loc_force_common_cut_80,1);
+            force_common_cut_80 = force_elong_ALL{i}(loc_force_common_cut_80,2);
+            % Young data
+            ym_stress_common_80cut = (force_common_cut - force_common_cut_80) / ym_csa; 
+            ym_strain_common_80cut = (elong_common_cut - elong_common_cut_80) / ym_tendlength * 100;
+            young_common_cut = ym_stress_common_80cut / ym_strain_common_80cut;
         end
         
-        % elongation and strain at common force BEFORE cut to 90%:
-        %    The below variable will not be extracted (will be NaN) for many subjects, since
-        %    force_elong_ALL contains force-elongation only up to individual 90%/manual-cut force level
+        % MAX: elongation and strain at common force BEFORE cut to 90%:
+        %    The below variable will not be extracted (will be NaN) for several subjects, since
+        %    force_elong_ALL contains force-elongation only up to individual 90%/manual-cut force level.
         %    Not deleted from data analysis, just to save time.
         loc_common_force_max = find(force_elong_ALL{i}(:,2)>=stiff_common_force_max,1,'first');
         if isempty(loc_common_force_max)
             elong_common_max = NaN;
             strain_common_max = NaN;
-            % cprintf('red',horzcat('WARNING: Elongation @ MAX common force not found.\n'))
+            young_common_max = NaN;
         else
+            % end values
             elong_common_max = force_elong_ALL{i}(loc_common_force_max,1);
-            strain_common_max = elong_common_max / all_stiff_output(i,loc_tendonlength_initial) * 100;
+            strain_common_max = elong_common_max / ym_tendlength * 100;
+            force_common_max = force_elong_ALL{i}(loc_common_force_max,2); % cannot use exact max, do not have corresponding elong
+            % 80% of end force - for Young
+            loc_force_common_max_80 = find(force_elong_ALL{i}(:,2) >= (stiff_common_force_max * young_percentage), 1, 'first');
+            elong_common_max_80 = force_elong_ALL{i}(loc_force_common_max_80,1);
+            force_common_max_80 = force_elong_ALL{i}(loc_force_common_max_80,2);
+            % Young data
+            ym_stress_common_80max = (force_common_max - force_common_max_80) / ym_csa; 
+            ym_strain_common_80max = (elong_common_max - elong_common_max_80) / ym_tendlength * 100;
+            young_common_max = ym_stress_common_80max / ym_strain_common_80max;
         end
         
         % add to array across subjects
@@ -667,6 +704,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         all_stiff_output(i,loc_elong_common_max) = elong_common_max;
         all_stiff_output(i,loc_strain_common_cut) = strain_common_cut;
         all_stiff_output(i,loc_strain_common_max) = strain_common_max;
+        all_stiff_output(i,loc_young_common_cut) = young_common_cut;
+        all_stiff_output(i,loc_young_common_max) = young_common_max;
     end
     
     

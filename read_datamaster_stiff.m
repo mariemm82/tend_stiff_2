@@ -13,7 +13,7 @@ function out = read_datamaster_stiff(file)
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
     global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
     global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_calc_US dm_CPM_calc_US_frame dm_CPM_sol_NX dm_leg_length
-    global dm_tendonlength dm_cutforce %new2014-04-14 + 2017-11-15
+    global dm_tendonlength dm_cutforce dm_CSA %new2014-04-14 + 2017-11-15
     global dm_rot_const
 
     
@@ -21,7 +21,7 @@ function out = read_datamaster_stiff(file)
     data = fileread(file);
     datamaster = textscan(data, '%q','Delimiter','\t');
     
-    datamaster_columns = 33; % number of data columns entered per subject % PROJECTSPECIFIC
+    datamaster_columns = 34; % number of data columns entered per subject % PROJECTSPECIFIC
     
     % restructure imported data into multiple columns
     % n o lines = 1 header + 1 per subject entry
@@ -67,6 +67,7 @@ function out = read_datamaster_stiff(file)
         dm_tendonlength{i-1,1}=datamaster{1,1}{delta+31,1}; % new 2017-11-15
         dm_cutforce{i-1,1}=datamaster{1,1}{delta+32,1}; %new2014-04-14
         dm_rot_const{i-1,1}=datamaster{1,1}{delta+33,1}; %new2017-12-08
+        dm_CSA{i-1,1}=datamaster{1,1}{delta+34,1}; %new2018-01-17
     end
 
     out = nolines-1; % lines in datamaster to be analysed, minus header

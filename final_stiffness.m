@@ -10,7 +10,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, elong_cut, force_cut, strain_cut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt) %new 2017-11-15
+function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, young_max, elong_cut, force_cut, strain_cut, young_cut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt, tendon_CSA_txt) %new 2017-11-15
 global plot_achilles plot_norm subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
@@ -399,22 +399,45 @@ force_elong_array = [tend_elong force_array_full];
 % force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
 
 
-%% calculate output vars: tendon STRAIN, ELONG, FORCE
+%% calculate output vars: tendon ELONG, STRAIN, FORCE, YOUNG'S MODULUS
 tendon_length = str2double(tendon_length_txt);
-% elong_max, force_elongmax, strain_max, elong_cut, force_cut, strain_cut
+tendon_CSA = str2double(tendon_CSA_txt); % in mm^2
 
-% highest achieved elong + corresponding strain and force:
+young_percentage = 0.8; %VAR calculate between 80% and defined end (max/cutoff)
+
+% MAX: highest achieved ELONG + corresponding STRAIN, FORCE:
 [elong_max, loc_elong_max] = max(force_elong_array(:,1));
 strain_max = elong_max / tendon_length * 100;
 force_elongmax = force_elong_array(loc_elong_max,2);
 
-% at cut force
+% 80% of above force - for Young
+loc_force_max_80 = find(force_elong_array(:,2) >= (force_elongmax * young_percentage), 1, 'first');
+elong_max_80 = force_elong_array(loc_force_max_80,1);
+force_max_80 = force_elong_array(loc_force_max_80,2);
+
+% CUT: at cut FORCE + corresponding STRAIN, ELONG:
 elong_cut = force_elong_array(loc_cutoff,1);
 strain_cut = elong_cut / tendon_length * 100;
 force_cut = force_elong_array(loc_cutoff,2);
 
-cprintf('green', horzcat('Maximal/cut strain: ', num2str(round(elong_max,1)), '/', num2str(round(elong_cut,1)), ' mm elong / ', num2str(round(tendon_length,1)), ' mm length = ', num2str(round(strain_max,2)), '/', num2str(round(strain_cut,2)), '%% strain.', '\n'))
+% 80% of cutoff - for Young
+loc_force_cut_80 = find(force_elong_array(:,2) >= (force_cut * young_percentage), 1, 'first');
+elong_cut_80 = force_elong_array(loc_force_cut_80,1);
+force_cut_80 = force_elong_array(loc_force_cut_80,2);
 
+% young's modulus = stress / strain
+% stress = force per CSA (in m^2) between 80 and 100% force
+% strain = % elongation between 80 and 100% force
+
+% YOUNG'S MODULUS for max elong (similar to ind max force) and cut force
+ym_stress_80max = (force_elongmax - force_max_80) / (tendon_CSA/1000/1000); % converting mm^2 to m^2
+ym_stress_80cut = (force_cut - force_cut_80) / (tendon_CSA/1000/1000); % converting mm^2 to m^2
+ym_strain_80max = (elong_max - elong_max_80) / tendon_length * 100;
+ym_strain_80cut = (elong_cut - elong_cut_80) / tendon_length * 100;
+young_max = ym_stress_80max / ym_strain_80max;
+young_cut = ym_stress_80cut / ym_strain_80cut;
+
+cprintf('magenta', horzcat('IND max/cut elong: ', num2str(round(elong_max,1)), '/', num2str(round(elong_cut,1)), ' mm, strain: ', num2str(round(strain_max,2)), '/', num2str(round(strain_cut,2)), '%%, YM: ', num2str(round(young_max/1000000000,2)), '/', num2str(round(young_cut/1000000000,2)), ' GPa.', '\n'))
 
 
 %% curve fitting for stiffness %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

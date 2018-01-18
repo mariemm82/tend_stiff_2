@@ -165,7 +165,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             'Tend-length 0deg, mm', ... % 23
             'Strain at ind F cutoff, percent', 'Strain ind max-elong', 'Strain at common F cutoff', 'Strain at common F max', ... % 24-27
             'Young at ind F cutoff', 'Young at ind max-elong', 'Young at common F cutoff', 'Young at common F max', ... % 28-31
-            'Tend-CSA, mm^2',... % 32
+            'Tend-CSA, mm_2',... % 32
             }; % PROJECTSPECIFIC
         loc_stiff_a = 3;
         loc_stiff_b = 4;

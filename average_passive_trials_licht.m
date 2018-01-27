@@ -11,7 +11,7 @@ function [output_array] = average_passive_trials_licht(varargin) % (gonio1, angl
 global plot_check subject_id plot_licht
 angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
 smoother = 10; %VAR 
-errormsg_extrapol = 0.5; 
+%errormsg_extrapol = 0.5; 
 
 if nargin == 12 % two trials submitted, to be averaged
     gonio1 = varargin{1};
@@ -24,7 +24,7 @@ if nargin == 12 % two trials submitted, to be averaged
     faslen2 = varargin{8};
     pennation2 = varargin{9};
     time2 = varargin{10};
-    angle_common = varargin{11};
+    %angle_common = varargin{11};
     description = varargin{12};
     
         
@@ -48,46 +48,47 @@ if nargin == 12 % two trials submitted, to be averaged
     %    p = 0.0005; % 0 = least squares straight line fit, 1 = natural cubic spline interpolant   %VAR
     %    gonio_new = csaps(time1, gonio1, p, time_torque_ascend); 
     
-        
-    %% if new gonio angle is smaller than original max, extrapolate all data
-    
-    common_angle_orig = angle_common + 0.0001; % round(max([max(gonio1) max(gonio2)]),2);
-    
-    % trial 1
-    if max(gonio_new1) < common_angle_orig
-        if common_angle_orig - max(gonio_new1) > errormsg_extrapol
-            cprintf('red', horzcat('WARNING: Extrapolating max ROM1 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
-        end
-        % extrapolate using last X degrees of existing data
-        angle_end = max(gonio_new1) - 2; %VAR
-        loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
-        % calculate linear coeffisients
-        gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
-        coeffs_faslenEND = gonio_modifiedEND\faslen1(loc_angle_end:end); % NB backslash --> slope
-        coeffs_pennationEND = gonio_modifiedEND\pennation1(loc_angle_end:end);
-        % enlarge arrays by adding values at the end
-        gonio_new1 = [gonio_new1; common_angle_orig];
-        faslen1 = [faslen1; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
-        pennation1 = [pennation1; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
-    end
-    
-    % repeat for trial 2
-    if max(gonio_new2) < common_angle_orig
-        if common_angle_orig - max(gonio_new1) > errormsg_extrapol
-            cprintf('red', horzcat('WARNING: Extrapolating max ROM2 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
-        end
-        % extrapolate using last X degrees of existing data
-        angle_end = max(gonio_new2) - 2; %VAR
-        loc_angle_end = find(gonio_new2 >= angle_end,1,'first');
-        % calculate linear coeffisients
-        gonio_modifiedEND = [ones(length(gonio_new2(loc_angle_end:end)),1) gonio_new2(loc_angle_end:end)];
-        coeffs_faslenEND = gonio_modifiedEND\faslen2(loc_angle_end:end); % NB backslash --> slope
-        coeffs_pennationEND = gonio_modifiedEND\pennation2(loc_angle_end:end);
-        % enlarge arrays by adding values at the end
-        gonio_new2 = [gonio_new2; common_angle_orig];
-        faslen2 = [faslen2; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
-        pennation2 = [pennation2; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
-    end
+
+% DID NOT WORK AS INTENDED:
+%     %% if new gonio angle is smaller than original max, extrapolate all data
+%     
+%     common_angle_orig = angle_common + 0.0001; % round(max([max(gonio1) max(gonio2)]),2);
+%     
+%     % trial 1
+%     if max(gonio_new1) < common_angle_orig
+%         if common_angle_orig - max(gonio_new1) > errormsg_extrapol
+%             cprintf('red', horzcat('WARNING: Extrapolating max ROM1 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
+%         end
+%         % extrapolate using last X degrees of existing data
+%         angle_end = max(gonio_new1) - 2; %VAR
+%         loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
+%         % calculate linear coeffisients
+%         gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
+%         coeffs_faslenEND = gonio_modifiedEND\faslen1(loc_angle_end:end); % NB backslash --> slope
+%         coeffs_pennationEND = gonio_modifiedEND\pennation1(loc_angle_end:end);
+%         % enlarge arrays by adding values at the end
+%         gonio_new1 = [gonio_new1; common_angle_orig];
+%         faslen1 = [faslen1; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
+%         pennation1 = [pennation1; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
+%     end
+%     
+%     % repeat for trial 2
+%     if max(gonio_new2) < common_angle_orig
+%         if common_angle_orig - max(gonio_new1) > errormsg_extrapol
+%             cprintf('red', horzcat('WARNING: Extrapolating max ROM2 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
+%         end
+%         % extrapolate using last X degrees of existing data
+%         angle_end = max(gonio_new2) - 2; %VAR
+%         loc_angle_end = find(gonio_new2 >= angle_end,1,'first');
+%         % calculate linear coeffisients
+%         gonio_modifiedEND = [ones(length(gonio_new2(loc_angle_end:end)),1) gonio_new2(loc_angle_end:end)];
+%         coeffs_faslenEND = gonio_modifiedEND\faslen2(loc_angle_end:end); % NB backslash --> slope
+%         coeffs_pennationEND = gonio_modifiedEND\pennation2(loc_angle_end:end);
+%         % enlarge arrays by adding values at the end
+%         gonio_new2 = [gonio_new2; common_angle_orig];
+%         faslen2 = [faslen2; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
+%         pennation2 = [pennation2; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
+%     end
         
     
     %% if gonio angle starts after zero degrees, extrapolate data
@@ -191,7 +192,7 @@ else % nargin == 7, e.g. only one trial submitted
     faslen1 = varargin{3};
     pennation1 = varargin{4};
     time1 = varargin{5};
-    angle_common = varargin{6};
+    %angle_common = varargin{6};
     description = varargin{7};
         
     
@@ -206,28 +207,29 @@ else % nargin == 7, e.g. only one trial submitted
         gonio_new1(ang) = (fit_gonio1(1) * time1(ang)^4) + (fit_gonio1(2) * time1(ang)^3) + (fit_gonio1(3) * time1(ang)^2) + (fit_gonio1(4) * time1(ang)) + fit_gonio1(5);
     end
     
-    
-    %% if new gonio angle is smaller than original max, extrapolate all data
-    
-    common_angle_orig = angle_common + 0.0001; % round(max(gonio1),2);
-    
-    % trial 1
-    if max(gonio_new1) < common_angle_orig
-        if common_angle_orig - max(gonio_new1) > errormsg_extrapol
-            cprintf('red', horzcat('WARNING: Extrapolating max ROM1 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
-        end
-        % extrapolate using last X degrees of existing data
-        angle_end = max(gonio_new1) - 2; %VAR
-        loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
-        % calculate linear coeffisients
-        gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
-        coeffs_faslenEND = gonio_modifiedEND\faslen1(loc_angle_end:end); % NB backslash --> slope
-        coeffs_pennationEND = gonio_modifiedEND\pennation1(loc_angle_end:end);
-        % enlarge arrays by adding values at the end
-        gonio_new1 = [gonio_new1; common_angle_orig];
-        faslen1 = [faslen1; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
-        pennation1 = [pennation1; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
-    end
+
+% DID NOT WORK AS INTENDED:
+%     %% if new gonio angle is smaller than original max, extrapolate all data
+%     
+%     common_angle_orig = angle_common + 0.0001; % round(max(gonio1),2);
+%     
+%     % trial 1
+%     if max(gonio_new1) < common_angle_orig
+%         if common_angle_orig - max(gonio_new1) > errormsg_extrapol
+%             cprintf('red', horzcat('WARNING: Extrapolating max ROM1 by ', num2str(common_angle_orig - max(gonio_new1)), ' degrees.\n'))
+%         end
+%         % extrapolate using last X degrees of existing data
+%         angle_end = max(gonio_new1) - 2; %VAR
+%         loc_angle_end = find(gonio_new1 >= angle_end,1,'first');
+%         % calculate linear coeffisients
+%         gonio_modifiedEND = [ones(length(gonio_new1(loc_angle_end:end)),1) gonio_new1(loc_angle_end:end)];
+%         coeffs_faslenEND = gonio_modifiedEND\faslen1(loc_angle_end:end); % NB backslash --> slope
+%         coeffs_pennationEND = gonio_modifiedEND\pennation1(loc_angle_end:end);
+%         % enlarge arrays by adding values at the end
+%         gonio_new1 = [gonio_new1; common_angle_orig];
+%         faslen1 = [faslen1; (common_angle_orig*coeffs_faslenEND(2)) + coeffs_faslenEND(1)];
+%         pennation1 = [pennation1; (common_angle_orig*coeffs_pennationEND(2)) + coeffs_pennationEND(1)];
+%     end
     
     
     %% if gonio angle starts after zero degrees, extrapolate data

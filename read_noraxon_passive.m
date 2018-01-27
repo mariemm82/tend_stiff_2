@@ -12,7 +12,7 @@
 function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, trial_name)
     global noraxonfreq emg_bandpass emg_rms_ms % us_zerodispframes mvc_window_ms convert_achilles convert_norm_ind_passive
     global angle_cutoff velocity_cutoff torque_cutoff_active % torque_cutoff_bandstop angle_cutoff_active velocity_cutoff_active
-    global plot_norm plot_emg plot_check plot_conversion subject_id
+    global plot_emg plot_conversion subject_id
     global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque column_norm_velocity column_norm_direction % column_l_tibant column_r_tibant column_achilles
     global convert_norm_angle_a convert_norm_angle_b convert_norm_torque_a convert_norm_torque_b convert_norm_velocity_a convert_norm_velocity_b % convert_norm_direction_b
     
@@ -184,7 +184,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     % changedirection3 = changedirection2+500 + find(norm_velocity_filtered(changedirection2+500:end)<vel2+(vel1/2),1,'first');
 
     % plot to confirm phases of direction changes
-    if plot_check && plot_conversion
+    if plot_conversion
         plottitle = horzcat('Passive phases check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(time,-norm_direction/100)
@@ -259,7 +259,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
      % chosen filter for futher calculations
      norm_torque_ascend_filtered = norm_torque_ascend_csaps;
     
-    if plot_check && plot_norm
+    if plot_conversion
          plottitle = horzcat('Torque filter check ASCEND for ', subject_id, ' ', trial_name);
          figure('Name',plottitle)
          plot(time_torque_ascend,norm_torque_ascend_lowpass,'color','r','linewidth',2)
@@ -300,7 +300,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     
      
      
-     if plot_check && plot_norm
+     if plot_conversion
          plottitle = horzcat('Torque filter check DESCEND for ', subject_id, ' ', trial_name);
          figure('Name',plottitle)
          plot(time_torque_descend,norm_torque_descend_lowpass,'color','r','linewidth',2)
@@ -433,7 +433,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     
 	% replace gonio in array
     noraxon_converted(1:loc_trialend,column_gonio) = gonio_corrected(1:loc_trialend);
-    if plot_check && plot_conversion
+    if plot_conversion
         plottitle = horzcat('Gonio correction check, ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(time,noraxondata.data(:,column_norm_angle))
@@ -476,7 +476,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     frames = [ones(length(angle_correction(loc_start:loc_stop)),1) (loc_start:loc_stop)'];
     coeffs = frames\angle_correction(loc_start:loc_stop); % NB backslash --> slope
 
-    % replace first 3 values in arrays by using extrapolation
+    % replace first X values in arrays by using extrapolation
     % y = ax + b ... y = displ, x = angle
     for x = 1:(loc_start-1)
         % place back in original array
@@ -485,15 +485,30 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     
     
     
+    % correct TORQUE in resampled array (value when going from max torque
+    % to zero (ascending phase end)
+    loc_torque_zero = find(noraxon_resampled(:,column_norm_torque) == 0,1,'first');
     
-    
+    % check previous row gonio values:
+    gonio_minus2 = abs(noraxon_resampled(loc_torque_zero-2,column_gonio));
+    gonio_minus1 = abs(noraxon_resampled(loc_torque_zero-1,column_gonio));
+    torque_minus3 = abs(noraxon_resampled(loc_torque_zero-3,column_norm_torque));
+    torque_minus2 = abs(noraxon_resampled(loc_torque_zero-2,column_norm_torque));
+    torque_minus1 = abs(noraxon_resampled(loc_torque_zero-1,column_norm_torque));
+    % if goniometer goes down - set to zero
+    if gonio_minus1 < gonio_minus2
+         noraxon_resampled(loc_torque_zero-1,column_norm_torque) = 0;
+    % if goniometer goes up but torque goes down - extrapolate torque
+    elseif torque_minus1 < torque_minus2
+        noraxon_resampled(loc_torque_zero-1,column_norm_torque) = torque_minus2 + (torque_minus2 - torque_minus3);
+    end
     
     
     
     %%% CHECKPOINT PLOTS
     
     % EMG triceps surae - for norm strength etc
-    if plot_check && plot_emg
+    if plot_emg
         plottitle = horzcat('EMG check, triceps surae, ', subject_id, ' ', trial_name);
         if strcmpi(side,'R') == 1
             plot_GM = noraxon_resampled(:,column_r_gm); 
@@ -514,7 +529,7 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     end
        
     % plot final data
-    if plot_check && plot_conversion
+    if plot_conversion
         plottitle = horzcat('Norm torque-angle check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle)
         plot(noraxon_resampled(:,column_norm_angle),noraxon_resampled(:,column_norm_torque),'k')

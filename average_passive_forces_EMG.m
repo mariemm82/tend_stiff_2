@@ -8,7 +8,6 @@
 
 function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, trials_GMFAS, subject_nr)
 
-    %global plot_achilles plot_norm plot_emg plot_check plot_us subject_id
     angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
     smoother = 10; %VAR 
     

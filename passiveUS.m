@@ -231,13 +231,13 @@ function [] = passiveUS(input_project, input_plot)
     axis_str_GMtend = [-1 angle_max -8 10];
     axis_len_GMtend = [-1 angle_max 120 210];
 
-    axis_torque = [-1 angle_max 0 80];
+    axis_torque = [-1 angle_max 0 100];
 
-    axis_force = [-1 angle_max 0 1600];
+    axis_force = [-1 angle_max 0 1800];
     % axis_PP = [-5 100 0 105];
 
-    axis_ind_elong = [-1 angle_max -6 30];
-    axis_ind_strain = [-1 angle_max -6 30];
+    axis_ind_elong = [-1 angle_max -8 40];
+    axis_ind_strain = [-1 angle_max -6 40];
     axis_ind_len_MTU = [-1 angle_max 400 550];
 
 
@@ -481,7 +481,7 @@ function [] = passiveUS(input_project, input_plot)
 
             %% Calculate ACHILLES TENDON MOMENT ARM
             at_momentarm = calculate_momentarm(0, 0, dm_leg_length{line});
-            % MMM MA
+
 
             %% Calculations for 2x SOL trials
 
@@ -493,7 +493,7 @@ function [] = passiveUS(input_project, input_plot)
                 SOL_gonio_1 = zeros;
                 SOL_angle_1 = zeros;
                 SOL_displacement_1 = zeros;
-            else % MMM MA
+            else
                 [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
                 emg_all{1,1} = [SOL_gonio_1 SOL_emg_gm_1];
                 emg_all{2,1} = [SOL_gonio_1 SOL_emg_gl_1];
@@ -805,11 +805,12 @@ function [] = passiveUS(input_project, input_plot)
                 plot(GMMTJ_gonio_2,GMMTJ_force_2,'LineWidth',2, 'Color',[0 1 0])
                 plot(GMFAS_gonio_1,GMFAS_force_1,'LineWidth',2, 'Color',[0 0 1])
                 plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
+                plot(data_force_gonio(:,2), data_force_gonio(:,1), 'Color','black')
                 axis(axis_force)
                 ylabel('Force (N)')
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','Location','Southeast')
+                legend('SOL1','SOL2','GMMTJ1','GMMTJ2','GMFAS1','GMFAS2','mean','Location','Southeast')
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
 
@@ -1098,7 +1099,6 @@ function [] = passiveUS(input_project, input_plot)
             out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
 
             % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
-            % MMM MA
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
             out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
             out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array

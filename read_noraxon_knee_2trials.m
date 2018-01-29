@@ -12,6 +12,7 @@
 function [noraxon_resampled1, noraxon_resampled2] = read_noraxon_knee_2trials(noraxonfile, finalfreq, side, trial_name)
 
     %% prepare & import Norm
+    global mute
     global noraxonfreq 
     global angle_cutoff velocity_cutoff torque_cutoff_active % torque_cutoff_bandstop angle_cutoff_active velocity_cutoff_active
     global plot_individual subject_id
@@ -102,8 +103,10 @@ function [noraxon_resampled1, noraxon_resampled2] = read_noraxon_knee_2trials(no
     % corresponding millivolt correction is:
     zero_velocity_mv = (zero_velocity - convert_norm_velocity_b) * convert_norm_velocity_a;
     % print velocity correction report
-    cprintf('magenta', horzcat('Secondary velocity correction: Stop position intially had ', num2str(zero_velocity), ' deg/s --> secondary offset ', num2str(zero_velocity_mv), ' mV.\n'));
-    
+    if mute == 0
+        cprintf('magenta', horzcat('Secondary velocity correction: Stop position intially had ', num2str(zero_velocity), ' deg/s --> secondary offset ', num2str(zero_velocity_mv), ' mV.\n'));
+    end
+
     
     %% REPLACE ANGLE, DIRECTION, VELOCITY IN DATA
 

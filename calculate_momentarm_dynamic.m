@@ -7,7 +7,7 @@
 
 
 function at_momentarm_dynamic = calculate_momentarm_dynamic(angle_array)
-    global at_momentarm
+    global at_momentarm mute
     
     % Fath, COR rest (mm --> m)
     fath90 = 51.7 / 1000;
@@ -45,6 +45,8 @@ function at_momentarm_dynamic = calculate_momentarm_dynamic(angle_array)
     end
 
     % Output moment arm report
-    cprintf('magenta', horzcat('AT moment arm dynamic = ', num2str(1000*min(at_momentarm_dynamic)), ' to ', num2str(1000*max(at_momentarm_dynamic)), ' mm.\n'));
+    if mute == 0
+        cprintf('magenta', horzcat('AT moment arm dynamic = ', num2str(1000*min(at_momentarm_dynamic)), ' to ', num2str(1000*max(at_momentarm_dynamic)), ' mm.\n'));
+    end
 
 end

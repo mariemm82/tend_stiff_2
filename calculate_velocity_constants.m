@@ -11,6 +11,7 @@
 
 
 function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_constants(freq_cutoff, inputfile, side)
+    global mute
     global plot_conversion plot_check plot_achilles subject_id
     global column_norm_velocity
     global norm_volt_per_degree norm_volt_per_nm norm_volt_per_velocity norm_mv2nm_a norm_mv2nm_b
@@ -204,8 +205,9 @@ function [convert_ind_velocity_a, convert_ind_velocity_b] = calculate_velocity_c
     convert_ind_velocity_b_volt = convert_ind_velocity_b/convert_ind_velocity_a;
     
     % output velocity conversion numbers to screen, as text
-    cprintf('magenta', horzcat('NORM Velocity conversion factors: a = ', num2str(convert_ind_velocity_a), ', b = ', num2str(convert_ind_velocity_b), '. Offset in millivolt = ', num2str(convert_ind_velocity_b_volt), ' mV.\n' ));
-    
+    if mute == 0
+        cprintf('magenta', horzcat('NORM Velocity conversion factors: a = ', num2str(convert_ind_velocity_a), ', b = ', num2str(convert_ind_velocity_b), '. Offset in millivolt = ', num2str(convert_ind_velocity_b_volt), ' mV.\n' ));
+    end
     
     
 end

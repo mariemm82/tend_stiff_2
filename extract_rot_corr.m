@@ -9,7 +9,7 @@
 function [coeffvals, rsquare, gonio, angle, displ] = extract_rot_corr(noraxondata, usdata, usdata_frame, side, trial_name)
     angle_end = -3; %VAR fit data from start of trial up to gonio angle 3
 
-
+    global mute
     global column_gonio column_norm_angle %column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol  column_norm_torque % column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
     %global plot_check subject_id plot_norm % plot_emg plot_us 
     %global at_momentarm
@@ -61,7 +61,9 @@ function [coeffvals, rsquare, gonio, angle, displ] = extract_rot_corr(noraxondat
         elseif at_rotation_const < -0.25 %VAR
             cprintf('red',horzcat('Ankle rotation ', trial_name, ': ', num2str(at_rotation_const), ' mm/deg (start gonio angle ', num2str(-gonio(1)), ', norm angle ', num2str(-angle(1)),')', '.\n'));
         else
-            cprintf('blue',horzcat('Ankle rotation ', trial_name, ': ', num2str(at_rotation_const), ' mm/deg (start gonio angle ', num2str(-gonio(1)), ', norm angle ', num2str(-angle(1)),')', '.\n'));
+            if mute == 0
+                cprintf('blue',horzcat('Ankle rotation ', trial_name, ': ', num2str(at_rotation_const), ' mm/deg (start gonio angle ', num2str(-gonio(1)), ', norm angle ', num2str(-angle(1)),')', '.\n'));
+            end
         end
     end
     

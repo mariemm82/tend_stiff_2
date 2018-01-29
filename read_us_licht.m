@@ -14,7 +14,7 @@
 
 
 function [usdata_licht] = read_us_licht(usfile, usframe, trial_name)
-    
+    global mute
     % import us data
     usdata = importdata(usfile, '\t', 1);
     the_size = size(usdata.data);
@@ -99,8 +99,9 @@ function [usdata_licht] = read_us_licht(usfile, usframe, trial_name)
     end
     
     % print report for Lichtwark data
-    cprintf('blue', horzcat(trial_name, ': GM fascicle length ', num2str(round(min(usdata_licht(:,2)),1)), '-', num2str(round(max(usdata_licht(:,2)),1)), ' mm, pennation = ', num2str(round(max(usdata_licht(:,3)),1)), '-', num2str(round(min(usdata_licht(:,3)),1)), ' deg. (NB: not exact zero angle)\n'));
-
+    if mute == 0
+        cprintf('blue', horzcat(trial_name, ': GM fascicle length ', num2str(round(min(usdata_licht(:,2)),1)), '-', num2str(round(max(usdata_licht(:,2)),1)), ' mm, pennation = ', num2str(round(max(usdata_licht(:,3)),1)), '-', num2str(round(min(usdata_licht(:,3)),1)), ' deg. (NB: not exact zero angle)\n'));
+    end
     
     
 

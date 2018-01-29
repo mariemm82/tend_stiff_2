@@ -17,19 +17,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% MMM TODO:
-% check if new output is very different after angle extrapolation
-
-% consider further normalization of data
-
 
 
 function [] = passiveUS(input_project, input_plot)
 
     %% Startup actions
     close all
+    global mute
+    mute = 1; % do not output to screen: conversion factors, EMG%, mom arm
     
-    % to restart the script AFTER the lopp (load the looped data from file):
+    % to restart the script AFTER the loop (load the looped data from file):
     if input_project == 3
         resume_after_loop = 1;
             all_passive_output_head = {...
@@ -186,7 +183,7 @@ function [] = passiveUS(input_project, input_plot)
     txt_length_norm = 'Length (% of MTU length)';
     txt_elong_norm_perc = 'Length (% of MTU ELONG)';
     
-    angle_max = 35;
+    angle_max = 37;
     
     axis_EMG = [-1 angle_max 0 25];
 
@@ -236,9 +233,9 @@ function [] = passiveUS(input_project, input_plot)
     axis_force = [-1 angle_max 0 1800];
     % axis_PP = [-5 100 0 105];
 
-    axis_ind_elong = [-1 angle_max -8 40];
+    axis_ind_elong = [-1 angle_max -8 45];
     axis_ind_strain = [-1 angle_max -6 40];
-    axis_ind_len_MTU = [-1 angle_max 400 550];
+    axis_ind_len_MTU = [-1 angle_max 0 550];
 
 
     %% READ max angles and forces from "create_angles_passive.m"
@@ -805,7 +802,7 @@ function [] = passiveUS(input_project, input_plot)
                 plot(GMMTJ_gonio_2,GMMTJ_force_2,'LineWidth',2, 'Color',[0 1 0])
                 plot(GMFAS_gonio_1,GMFAS_force_1,'LineWidth',2, 'Color',[0 0 1])
                 plot(GMFAS_gonio_2,GMFAS_force_2,'LineWidth',2, 'Color',[1 0 1])
-                plot(data_force_gonio(:,2), data_force_gonio(:,1), 'Color','black')
+                plot(data_force_gonio(:,2), data_force_gonio(:,1), 'LineWidth',2, 'Color','black')
                 axis(axis_force)
                 ylabel('Force (N)')
                 xlabel(txt_gonio)
@@ -994,7 +991,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM msc. (linear)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Northwest');
+                legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM msc. (linear)', 'SOL msc.', 'GM fasc.DISPL.', 'GM apo.', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
                 xlim([-0.5 inf]) 
                 ylim([-inf inf]) 
@@ -1012,7 +1009,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_elong)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
+                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
 
                 % strain (percent of initial length) - linear
@@ -1026,13 +1023,13 @@ function [] = passiveUS(input_project, input_plot)
                 plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_SOLmsc),'LineWidth',0.8,'Color','black') % SOL msc
                 plot(MTU_strain_array(:,col_angle),MTU_strain_array(:,col_GMapo),'LineWidth',0.8,'Color',col_orange) % GM apo
                 if max(MTU_strain_array(:,col_AT)) > axis_ind_strain(4)
-                    text(axis_ind_strain(2)-10,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
+                    text(2,axis_ind_strain(4)-1, horzcat('Max AT str = ', num2str(round(max(MTU_strain_array(:,col_AT)),1))),'Color','green') % TEXT: max AT strain
                 end
                 axis(axis_ind_strain)
                 ylabel(txt_strain)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM msc. (linear)', 'SOL msc.', 'GM apo.', 'Location','Northwest');
+                legend('GM MTU', 'AT free', 'GM tendon (linear)', 'GM msc. (linear)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
                 xlim([-0.5 inf]) 
                 ylim([-inf inf]) 
@@ -1050,7 +1047,7 @@ function [] = passiveUS(input_project, input_plot)
                 ylabel(txt_strain)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Northwest');
+                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
 
@@ -3476,8 +3473,6 @@ function [] = passiveUS(input_project, input_plot)
 %                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
 %             end
 
-
-            
             %% TORQUE-angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('torque vs angle - 1');
@@ -3825,6 +3820,8 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
+            
+            close all
             
             %% GM TENDON: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
@@ -4347,7 +4344,9 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
-                 
+            
+            close all
+            
             %% SOL MUSCLE portion: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('muscle SOL length vs angle - 1');
@@ -4870,6 +4869,8 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
                         
+            close all
+            
             %% GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) length vs angle - 1');
@@ -5439,6 +5440,8 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
+            close all
+            
             %% GM fascicle (Lichtwark): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('GM fascicle length vs angle - 1');
@@ -5832,7 +5835,9 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
-                        
+                    
+            close all
+            
             %% Full MTU: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('MTU length vs angle - 1');
@@ -6205,6 +6210,10 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
+            
+            
+            
+            close all
 
             
             %% EMG vs angle GM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6468,6 +6477,8 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
+            
+            close all
             
                         
             %% NORMALIZED GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6821,7 +6832,10 @@ function [] = passiveUS(input_project, input_plot)
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
-                        
+            
+            close all
+            
+            
             %% NORMALIZED TO ELONG, GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 1 % contrib');
@@ -6996,7 +7010,6 @@ function [] = passiveUS(input_project, input_plot)
                 end
             end
             
-
             %% NORMALIZED GM fascicle (Lichtwark): Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
                 plottitle = horzcat('GM fascicle length vs angle NORM - 1');

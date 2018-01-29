@@ -14,6 +14,7 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     startangle = 0; %VAR
     stopangle = 6; %VAR
 
+    global mute
     global plot_norm plot_achilles subject_id
     global column_gonio column_norm_angle
 
@@ -220,7 +221,9 @@ function at_rotation_const = calculate_rotation_correction(noraxon_rot, usdata_r
     elseif at_rotation_const < -0.25 %VAR
         cprintf('red',horzcat('Ankle rotation: Displacement per degree of rotation = ', num2str(at_rotation_const), ' (elim ', num2str(max(coeffvals_1st(1),coeffvals_2nd(1))), ')', '.\n'));
     else
-        cprintf('blue',horzcat('Ankle rotation: Displacement per degree of rotation = ', num2str(at_rotation_const), ' (elim ', num2str(max(coeffvals_1st(1),coeffvals_2nd(1))), ')', '.\n'));
+        if mute == 0
+            cprintf('blue',horzcat('Ankle rotation: Displacement per degree of rotation = ', num2str(at_rotation_const), ' (elim ', num2str(max(coeffvals_1st(1),coeffvals_2nd(1))), ')', '.\n'));
+        end
     end
 
 end

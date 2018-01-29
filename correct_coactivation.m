@@ -4,8 +4,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max_torque, coact_max_EMG, side, trial_name)
-    global plot_achilles plot_norm plot_emg plot_check subject_id
-    global column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_norm_angle column_norm_torque column_norm_velocity column_norm_direction column_achilles
+    global mute
+    global plot_achilles plot_emg plot_check subject_id % plot_norm 
+    global column_l_tibant column_r_tibant column_achilles % column_EMG_start column_EMG_end column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_norm_angle column_norm_torque column_norm_velocity column_norm_direction 
 
     % select side
     if strcmpi(side,'L') == 1
@@ -28,10 +29,12 @@ function noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max
     noraxon_prepped_coact(:,column_achilles) = corrected_torque;
 
     % output coactivation numbers to screen, as text
-    if strcmp(trial_name,'MTJ1')
-        cprintf(horzcat('TA co-activation report: MVC dorsiflexion = ', num2str(coact_max_torque,4), ' Nm. EMG = ', num2str(coact_max_EMG,4),' µV.\n'));
+    if mute == 0
+        if strcmp(trial_name,'MTJ1')
+            cprintf(horzcat('TA co-activation report: MVC dorsiflexion = ', num2str(coact_max_torque,4), ' Nm. EMG = ', num2str(coact_max_EMG,4),' µV.\n'));
+        end
+        cprintf(horzcat('    ', trial_name, ' TA max activ. = ', num2str(max(percent_activation),3), '%% -> max torque contrib. = ', num2str(max(TA_torque),3), ' Nm.\n'));
     end
-    cprintf(horzcat('    ', trial_name, ' TA max activ. = ', num2str(max(percent_activation),3), '%% -> max torque contrib. = ', num2str(max(TA_torque),3), ' Nm.\n'));
     
     %%% checkpoint plot
     if plot_check && plot_achilles && plot_emg

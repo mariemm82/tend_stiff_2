@@ -9,7 +9,7 @@
 
 function at_momentarm = calculate_momentarm(noraxon_prepped, usdata_prepped, leg_length)
 %    global dm_leg_length line
-
+    global mute
     
     
     %%% METHOD 1 (ORIGINALLY PREFERRED) - from ankle rotation in Norm
@@ -48,6 +48,8 @@ function at_momentarm = calculate_momentarm(noraxon_prepped, usdata_prepped, leg
 
 
     % Output moment arm report
-    cprintf('magenta', horzcat('AT moment arm = ', num2str(at_momentarm), ' m.\n'));
+    if mute == 0
+        cprintf('magenta', horzcat('AT moment arm = ', num2str(at_momentarm), ' m.\n'));
+    end
 
 end

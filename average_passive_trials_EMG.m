@@ -8,7 +8,7 @@
 
 function [output_array] = average_passive_trials_EMG(varargin) % (torque1, gonio1, angle1, displ1, emg_gm1, emg_gl1, emg_sol1, time_1, torque2, gonio2, angle2, displ2, emg_gm2, emg_gl2, emg_sol2, time_2)
 
-global plot_check plot_norm plot_conversion subject_id
+global plot_check plot_us plot_conversion subject_id
 angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
 smoother = 10; %VAR 
 
@@ -202,8 +202,8 @@ if nargin == 16 % two trials submitted, to be averaged %%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     % plot ANGLE curve fitting, splining and averaging
-    if plot_check %TMP && plot_norm
-        plottitle = horzcat('Torque vs gonio 2trials fit&avg, ', subject_id, ' (SOL/GMMTJ/GMFAS)');
+    if plot_us
+        plottitle = horzcat('Torque vs gonio 2trials fit_avg, ', subject_id, ' (SOL_GMMTJ_GMFAS)');
         figure('Name',plottitle);
         plot(gonio1, torque1)
         hold on

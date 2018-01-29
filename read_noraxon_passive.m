@@ -10,6 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, trial_name)
+    global mute
     global noraxonfreq emg_bandpass emg_rms_ms % us_zerodispframes mvc_window_ms convert_achilles convert_norm_ind_passive
     global angle_cutoff velocity_cutoff torque_cutoff_active % torque_cutoff_bandstop angle_cutoff_active velocity_cutoff_active
     global plot_emg plot_conversion subject_id
@@ -150,8 +151,9 @@ function noraxon_resampled = read_noraxon_passive(noraxonfile, finalfreq, side, 
     zero_velocity_mv = (zero_velocity - convert_norm_velocity_b) * convert_norm_velocity_a;
     
     % print velocity correction report
-    cprintf('magenta', horzcat('Applying conversions: Velocity: ', num2str(zero_velocity), ' deg/s calculated @ stop, corresponding offset ', num2str(zero_velocity_mv), ' µV.\n'));
-
+    if mute == 0
+        cprintf('magenta', horzcat('Applying conversions: Velocity: ', num2str(zero_velocity), ' deg/s calculated @ stop, corresponding offset ', num2str(zero_velocity_mv), ' µV.\n'));
+    end
     
     
     

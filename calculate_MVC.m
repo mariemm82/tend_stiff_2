@@ -9,6 +9,7 @@
 
 
 function [plantflex_max_force,plantflex_GM_max_EMG] = calculate_MVC(noraxon_prepped, average_frames, at_momentarm, side)
+    global mute
     global plot_emg plot_check subject_id % plot_achilles plot_norm 
 %    global freq_default
     global  column_l_gm column_r_gm column_achilles % column_EMG_start column_EMG_end column_l_gl column_r_gl column_l_sol column_r_sol column_l_tibant column_r_tibant column_norm_angle column_norm_torque column_norm_velocity column_norm_direction 
@@ -62,7 +63,9 @@ function [plantflex_max_force,plantflex_GM_max_EMG] = calculate_MVC(noraxon_prep
     
     
    % output MVC
-   cprintf('black', horzcat('MVC plantar flexion = ', num2str(plantflex_max_force,4), ' N.\n'))
+    if mute == 0
+       cprintf('black', horzcat('MVC plantar flexion = ', num2str(plantflex_max_force,4), ' N.\n'))
+    end
 
 end
 

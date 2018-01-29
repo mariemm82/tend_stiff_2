@@ -9,9 +9,9 @@
 
 
 function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract_force_displ_singletrial_passive_EMG(noraxondata, usdata, usdata_frame, max_EMG_TA, max_EMG_GM, max_EMG_GL, max_EMG_SOL, leg_length, side, line, trial_name)
-    
+    global mute
     global column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque % column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
-    global plot_check subject_id plot_norm % plot_emg plot_us 
+    global plot_us subject_id plot_norm % plot_emg plot_us 
    % global at_momentarm
     global filepath
     
@@ -108,8 +108,9 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
          emg_GL = noraxon_prepped(1:loc_ascending_end,column_l_gl)/max_EMG_GL*100; % percent
          emg_SOL = noraxon_prepped(1:loc_ascending_end,column_l_sol)/max_EMG_SOL*100; % percent
     end
-    cprintf('green', horzcat(trial_name, ' EMG max activation: gm ', num2str(round(max(emg_GM),3)), ' %%, gl ', num2str(round(max(emg_GL),3)), ' %%, sol ', num2str(round(max(emg_SOL),3)), ' %%.\n'));
-    
+    if mute == 0
+        cprintf('green', horzcat(trial_name, ' EMG max activation: gm ', num2str(round(max(emg_GM),3)), ' %%, gl ', num2str(round(max(emg_GL),3)), ' %%, sol ', num2str(round(max(emg_SOL),3)), ' %%.\n'));
+    end
     
     %% force / torque 
     
@@ -122,7 +123,7 @@ function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract
     
     
     %% Plot synchronization check US vs Norm
-    if plot_check && plot_norm
+    if plot_us
         plottitle = horzcat('SYNC check for ', subject_id, ' ', trial_name);
         figure('Name',plottitle);
         [AX,H1,H2] = plotyy(time,force/20,time_us,displ_final,'plot');

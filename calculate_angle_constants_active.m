@@ -10,6 +10,7 @@
 
 
 function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_active(freq_cutoff, inputfile1, inputfile2, side)
+    global mute
     global plot_conversion plot_check subject_id 
     global column_norm_angle  % column_norm_velocity
     global norm_volt_per_degree % norm_volt_per_nm norm_volt_per_velocity norm_mv2nm_a norm_mv2nm_b
@@ -188,10 +189,11 @@ function [convert_ind_angle_a, convert_ind_angle_b] = calculate_angle_constants_
     convert_ind_angle_b_volt = convert_ind_angle_b/convert_ind_angle_a;
     
     % output angle conversion numbers to screen, as text
-    if plot_conversion
-        cprintf('cyan', horzcat('NORM Angle conversion factors: a = ', num2str(convert_ind_angle_a), ', b = ', num2str(convert_ind_angle_b), '. (((Offset in millivolt = ', num2str(convert_ind_angle_b_volt), ' mV.)))\n' ));
+    if mute == 0
+        if plot_conversion
+            cprintf('cyan', horzcat('NORM Angle conversion factors: a = ', num2str(convert_ind_angle_a), ', b = ', num2str(convert_ind_angle_b), '. (((Offset in millivolt = ', num2str(convert_ind_angle_b_volt), ' mV.)))\n' ));
+        end
     end
-    
     
     
     

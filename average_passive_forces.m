@@ -31,6 +31,6 @@ function [output_array] = average_passive_forces(data_sol, data_gmmtj, data_gmfa
     common_force_gonio_gmfas = spline(data_gmfas(:,placement_gonio), data_gmfas(:,placement_force), average_angle_array);
     average_force_gonio = (smooth(common_force_gonio_sol,smoother) + smooth(common_force_gonio_gmmtj,smoother) + smooth(common_force_gonio_gmfas,smoother)) / 3;
 
-    output_array = [average_force_gonio; average_angle_array]';
+    output_array = [average_force_gonio average_angle_array];
 
 end

@@ -18,6 +18,7 @@ function [convert_norm_angle_a, convert_norm_angle_b, convert_norm_torque_a, con
 
 
 %% Set constants % PROJECTSPECIFIC
+global mute
 global dm_isokinP30 dm_isokinP45 dm_CPM_calc_NX dm_CPM_sol_NX
 global dm_isomet_P10_2 dm_isomet_D00_2 dm_isomet_P10_1 dm_isomet_D00_1 dm_isomet_D05_1 dm_isomet_D05_2 % dm_isomet_D10_1 dm_isomet_D10_2 dm_isomet_D15_1 dm_isomet_D15_2
 global filepath
@@ -92,7 +93,7 @@ if strcmpi(type_of_test,'passive') == 1
     
     
     % output torque conversion numbers to screen, as text
-    if plot_conversion
+    if plot_conversion && mute == 0
         cprintf('magenta', horzcat('INDI Torque conversion factors: a = ', num2str(convert_norm_torque_a), ', b = ', num2str(convert_norm_torque_b), '. Offset in millivolt = ', num2str(mean(convert_ind_torque_b_volt)), ' mV.\n' ));
     end
     

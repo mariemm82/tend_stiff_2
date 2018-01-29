@@ -37,7 +37,9 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
     MTU_length_Grieve_abs = standing_calf_length * (1 + MTU_length_Grieve_rel);
         
     % resting MTU length (prone position)
+    % calf/MTU elongation - in % change from standing length
     resting_calf_length_rel = (a0 + (a1*(90+resting_ankle_angle)) + (a2*(90+resting_ankle_angle).^2))/100;
+    % calf/MTU length - in mm, across angle array
     resting_calf_length_abs = standing_calf_length * (1 + resting_calf_length_rel);
     
     

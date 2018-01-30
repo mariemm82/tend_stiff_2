@@ -1,1 +1,0 @@
-sjekk om alle max ROM/force kommer riktig med fra create_angles_passive

@@ -7,7 +7,8 @@
 
 
 function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, trials_GMFAS, subject_nr)
-
+    global subject_id
+    
     angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees
     smoother = 10; %VAR 
     
@@ -33,14 +34,20 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
     
     % handle subjects with erroraneous / missing EMG data
     
-    % if subject without EMG (31, 110)
-    if subject_nr == 31 || subject_nr == 110
+    % if subject without EMG
+    if subject_nr == 110 % BD
+        average_emg_sol_gonio(1:length(average_angle_array),1) = NaN;
+        average_emg_gm_gonio(1:length(average_angle_array),1) = NaN;
+        average_emg_gl_gonio(1:length(average_angle_array),1) = NaN;
+    
+    elseif strcmp(subject_id,'INT_15_CON_PRE_L') || strcmp(subject_id,'INT_31_CON_PRE_L') || strcmp(subject_id,'INT_31_STR_PRE_R')
         average_emg_sol_gonio(1:length(average_angle_array),1) = NaN;
         average_emg_gm_gonio(1:length(average_angle_array),1) = NaN;
         average_emg_gl_gonio(1:length(average_angle_array),1) = NaN;
         
     % if subject with partial EMG 
-    elseif subject_nr == 106 % (106 - use only GMFAS)
+    elseif subject_nr == 106 % BD
+        % 106: use only GMFAS
         % reshape and average EMG SOL across common angle array
         common_emg_sol_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_sol), average_angle_array);
         average_emg_sol_gonio = smooth(common_emg_sol_gonio_GMFAS,smoother);
@@ -51,7 +58,8 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
         common_emg_gl_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_gl), average_angle_array);
         average_emg_gl_gonio = smooth(common_emg_gl_gonio_GMFAS,smoother);
     
-    elseif subject_nr == 29 % (29 - use only SOL trials)
+    elseif strcmp(subject_id,'INT_29_CON_PRE_L') 
+        % 29 - use only SOL trials
         % reshape and average EMG SOL across common angle array
         common_emg_sol_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_sol), average_angle_array);
         average_emg_sol_gonio = smooth(common_emg_sol_gonio_SOL,smoother);

@@ -1,0 +1,34 @@
+
+datamaster tendon length:
+check raw files 90 vs prone - datamaster has same set twice
+ 2
+15
+... og alle tall som er røde veller i "tendon length prone main"
+
+
+=========== REDO LICHT ANALYSES?
+
+GM fascicle elongation:
+ 9 str post R - elongation outside the range of -10 to +30 mm?? pennation ~5 deg, length ~90+ mm... redo analysis?
+10 str pre R - fascicle strain out of plot range? pennation 7-8, length 65+ (initial = 45) - redo analysis?
+
+ 8 con pre L - negative elongation throughout...?
+21 con pre L - negative elongation throughout...?
+
+ 7 str post L - big change at the beginning of trial (before zero)
+11 con pre L - very big change near end of trial?
+25 con pre L - very big change at beginning of trial
+
+13 str pre L - fas lenght data must be erroraneous (0,4 mm)
+
+ind MTU elongation:
+SEE is negative and fas is more than total MTU?
+9 str post R ------ see gm fas elong above
+10 str pre R ------ see gm fas elong above
+
+
+
+=========== re-run due to EMG:
+16 pre con R
+3 str pre r
+

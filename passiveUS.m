@@ -4,7 +4,8 @@
 % 
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
-%
+% input argument 3 = resume run (0 = start from beginning, 2 = start inloop, 3 = start after loop)
+% 
 % 2017-12-28: Moving normalization to separate output columns + removing
 %    opportunity to analyse BD data from this script. Go back to
 %    passiveUS.with_norm.old for reviewing BD data.
@@ -19,15 +20,17 @@
 
 
 
-function [] = passiveUS(input_project, input_plot)
+function [] = passiveUS(input_project, input_plot, input_resumerun)
 
     %% Startup actions
     close all
     global mute
     mute = 1; % do not output to screen: conversion factors, EMG%, mom arm
+    line = 0; % preallocate for resumerun
+    
     
     % to restart the script AFTER the loop (load the looped data from file):
-    if input_project == 3
+    if input_resumerun == 2
         resume_after_loop = 1;
             all_passive_output_head = {...
 'Subject', 'Time', 'Side', 'Trial', ...
@@ -274,6 +277,13 @@ function [] = passiveUS(input_project, input_plot)
     global at_momentarm 
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
+    if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
+        load all_data_passive_inloop
+        line_start = line+1; % all_data_stiff_inloop was saved at the "end" of a line (trial) - resume with next line
+        input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
+    else
+        line_start = 1;
+    end
     linestotal = read_datamaster_passive(dm_filename);
 
         
@@ -386,7 +396,7 @@ function [] = passiveUS(input_project, input_plot)
 
 
         %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        for line = 1:linestotal 
+        for line = line_start:linestotal 
             
             
             %% Prepare EMG variables
@@ -2350,12 +2360,11 @@ function [] = passiveUS(input_project, input_plot)
                 out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2 out_emg_sol_max out_emg_sol_zero...
                 ];
 
-            save all_data_passive_inloop
-            close all
             clear noraxon_mvc_plantar
             clear GMFAS_* SOL_* GMMTJ_*
             clear data_* MTU_*
-
+            save all_data_passive_inloop
+            close all
         end
         
         

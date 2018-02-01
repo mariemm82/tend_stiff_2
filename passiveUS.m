@@ -866,6 +866,38 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 legend('Gastr.med.','Gastr.lat.','Soleus','Location','Northwest')
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
+            
+            % TMP: separate EMG plots MMM
+            if plot_check && plot_individual
+
+                figure('Name','EMG GM')
+                plot(data_force_gonio(:,2),data_force_gonio(:,4),'y','LineWidth',2); % mean GM
+                hold on
+                for i = 1:6 % 6 trials GM
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2));
+                    end
+                end
+
+                figure('Name','EMG GL')
+                plot(data_force_gonio(:,2),data_force_gonio(:,5),'m','LineWidth',2); % mean GL
+                hold on
+                for i = 1:6 % 6 trials GL
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2));
+                    end
+                end
+
+                figure('Name','EMG SOL')
+                plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
+                hold on
+                for i = 1:6 % 6 trials SOL
+                    if ~isempty(emg_all{1,i})
+                        plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2));
+                    end
+                end
+
+            end
 
 
             %% Check conformation of GONIOMETER to norm angle

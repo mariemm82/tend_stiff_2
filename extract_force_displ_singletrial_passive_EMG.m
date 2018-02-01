@@ -8,11 +8,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us] = extract_force_displ_singletrial_passive_EMG(noraxondata, usdata, usdata_frame, max_EMG_TA, max_EMG_GM, max_EMG_GL, max_EMG_SOL, leg_length, side, line, trial_name)
+function [force,gonio,angle,displ_final,emg_GM,emg_GL,emg_SOL,time_us,torque] = extract_force_displ_singletrial_passive_EMG(noraxondata, usdata, usdata_frame, max_EMG_TA, max_EMG_GM, max_EMG_GL, max_EMG_SOL, leg_length, side, line, trial_name)
     global mute
     global column_l_gm column_r_gm column_l_gl column_r_gl column_l_sol column_r_sol column_gonio column_norm_angle column_norm_torque % column_l_tibant column_r_tibant  column_norm_velocity column_norm_direction column_achilles column_EMG_start column_EMG_end 
-    global plot_us subject_id plot_norm % plot_emg plot_us 
-   % global at_momentarm
+    global plot_us subject_id % plot_norm % plot_emg plot_us 
     global filepath
     
     

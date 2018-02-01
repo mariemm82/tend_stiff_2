@@ -17,10 +17,13 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
     placement_force = 1;
     placement_gonio = 2;
     % placement_displ = 3;
-    placement_emg_gm = 4;
-    placement_emg_gl = 5;
-    placement_emg_sol = 6;
-
+    placement_torque = 4;
+    placement_emg_gm = 5;
+    placement_emg_gl = 6;
+    placement_emg_sol = 7;
+    
+    %% common angles, spline, average 
+    
     % select the smallest range of the gonio data as basis for angle array
     common_angle_start = max([min(trials_SOL(:,placement_gonio)) min(trials_GMMTJ(:,placement_gonio)) min(trials_GMFAS(:,placement_gonio))]);
     common_angle_stop = min([max(trials_SOL(:,placement_gonio)) max(trials_GMMTJ(:,placement_gonio)) max(trials_GMFAS(:,placement_gonio))]);
@@ -32,7 +35,13 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
     common_force_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_force), average_angle_array);
     average_force_gonio = (smooth(common_force_gonio_SOL,smoother) + smooth(common_force_gonio_GMMTJ,smoother) + smooth(common_force_gonio_GMFAS,smoother)) / 3;
     
-    % handle subjects with erroraneous / missing EMG data
+    % reshape and average TORQUE across common angle array
+    common_torque_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_torque), average_angle_array);
+    common_torque_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_torque), average_angle_array);
+    common_torque_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_torque), average_angle_array);
+    average_torque_gonio = (smooth(common_torque_gonio_SOL,smoother) + smooth(common_torque_gonio_GMMTJ,smoother) + smooth(common_torque_gonio_GMFAS,smoother)) / 3;
+    
+    %% handle subjects with erroraneous / missing EMG data
     
     % if subject without EMG
     if subject_nr == 110 % BD
@@ -92,5 +101,6 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
     
     end
     
-    output_array = [average_force_gonio average_angle_array average_emg_gm_gonio average_emg_gl_gonio average_emg_sol_gonio];
+    %% output variable
+    output_array = [average_force_gonio average_angle_array average_torque_gonio average_emg_gm_gonio average_emg_gl_gonio average_emg_sol_gonio];
 end

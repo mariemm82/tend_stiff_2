@@ -17,6 +17,8 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% TODO MMM: input_resumerun currently does not store all former variables
+% correctly
 
 
 
@@ -280,7 +282,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
         load all_data_passive_inloop
         line_start = line+1; % all_data_stiff_inloop was saved at the "end" of a line (trial) - resume with next line
-        input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
+        % needed only if using input_resumerun later in the script: input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
     else
         line_start = 1;
     end
@@ -491,28 +493,29 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
 
             %% Calculations for 2x SOL trials
+            % extract force, torque, gonio, angle, displacement for EACH TRIAL
 
-            % extract force, gonio, angle, displacement for EACH TRIAL
-            % NB: extract_force_displ_singletrial_passive_EMG is where torque is converted to force
             if(strcmpi(dm_ROM_sol1_NX{line}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
                 SOL_force_1 = zeros;
+                SOL_torque_1 = zeros;
                 SOL_gonio_1 = zeros;
                 SOL_angle_1 = zeros;
                 SOL_displacement_1 = zeros;
             else
-                [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
+                [SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_torque_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol1_NX{line}, dm_ROM_sol1_US{line}, dm_ROM_sol1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL1');
                 emg_all{1,1} = [SOL_gonio_1 SOL_emg_gm_1];
                 emg_all{2,1} = [SOL_gonio_1 SOL_emg_gl_1];
                 emg_all{3,1} = [SOL_gonio_1 SOL_emg_sol_1];
             end
             if(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
                 SOL_force_2 = zeros;
+                SOL_torque_2 = zeros;
                 SOL_gonio_2 = zeros;
                 SOL_angle_2 = zeros;
                 SOL_displacement_2 = zeros;
             else 
-                [SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL2');    
+                [SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2, SOL_torque_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_sol2_NX{line}, dm_ROM_sol2_US{line}, dm_ROM_sol2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'SOL2');    
                 emg_all{1,2} = [SOL_gonio_2 SOL_emg_gm_2];
                 emg_all{2,2} = [SOL_gonio_2 SOL_emg_gl_2];
                 emg_all{3,2} = [SOL_gonio_2 SOL_emg_sol_2];
@@ -520,11 +523,11 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             % average two passive trials
             if(strcmpi(dm_ROM_sol1_NX{line}, 'null')) % trial 1 not existing
-                data_SOL = average_passive_trials_EMG(SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
+                data_SOL = average_passive_trials_EMG(SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2, SOL_torque_2);
             elseif(strcmpi(dm_ROM_sol2_NX{line}, 'null'))
-                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1);
+                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_torque_1);
             else % if 2 trials exist (none of variables are 'null')
-                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2);
+                data_SOL = average_passive_trials_EMG(SOL_force_1, SOL_gonio_1, SOL_angle_1, SOL_displacement_1, SOL_emg_gm_1, SOL_emg_gl_1, SOL_emg_sol_1, SOL_time_1, SOL_torque_1, SOL_force_2, SOL_gonio_2, SOL_angle_2, SOL_displacement_2, SOL_emg_gm_2, SOL_emg_gl_2, SOL_emg_sol_2, SOL_time_2, SOL_torque_2);
             end
 
             % plot summary of 2 trials: Displacement-angle
@@ -549,22 +552,24 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
                 GMMTJ_force_1 = zeros;
+                GMMTJ_torque_1 = zeros;
                 GMMTJ_angle_1 = zeros;
                 GMMTJ_gonio_1 = zeros;
                 GMMTJ_displacement_1 = zeros;
             else 
-                [GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
+                [GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_torque_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj1_NX{line}, dm_ROM_gmmtj1_US{line}, dm_ROM_gmmtj1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ1');
                 emg_all{1,3} = [GMMTJ_gonio_1 GMMTJ_emg_gm_1];
                 emg_all{2,3} = [GMMTJ_gonio_1 GMMTJ_emg_gl_1];
                 emg_all{3,3} = [GMMTJ_gonio_1 GMMTJ_emg_sol_1];
             end
             if(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
                 GMMTJ_force_2 = zeros;
+                GMMTJ_torque_2 = zeros;
                 GMMTJ_angle_2 = zeros;
                 GMMTJ_gonio_2 = zeros;
                 GMMTJ_displacement_2 = zeros;
             else 
-                [GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
+                [GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2, GMMTJ_torque_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmmtj2_NX{line}, dm_ROM_gmmtj2_US{line}, dm_ROM_gmmtj2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMMTJ2');    
                 emg_all{1,4} = [GMMTJ_gonio_2 GMMTJ_emg_gm_2];
                 emg_all{2,4} = [GMMTJ_gonio_2 GMMTJ_emg_gl_2];
                 emg_all{3,4} = [GMMTJ_gonio_2 GMMTJ_emg_sol_2];
@@ -572,11 +577,11 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             % average two passive trials
             if(strcmpi(dm_ROM_gmmtj1_NX{line}, 'null'))
-                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2, GMMTJ_torque_2);
             elseif(strcmpi(dm_ROM_gmmtj2_NX{line}, 'null'))
-                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1);
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_torque_1);
             else % if 2 trials exist (none of variables are 'null')
-                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2);
+                data_GMMTJ = average_passive_trials_EMG(GMMTJ_force_1, GMMTJ_gonio_1, GMMTJ_angle_1, GMMTJ_displacement_1, GMMTJ_emg_gm_1, GMMTJ_emg_gl_1, GMMTJ_emg_sol_1, GMMTJ_time_1, GMMTJ_torque_1, GMMTJ_force_2, GMMTJ_gonio_2, GMMTJ_angle_2, GMMTJ_displacement_2, GMMTJ_emg_gm_2, GMMTJ_emg_gl_2, GMMTJ_emg_sol_2, GMMTJ_time_2, GMMTJ_torque_2);
             end
 
             % plot summary of 2 trials: Displacement-angle
@@ -601,22 +606,24 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
                 % allow for the possibility of discarded trials (null). In that case, just make empty arrays and check for that special case in final_stiffness
                 GMFAS_force_1 = zeros;
+                GMFAS_torque_1 = zeros;
                 GMFAS_angle_1 = zeros;
                 GMFAS_gonio_1 = zeros;
                 GMFAS_displacement_1 = zeros;
             else 
-                [GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS1');
+                [GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_torque_1] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas1_NX{line}, dm_ROM_gmfas1_US{line}, dm_ROM_gmfas1_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS1');
                 emg_all{1,5} = [GMFAS_gonio_1 GMFAS_emg_gm_1];
                 emg_all{2,5} = [GMFAS_gonio_1 GMFAS_emg_gl_1];
                 emg_all{3,5} = [GMFAS_gonio_1 GMFAS_emg_sol_1];
             end
             if(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
                 GMFAS_force_2 = zeros;
+                GMFAS_torque_2 = zeros;
                 GMFAS_angle_2 = zeros;
                 GMFAS_gonio_2 = zeros;
                 GMFAS_displacement_2 = zeros;
             else 
-                [GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS2');    
+                [GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2, GMFAS_torque_2] = extract_force_displ_singletrial_passive_EMG(dm_ROM_gmfas2_NX{line}, dm_ROM_gmfas2_US{line}, dm_ROM_gmfas2_US_frame{line}, EMG_max_TA, EMG_max_gm, EMG_max_gl, EMG_max_sol, dm_leg_length{line}, dm_side{line}, line, 'GMFAS2');    
                 emg_all{1,6} = [GMFAS_gonio_2 GMFAS_emg_gm_2];
                 emg_all{2,6} = [GMFAS_gonio_2 GMFAS_emg_gl_2];
                 emg_all{3,6} = [GMFAS_gonio_2 GMFAS_emg_sol_2];
@@ -624,11 +631,11 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             % average two passive trials
             if(strcmpi(dm_ROM_gmfas1_NX{line}, 'null'))
-                data_GMFAS = average_passive_trials_EMG(GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2, GMFAS_torque_2);
             elseif(strcmpi(dm_ROM_gmfas2_NX{line}, 'null'))
-                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1);
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_torque_1);
             else % if 2 trials exist (none of variables are 'null')
-                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2);
+                data_GMFAS = average_passive_trials_EMG(GMFAS_force_1, GMFAS_gonio_1, GMFAS_angle_1, GMFAS_displacement_1, GMFAS_emg_gm_1, GMFAS_emg_gl_1, GMFAS_emg_sol_1, GMFAS_time_1, GMFAS_torque_1, GMFAS_force_2, GMFAS_gonio_2, GMFAS_angle_2, GMFAS_displacement_2, GMFAS_emg_gm_2, GMFAS_emg_gl_2, GMFAS_emg_sol_2, GMFAS_time_2, GMFAS_torque_2);
             end
 
             % plot summary of 2 trials: Displacement-angle
@@ -794,6 +801,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % data_force_gonio =
             %   force
             %   angle (from gonio)
+            %   torque
             %   EMG GM
             %   EMG GL
             %   EMG SOL
@@ -835,21 +843,21 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                         plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2),'y');
                     end
                 end
-                plot(data_force_gonio(:,2),data_force_gonio(:,3),'y','LineWidth',2); % mean GM
+                plot(data_force_gonio(:,2),data_force_gonio(:,4),'y','LineWidth',2); % mean GM
 
                 for i = 1:6 % 6 trials GL
                     if ~isempty(emg_all{1,i})
                         plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2),'m');
                     end
                 end
-                plot(data_force_gonio(:,2),data_force_gonio(:,4),'m','LineWidth',2); % mean GL
+                plot(data_force_gonio(:,2),data_force_gonio(:,5),'m','LineWidth',2); % mean GL
 
                 for i = 1:6 % 6 trials SOL
                     if ~isempty(emg_all{1,i})
                         plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2),'c');
                     end
                 end
-                plot(data_force_gonio(:,2),data_force_gonio(:,5),'c','LineWidth',2); % mean SOL
+                plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
 
                 axis(axis_EMG)
                 ylabel('Muscle activation (% of MVC)')
@@ -1078,9 +1086,9 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             %       out_ROM_submax_1 = 10 degrees for those subjects which have this ROM available 
 
             % column choices force, torque, displacement
-            col_force = 1;      % from data_force_gonio / data_SOL etc
-            col_angle_DFG = 2;
-            % col_displ = 3;
+            col_force = 1;      % in data_force_gonio / data_SOL etc
+            col_angle_DFG = 2;  % in data_force_gonio
+            col_torque = 3;     % in data_force_gonio
 
             % print error if max angles do not exist --> create_angles_passive needs to be run
             if str2double(input_gon_ind_max{trial_subjectno}) == 100
@@ -1110,32 +1118,29 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
             out_F_trial_max_ROM = data_force_gonio(loc_frame,col_force); % force at highest angle in array
+            out_T_trial_max_ROM = data_force_gonio(loc_frame,col_torque);
             out_F_trial_max_F = max(data_force_gonio(:,col_force)); % highest force in array
+            out_T_trial_max_F = max(data_force_gonio(:,col_torque));
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_ind_max,1,'first'); 
             out_F_ind_max = data_force_gonio(loc_frame,col_force);
+            out_T_ind_max = data_force_gonio(loc_frame,col_torque);
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_common_max,1,'first'); 
             out_F_common_max = data_force_gonio(loc_frame,col_force);
+            out_T_common_max = data_force_gonio(loc_frame,col_torque);
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=0,1,'first'); % zero angle
             out_F_zero = data_force_gonio(loc_frame,col_force);
+            out_T_zero = data_force_gonio(loc_frame,col_torque);
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_1,1,'first'); 
             if isempty(loc_frame) == 0
                 out_F_submax_1 = data_force_gonio(loc_frame,col_force);
-                out_T_submax_1 = out_F_submax_1 *at_momentarm;
+                out_T_submax_1 = data_force_gonio(loc_frame,col_torque);
             else
                 out_F_submax_1 = NaN;
                 out_T_submax_1 = NaN;
             end
             loc_frame = find(data_force_gonio(:,col_angle_DFG)>=out_ROM_submax_2,1,'first'); 
             out_F_submax_2 = data_force_gonio(loc_frame,col_force);
-
-            % torques
-            out_T_trial_max_ROM = out_F_trial_max_ROM *at_momentarm;
-            out_T_trial_max_F = out_F_trial_max_F *at_momentarm;
-            out_T_ind_max = out_F_ind_max *at_momentarm;
-            out_T_common_max = out_F_common_max *at_momentarm;
-            out_T_zero = out_F_zero *at_momentarm;
-            % submax 1 - created together with force above
-            out_T_submax_2 = out_F_submax_2 *at_momentarm;
+            out_T_submax_2 = data_force_gonio(loc_frame,col_torque);
 
 %             % displacements SOL
 %             loc_frame = find(data_SOL(:,col_angle_DFG)>=out_ROM_trial_max,1,'first'); 
@@ -1427,37 +1432,37 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
 
             % EMG gm
-            out_emg_gm_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,3)); % EMG gm = column 3
-            out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,3));
-            out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,3));
-            out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,3));
-            out_emg_gm_zero = data_force_gonio(1,3); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,3));
-            out_emg_gm_max = max(data_force_gonio(:,3));
+            out_emg_gm_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gm = column 4
+            out_emg_gm_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4));
+            out_emg_gm_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
+            out_emg_gm_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
+            out_emg_gm_zero = data_force_gonio(1,4); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,4));
+            out_emg_gm_max = max(data_force_gonio(:,4));
 
             % EMG gl
-            out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,4)); % EMG gl = column 4
-            out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,4)); 
-            out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,4));
-            out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,4));
-            out_emg_gl_zero = data_force_gonio(1,4); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,4));
-            out_emg_gl_max = max(data_force_gonio(:,4));
+            out_emg_gl_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG gl = column 5
+            out_emg_gl_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5)); 
+            out_emg_gl_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
+            out_emg_gl_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
+            out_emg_gl_zero = data_force_gonio(1,5); % mean(data_force_gonio(loc_frame_zero:loc_frame_zero,5));
+            out_emg_gl_max = max(data_force_gonio(:,5));
 
             % EMG sol
-            out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,5)); % EMG sol = column 5
-            out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,5));
-            out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,5));
-            out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,5));
-            out_emg_sol_zero = data_force_gonio(1,5); % mean(data_force_gonio(emg_step:loc_frame_zero,5));
-            out_emg_sol_max = max(data_force_gonio(:,5));
+            out_emg_sol_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,6)); % EMG sol = column 6
+            out_emg_sol_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,6));
+            out_emg_sol_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,6));
+            out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,6));
+            out_emg_sol_zero = data_force_gonio(1,6); % mean(data_force_gonio(emg_step:loc_frame_zero,6));
+            out_emg_sol_max = max(data_force_gonio(:,6));
 
             if isempty(loc_frame_submax_1)
                 out_emg_gm_submax_1 = NaN;
                 out_emg_gl_submax_1 = NaN;
                 out_emg_sol_submax_1 = NaN;
             else
-                out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,3));
-                out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
-                out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
+                out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
+                out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
+                out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,6));
             end
 
 
@@ -1690,27 +1695,25 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
 
             %% Calculate PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006)
-
             % gonio angle = data_force_gonio(:,col_angle)
-            % force = data_force_gonio(:,col_force)
-            % multiplying force with at_momentarm to convert to torque
-
+            % torque = data_force_gonio(:,col_torque)
 
             %%% PASSIVE STIFFNESS:
 
             % passive stiffness = delta torque / delta angle, at various angles
-            % fit 4th order polynomial to averaged torque-angle curve, using data from zero angle to subject's individual max ROM (across both legs)
-            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 4);
+            % fit 4th order polynomial to averaged torque-angle curve, using data from zero angle to TRIAL max ROM
+            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_trial_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_trial_max,col_torque), 4);
 
             % extract passive stiffness (derivate of 4th order poly) at:
             out_pstiff_trial_max = (4 * fit_ind_max(1) * out_ROM_trial_max^3) + (3 * fit_ind_max(2) * out_ROM_trial_max^2) + (2 * fit_ind_max(3) * out_ROM_trial_max) + fit_ind_max(4);
             out_pstiff_ind_max = (4 * fit_ind_max(1) * out_ROM_ind_max^3) + (3 * fit_ind_max(2) * out_ROM_ind_max^2) + (2 * fit_ind_max(3) * out_ROM_ind_max) + fit_ind_max(4);
             out_pstiff_common_max = (4 * fit_ind_max(1) * out_ROM_common_max^3) + (3 * fit_ind_max(2) * out_ROM_common_max^2) + (2 * fit_ind_max(3) * out_ROM_common_max) + fit_ind_max(4);
-            if out_ROM_trial_max > out_ROM_submax_1 
-                out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
-            else
-                out_pstiff_submax_1 = NaN;
-            end
+            % if out_ROM_trial_max > out_ROM_submax_1 
+            %    out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
+            %else
+            %    out_pstiff_submax_1 = NaN;
+            %end
+            out_pstiff_submax_1 = (4 * fit_ind_max(1) * out_ROM_submax_1^3) + (3 * fit_ind_max(2) * out_ROM_submax_1^2) + (2 * fit_ind_max(3) * out_ROM_submax_1) + fit_ind_max(4);
             out_pstiff_submax_2 = (4 * fit_ind_max(1) * out_ROM_submax_2^3) + (3 * fit_ind_max(2) * out_ROM_submax_2^2) + (2 * fit_ind_max(3) * out_ROM_submax_2) + fit_ind_max(4);
             out_pstiff_angle = 15; %VAR
             if out_ROM_trial_max > out_pstiff_angle
@@ -1718,38 +1721,16 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             else
                 out_pstiff_15 = NaN;
             end
-
-    %         % plotting various methods of curve fit equations:
-    %         fit_ind_max2 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 3);
-    %         fit_ind_max3 = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
-    %                 plottitle = horzcat('IND torque-angle fit for stiffness, ', subject_id);
-    %                 figure('Name',plottitle)
-    %                 hold on
-    %                 plot(data_force_gonio(1:loc_frame_ind_max,col_angle), at_momentarm*data_force_gonio(1:loc_frame_ind_max,col_force))
-    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),':')
-    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max2,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'--')
-    %                 plot(0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]), polyval(fit_ind_max3,0:0.2:max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))])),'-.')
-    %                 axis([0 max([20 max(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle))]) 0 1.5*max(at_momentarm*data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force))])
-    %                 xlabel(txt_gonio)
-    %                 ylabel('Force (N)')
-    %                 title(plottitle,'Interpreter', 'none')
-    %                 legend('Raw data', 'Fit 4th order','Fit 3rd order','Fit 2nd order','Location','Northwest')
-    %                 print(horzcat('data_plots/',plottitle),'-dpng')
-
-
-
+            
             %%% STIFFNESS INDEX:
 
-            % fit 2nd order polynomial to averaged torque-angle curve, using data from zero angle to ind max ROM:
-            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_ind_max,col_force), 2);
+            % fit 2nd order polynomial to averaged torque-angle curve, using data from zero angle to trial max ROM:
+            fit_ind_max = polyfit(data_force_gonio(loc_frame_zero:loc_frame_trial_max,col_angle_DFG), data_force_gonio(loc_frame_zero:loc_frame_trial_max,col_torque), 2);
 
             % extract stiffness index as 2 * a
             out_pstiff_index = 2 * fit_ind_max(1);
 
 
-
-            %%% AT STIFFNESS - possible?
-            % LATER - stiffness = delta force / delta length for AT? check literature
 
 
             %% Extract ANGLES @ specific FORCE levels
@@ -1948,7 +1929,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 STR_PRE_angle_vars{STR_PRE_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
                     data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
@@ -2032,7 +2013,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 STR_POST_angle_vars{STR_POST_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
                     data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
@@ -2116,7 +2097,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 CON_PRE_angle_vars{CON_PRE_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
                     data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
@@ -2200,7 +2181,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 CON_POST_angle_vars{CON_POST_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_force)*at_momentarm ... % 18
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
                     data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
                     data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
                     data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
@@ -6917,7 +6898,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle NORM - ', CON_PRE_ID{i} ,' both legs PRE-POST % contrib');
+                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST % contrib');
                     figure('Name',plottitle)
                     hold on
 
@@ -7004,7 +6985,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle NORM - ', CON_PRE_ID{i} ,' both legs PRE-POST % contrib');
+                    plottitle = horzcat('IND SEE (from archi) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST % contrib');
                     figure('Name',plottitle)
                     hold on
 

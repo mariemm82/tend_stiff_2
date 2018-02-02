@@ -3,7 +3,6 @@ data/\!*
 data_output/\!*
 data_plots/\!*
 data_plots_stiff/\!*
-all_data_*.mat
 *.asv
 *.db
 data/01_POST_CPM_5L_trial1.tsv
@@ -2555,3 +2554,10 @@ data/CPM/31_POST_CPM_5L.tsv
 data/CPM/31_POST_CPM_5R.tsv
 data/CPM/31_PRE_CPM_2L.tsv
 data/CPM/31_PRE_CPM_2R.tsv
+data/02_POST_ROM_5L_trial2 - Copy.tsv
+data/02_POST_ROM_5L_trial3 - Copy.tsv
+data/03_POST_ROM_5R_trial4 - Copy.tsv
+data/07_POST_ROM_5L_part1_trial1 - Copy.tsv
+data/07_POST_ROM_5L_part1_trial5 - Copy.tsv
+data/21_POST_ROM_5R_trial6 - Copy.tsv
+data/30_POST_ROM_5R_trial6 - Copy.tsv

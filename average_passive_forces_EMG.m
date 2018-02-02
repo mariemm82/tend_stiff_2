@@ -70,8 +70,11 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
         common_emg_gl_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_gl), average_angle_array);
         average_emg_gl_gonio = smooth(common_emg_gl_gonio_SOL,smoother);
         
-    elseif strcmp(subject_id,'INT_22_CON_PRE_R') 
-        % 22	PRE	R	CON - use only GMMTJ EMG
+    elseif strcmp(subject_id,'INT_22_CON_PRE_R') || strcmp(subject_id,'INT_8_CON_POST_L') || strcmp(subject_id,'INT_19_STR_POST_R')
+        % use only GMMTJ EMG:
+        % 22	PRE	R	CON 
+        %  8 con post L 
+        % 19	POST	R	STR
         % reshape and average EMG SOL across common angle array
         common_emg_sol_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_sol), average_angle_array);
         average_emg_sol_gonio = smooth(common_emg_sol_gonio_GMMTJ,smoother);
@@ -82,41 +85,57 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
         common_emg_gl_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_gl), average_angle_array);
         average_emg_gl_gonio = smooth(common_emg_gl_gonio_GMMTJ,smoother);
         
-    elseif strcmp(subject_id,'INT_22_STR_PRE_L') 
+    elseif strcmp(subject_id,'INT_22_STR_PRE_L') || strcmp(subject_id,'INT_16_CON_PRE_R') || strcmp(subject_id,'INT_3_STR_POST_R')
         % 22	PRE	L - don't use EMG from GMFAS
+        % 16	PRE	R - don't use EMG from GMFAS
+        % 3	POST	R	STR - don't use EMG from GMFAS
         % reshape and average EMG SOL across common angle array
         common_emg_sol_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_sol), average_angle_array);
         common_emg_sol_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_sol), average_angle_array);
         average_emg_sol_gonio = (smooth(common_emg_sol_gonio_SOL,smoother) + smooth(common_emg_sol_gonio_GMMTJ,smoother)) / 2;
-
         % reshape and average EMG GM across common angle array
         common_emg_gm_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_gm), average_angle_array);
         common_emg_gm_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_gm), average_angle_array);
         average_emg_gm_gonio = (smooth(common_emg_gm_gonio_SOL,smoother) + smooth(common_emg_gm_gonio_GMMTJ,smoother)) / 2;
-
         % reshape and average EMG GL across common angle array
         common_emg_gl_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_gl), average_angle_array);
         common_emg_gl_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_gl), average_angle_array);
         average_emg_gl_gonio = (smooth(common_emg_gl_gonio_SOL,smoother) + smooth(common_emg_gl_gonio_GMMTJ,smoother)) / 2;
     
-    elseif strcmp(subject_id,'INT_21_STR_PRE_R') 
+    elseif strcmp(subject_id,'INT_21_STR_PRE_R') || strcmp(subject_id,'INT_3_CON_PRE_L')
         % INT_21_STR_PRE_R - don't use GMMTJ
+        % 3 PRE CON L - don't use MTJ
         % reshape and average EMG SOL across common angle array
         common_emg_sol_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_sol), average_angle_array);
         common_emg_sol_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_sol), average_angle_array);
         average_emg_sol_gonio = (smooth(common_emg_sol_gonio_SOL,smoother) + smooth(common_emg_sol_gonio_GMFAS,smoother)) / 2;
-
         % reshape and average EMG GM across common angle array
         common_emg_gm_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_gm), average_angle_array);
         common_emg_gm_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_gm), average_angle_array);
         average_emg_gm_gonio = (smooth(common_emg_gm_gonio_SOL,smoother) + smooth(common_emg_gm_gonio_GMFAS,smoother)) / 2;
-
         % reshape and average EMG GL across common angle array
         common_emg_gl_gonio_SOL = spline(trials_SOL(:,placement_gonio), trials_SOL(:,placement_emg_gl), average_angle_array);
         common_emg_gl_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_gl), average_angle_array);
         average_emg_gl_gonio = (smooth(common_emg_gl_gonio_SOL,smoother) + smooth(common_emg_gl_gonio_GMFAS,smoother)) / 2;
     
-        
+    elseif strcmp(subject_id,'INT_30_CON_PRE_R') || strcmp(subject_id,'INT_8_STR_PRE_R') || strcmp(subject_id,'INT_8_STR_POST_R')
+        % don't use SOL:
+        % 30	PRE	R	CON
+        % 8	PRE	R	STR
+        % 8	POST	R	STR
+        % reshape and average EMG SOL across common angle array
+        common_emg_sol_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_sol), average_angle_array);
+        common_emg_sol_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_sol), average_angle_array);
+        average_emg_sol_gonio = (smooth(common_emg_sol_gonio_GMMTJ,smoother) + smooth(common_emg_sol_gonio_GMFAS,smoother)) / 2;
+        % reshape and average EMG GM across common angle array
+        common_emg_gm_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_gm), average_angle_array);
+        common_emg_gm_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_gm), average_angle_array);
+        average_emg_gm_gonio = (smooth(common_emg_gm_gonio_GMMTJ,smoother) + smooth(common_emg_gm_gonio_GMFAS,smoother)) / 2;
+        % reshape and average EMG GL across common angle array
+        common_emg_gl_gonio_GMMTJ = spline(trials_GMMTJ(:,placement_gonio), trials_GMMTJ(:,placement_emg_gl), average_angle_array);
+        common_emg_gl_gonio_GMFAS = spline(trials_GMFAS(:,placement_gonio), trials_GMFAS(:,placement_emg_gl), average_angle_array);
+        average_emg_gl_gonio = (smooth(common_emg_gl_gonio_GMMTJ,smoother) + smooth(common_emg_gl_gonio_GMFAS,smoother)) / 2;
+            
 %     elseif subject_nr == 106 % BD
 %         % 106: use only GMFAS
 %         % reshape and average EMG SOL across common angle array

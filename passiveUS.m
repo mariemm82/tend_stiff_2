@@ -1675,55 +1675,58 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
 
             %% Extract MAXIMAL ELONGATIONS (not angle specific) 
-            out_elong_AT_max = max(MTU_elong_array(:,col_AT)); 
-            out_elong_GMtend_max = max(MTU_elong_array(:,col_GMtend));
-            out_elong_leg_max = max(MTU_elong_array(:,col_leg));
-            out_elong_GMapo_max = max(MTU_elong_array(:,col_GMapo)); 
-            out_elong_msc_GM_max = max(MTU_elong_array(:,col_GMmsc)); 
-            out_elong_msc_SOL_max = max(MTU_elong_array(:,col_SOLmsc)); 
-            out_strain_AT_max = max(MTU_strain_array(:,col_AT)); 
-            out_strain_GMtend_max = max(MTU_strain_array(:,col_GMtend));
-            out_strain_leg_max = max(MTU_strain_array(:,col_leg));
-            out_strain_GMapo_max = max(MTU_strain_array(:,col_GMapo)); 
-            out_strain_msc_GM_max = max(MTU_strain_array(:,col_GMmsc)); 
-            out_strain_msc_SOL_max = max(MTU_strain_array(:,col_SOLmsc)); 
-            out_length_AT_max = max(MTU_length_array(:,col_AT)); 
-            out_length_GMtend_max = max(MTU_length_array(:,col_GMtend));
-            out_length_leg_max = max(MTU_length_array(:,col_leg));
-            out_length_GMapo_max = max(MTU_length_array(:,col_GMapo)); 
-            out_length_msc_GM_max = max(MTU_length_array(:,col_GMmsc)); 
-            out_length_msc_SOL_max = max(MTU_length_array(:,col_SOLmsc)); 
+            % find zero angle:
+            loc_zero = find(data_GMFAS(:,2)>=0,1,'first'); 
             
-            out_elong_SEE_Fuku_max = max(MTU_elong_array(:,col_SEE_Fukunaga));
-            out_elong_msc_GM_Fuku_max = max(MTU_elong_array(:,col_GMmsc_Fukunaga));
-            out_strain_SEE_Fuku_max = max(MTU_strain_array(:,col_SEE_Fukunaga));
-            out_strain_msc_GM_Fuku_max = max(MTU_strain_array(:,col_GMmsc_Fukunaga));
-            out_length_SEE_Fuku_max = max(MTU_length_array(:,col_SEE_Fukunaga));
-            out_length_msc_GM_Fuku_max = max(MTU_length_array(:,col_GMmsc_Fukunaga));
+            out_elong_AT_max = max(MTU_elong_array(loc_zero:end,col_AT)); 
+            out_elong_GMtend_max = max(MTU_elong_array(loc_zero:end,col_GMtend));
+            out_elong_leg_max = max(MTU_elong_array(loc_zero:end,col_leg));
+            out_elong_GMapo_max = max(MTU_elong_array(loc_zero:end,col_GMapo)); 
+            out_elong_msc_GM_max = max(MTU_elong_array(loc_zero:end,col_GMmsc)); 
+            out_elong_msc_SOL_max = max(MTU_elong_array(loc_zero:end,col_SOLmsc)); 
+            out_strain_AT_max = max(MTU_strain_array(loc_zero:end,col_AT)); 
+            out_strain_GMtend_max = max(MTU_strain_array(loc_zero:end,col_GMtend));
+            out_strain_leg_max = max(MTU_strain_array(loc_zero:end,col_leg));
+            out_strain_GMapo_max = max(MTU_strain_array(loc_zero:end,col_GMapo)); 
+            out_strain_msc_GM_max = max(MTU_strain_array(loc_zero:end,col_GMmsc)); 
+            out_strain_msc_SOL_max = max(MTU_strain_array(loc_zero:end,col_SOLmsc)); 
+            out_length_AT_max = max(MTU_length_array(loc_zero:end,col_AT)); 
+            out_length_GMtend_max = max(MTU_length_array(loc_zero:end,col_GMtend));
+            out_length_leg_max = max(MTU_length_array(loc_zero:end,col_leg));
+            out_length_GMapo_max = max(MTU_length_array(loc_zero:end,col_GMapo)); 
+            out_length_msc_GM_max = max(MTU_length_array(loc_zero:end,col_GMmsc)); 
+            out_length_msc_SOL_max = max(MTU_length_array(loc_zero:end,col_SOLmsc)); 
+            
+            out_elong_SEE_Fuku_max = max(MTU_elong_array(loc_zero:end,col_SEE_Fukunaga));
+            out_elong_msc_GM_Fuku_max = max(MTU_elong_array(loc_zero:end,col_GMmsc_Fukunaga));
+            out_strain_SEE_Fuku_max = max(MTU_strain_array(loc_zero:end,col_SEE_Fukunaga));
+            out_strain_msc_GM_Fuku_max = max(MTU_strain_array(loc_zero:end,col_GMmsc_Fukunaga));
+            out_length_SEE_Fuku_max = max(MTU_length_array(loc_zero:end,col_SEE_Fukunaga));
+            out_length_msc_GM_Fuku_max = max(MTU_length_array(loc_zero:end,col_GMmsc_Fukunaga));
 
-            out_licht_fas_length_GM_max = max(data_GMFAS_licht_GM(:,col_licht_faslen));
-            out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(:,col_licht_penn));
-            out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_elong));
-            out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(:,col_licht_fas_strain));
+            out_licht_fas_length_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_faslen));
+            out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_penn));
+            out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_elong));
+            out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_strain));
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
-                out_licht_fas_length_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_faslen));
-                out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(:,col_licht_penn));
+                out_licht_fas_length_SOL_max = max(data_GMFAS_licht_SOL(loc_zero:end,col_licht_faslen));
+                out_licht_pennation_SOL_max = max(data_GMFAS_licht_SOL(loc_zero:end,col_licht_penn));
             else
                 out_licht_fas_length_SOL_max = NaN;
                 out_licht_pennation_SOL_max = NaN;
             end
             
-            out_norm_length_leg_max = max(MTU_normalized(:,1));
-            out_norm_length_msc_GM_Fuku_max = max(MTU_normalized(:,2));
-            out_norm_length_SEE_Fuku_max = max(MTU_normalized(:,3));
-            out_norm_elong_leg_max = max(MTU_normalized(:,4));
-            out_norm_elong_msc_GM_Fuku_max = max(MTU_normalized(:,5));
-            out_norm_elong_SEE_Fuku_max = max(MTU_normalized(:,6));
-            out_norm_elong_percent_msc_GM_Fuku_max = max(MTU_normalized(:,7));
-            out_norm_elong_percent_SEE_Fuku_max = max(MTU_normalized(:,8));
-            out_norm_licht_fas_elong_GM_max = max(MTU_normalized_licht(:,3));
-            out_norm_licht_fas_length_GM_max = max(MTU_normalized_licht(:,2));
+            out_norm_length_leg_max = max(MTU_normalized(loc_zero:end,1));
+            out_norm_length_msc_GM_Fuku_max = max(MTU_normalized(loc_zero:end,2));
+            out_norm_length_SEE_Fuku_max = max(MTU_normalized(loc_zero:end,3));
+            out_norm_elong_leg_max = max(MTU_normalized(loc_zero:end,4));
+            out_norm_elong_msc_GM_Fuku_max = max(MTU_normalized(loc_zero:end,5));
+            out_norm_elong_SEE_Fuku_max = max(MTU_normalized(loc_zero:end,6));
+            out_norm_elong_percent_msc_GM_Fuku_max = max(MTU_normalized(loc_zero:end,7));
+            out_norm_elong_percent_SEE_Fuku_max = max(MTU_normalized(loc_zero:end,8));
+            out_norm_licht_fas_elong_GM_max = max(MTU_normalized_licht(loc_zero:end,3));
+            out_norm_licht_fas_length_GM_max = max(MTU_normalized_licht(loc_zero:end,2));
 
 
             %% Calculate PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006)

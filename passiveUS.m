@@ -17,12 +17,8 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% TODO MMM: input_resumerun currently does not store all former variables
-% correctly
 
-
-
-function [] = passiveUS(input_project, input_plot, input_resumerun)
+function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
 
     %% Startup actions
     close all
@@ -30,67 +26,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
     mute = 1; % do not output to screen: conversion factors, EMG%, mom arm
     line = 0; % preallocate for resumerun
     
-    
-    % to restart the script AFTER the loop (load the looped data from file):
-    if input_resumerun == 2
-        resume_after_loop = 1;
-            all_passive_output_head = {...
-'Subject', 'Time', 'Side', 'Trial', ...
-'ROM trial (deg)', 'ROM subject (L_R_PRE_POST)', 'ROM common (all subjects)', 'ROM submax - 10deg', 'ROM submax - 67perc ROM', ...
-'force at trial ROM (N)', 'force at subject max FORCE', 'force at subject max ROM', 'force at common max ROM', 'force at 0 deg', 'force at 10deg', 'force at 67perc ROM', ...
-'torque at trial ROM (N)', 'torque at subject max TORQUE', 'torque at subject max ROM',  'torque at common max ROM', 'torque at 0 deg', 'torque at 10deg', 'torque at 67perc ROM', ...
-'angle at trial max force (deg)', 'angle at subject max force', 'angle at common max force', 'angle at ind R max force', 'angle at ind L max force', ...            
-'Stiffness at trial ROM (Nmperdeg)', 'Stiffness at subject max ROM', 'Stiffness at common max ROM', 'Stiffness at 15 deg', 'Stiffness at 10deg', 'Stiffness at 67perc ROM',...
-'Stiffness index (Nmper_deg_sq)', ... %', 'length,', 'elong,', 'strain
-'out_length_AT_trial_max', 'out_length_AT_ind_max', 'out_length_AT_common_max', 'out_length_AT_submax_1', 'out_length_AT_submax_2', 'out_length_AT_max',...
-'out_length_GMtend_trial_max', 'out_length_GMtend_ind_max', 'out_length_GMtend_common_max', 'out_length_GMtend_submax_1', 'out_length_GMtend_submax_2', 'out_length_GMtend_max',...
-'out_length_GMapo_trial_max', 'out_length_GMapo_ind_max', 'out_length_GMapo_common_max', 'out_length_GMapo_submax_1', 'out_length_GMapo_submax_2', 'out_length_GMapo_max',...
-'out_length_msc_GM_trial_max', 'out_length_msc_GM_ind_max', 'out_length_msc_GM_common_max', 'out_length_msc_GM_submax_1', 'out_length_msc_GM_submax_2', 'out_length_msc_GM_max',...
-'out_length_msc_SOL_trial_max', 'out_length_msc_SOL_ind_max', 'out_length_msc_SOL_common_max', 'out_length_msc_SOL_submax_1', 'out_length_msc_SOL_submax_2', 'out_length_msc_SOL_max',...
-'out_length_leg_trial_max', 'out_length_leg_ind_max', 'out_length_leg_common_max', 'out_length_leg_submax_1', 'out_length_leg_submax_2', 'out_length_leg_max',...
-'out_length_SEE_Fuku_trial_max', 'out_length_SEE_Fuku_ind_max', 'out_length_SEE_Fuku_common_max', 'out_length_SEE_Fuku_submax_1', 'out_length_SEE_Fuku_submax_2', 'out_length_SEE_Fuku_max',...
-'out_length_msc_GM_Fuku_trial_max', 'out_length_msc_GM_Fuku_ind_max', 'out_length_msc_GM_Fuku_common_max', 'out_length_msc_GM_Fuku_submax_1', 'out_length_msc_GM_Fuku_submax_2', 'out_length_msc_GM_Fuku_max',...
-'out_elong_AT_trial_max', 'out_elong_AT_ind_max', 'out_elong_AT_common_max', 'out_elong_AT_submax_1', 'out_elong_AT_submax_2', 'out_elong_AT_max',...
-'out_elong_GMtend_trial_max', 'out_elong_GMtend_ind_max', 'out_elong_GMtend_common_max', 'out_elong_GMtend_submax_1', 'out_elong_GMtend_submax_2', 'out_elong_GMtend_max',...
-'out_elong_GMapo_trial_max', 'out_elong_GMapo_ind_max', 'out_elong_GMapo_common_max', 'out_elong_GMapo_submax_1', 'out_elong_GMapo_submax_2', 'out_elong_GMapo_max',...
-'out_elong_msc_GM_trial_max', 'out_elong_msc_GM_ind_max', 'out_elong_msc_GM_common_max', 'out_elong_msc_GM_submax_1', 'out_elong_msc_GM_submax_2', 'out_elong_msc_GM_max',...
-'out_elong_msc_SOL_trial_max', 'out_elong_msc_SOL_ind_max', 'out_elong_msc_SOL_common_max', 'out_elong_msc_SOL_submax_1', 'out_elong_msc_SOL_submax_2', 'out_elong_msc_SOL_max',...
-'out_elong_leg_trial_max', 'out_elong_leg_ind_max', 'out_elong_leg_common_max', 'out_elong_leg_submax_1', 'out_elong_leg_submax_2', 'out_elong_leg_max',...
-'out_elong_SEE_Fuku_trial_max', 'out_elong_SEE_Fuku_ind_max', 'out_elong_SEE_Fuku_common_max', 'out_elong_SEE_Fuku_submax_1', 'out_elong_SEE_Fuku_submax_2', 'out_elong_SEE_Fuku_max',...
-'out_elong_msc_GM_Fuku_trial_max', 'out_elong_msc_GM_Fuku_ind_max', 'out_elong_msc_GM_Fuku_common_max', 'out_elong_msc_GM_Fuku_submax_1', 'out_elong_msc_GM_Fuku_submax_2', 'out_elong_msc_GM_Fuku_max',...
-'out_strain_AT_trial_max', 'out_strain_AT_ind_max', 'out_strain_AT_common_max', 'out_strain_AT_submax_1', 'out_strain_AT_submax_2', 'out_strain_AT_max',...
-'out_strain_GMtend_trial_max', 'out_strain_GMtend_ind_max', 'out_strain_GMtend_common_max', 'out_strain_GMtend_submax_1', 'out_strain_GMtend_submax_2', 'out_strain_GMtend_max',...
-'out_strain_GMapo_trial_max', 'out_strain_GMapo_ind_max', 'out_strain_GMapo_common_max', 'out_strain_GMapo_submax_1', 'out_strain_GMapo_submax_2', 'out_strain_GMapo_max',...
-'out_strain_msc_GM_trial_max', 'out_strain_msc_GM_ind_max', 'out_strain_msc_GM_common_max', 'out_strain_msc_GM_submax_1', 'out_strain_msc_GM_submax_2', 'out_strain_msc_GM_max',...
-'out_strain_msc_SOL_trial_max', 'out_strain_msc_SOL_ind_max', 'out_strain_msc_SOL_common_max', 'out_strain_msc_SOL_submax_1', 'out_strain_msc_SOL_submax_2', 'out_strain_msc_SOL_max',...
-'out_strain_leg_trial_max', 'out_strain_leg_ind_max', 'out_strain_leg_common_max', 'out_strain_leg_submax_1', 'out_strain_leg_submax_2', 'out_strain_leg_max',...
-'out_strain_SEE_Fuku_trial_max', 'out_strain_SEE_Fuku_ind_max', 'out_strain_SEE_Fuku_common_max', 'out_strain_SEE_Fuku_submax_1', 'out_strain_SEE_Fuku_submax_2', 'out_strain_SEE_Fuku_max',...
-'out_strain_msc_GM_Fuku_trial_max', 'out_strain_msc_GM_Fuku_ind_max', 'out_strain_msc_GM_Fuku_common_max', 'out_strain_msc_GM_Fuku_submax_1', 'out_strain_msc_GM_Fuku_submax_2', 'out_strain_msc_GM_Fuku_max',... %', 'licht', 'GM', 'and', 'SOL
-'out_norm_length_leg_trial_max', 'out_norm_length_leg_ind_max', 'out_norm_length_leg_common_max', 'out_norm_length_leg_submax_1', 'out_norm_length_leg_submax_2', 'out_norm_length_leg_max',...
-'out_norm_length_SEE_Fuku_trial_max', 'out_norm_length_SEE_Fuku_ind_max', 'out_norm_length_SEE_Fuku_common_max', 'out_norm_length_SEE_Fuku_submax_1', 'out_norm_length_SEE_Fuku_submax_2', 'out_norm_length_SEE_Fuku_max',...
-'out_norm_length_msc_GM_Fuku_trial_max', 'out_norm_length_msc_GM_Fuku_ind_max', 'out_norm_length_msc_GM_Fuku_common_max', 'out_norm_length_msc_GM_Fuku_submax_1', 'out_norm_length_msc_GM_Fuku_submax_2', 'out_norm_length_msc_GM_Fuku_max',...
-'out_norm_elong_leg_trial_max', 'out_norm_elong_leg_ind_max', 'out_norm_elong_leg_common_max', 'out_norm_elong_leg_submax_1', 'out_norm_elong_leg_submax_2', 'out_norm_elong_leg_max',...
-'out_norm_elong_SEE_Fuku_trial_max', 'out_norm_elong_SEE_Fuku_ind_max', 'out_norm_elong_SEE_Fuku_common_max', 'out_norm_elong_SEE_Fuku_submax_1', 'out_norm_elong_SEE_Fuku_submax_2', 'out_norm_elong_SEE_Fuku_max',...
-'out_norm_elong_msc_GM_Fuku_trial_max', 'out_norm_elong_msc_GM_Fuku_ind_max', 'out_norm_elong_msc_GM_Fuku_common_max', 'out_norm_elong_msc_GM_Fuku_submax_1', 'out_norm_elong_msc_GM_Fuku_submax_2', 'out_norm_elong_msc_GM_Fuku_max',...
-'out_norm_elong_percent_SEE_Fuku_trial_max', 'out_norm_elong_percent_SEE_Fuku_ind_max', 'out_norm_elong_percent_SEE_Fuku_common_max', 'out_norm_elong_percent_SEE_Fuku_submax_1', 'out_norm_elong_percent_SEE_Fuku_submax_2', 'out_norm_elong_percent_SEE_Fuku_max',...
-'out_norm_elong_percent_msc_GM_Fuku_trial_max', 'out_norm_elong_percent_msc_GM_Fuku_ind_max', 'out_norm_elong_percent_msc_GM_Fuku_common_max', 'out_norm_elong_percent_msc_GM_Fuku_submax_1', 'out_norm_elong_percent_msc_GM_Fuku_submax_2', 'out_norm_elong_percent_msc_GM_Fuku_max',... %', 'normalized', 'GM', 'fascicle', 'length', 'and', 'elong
-'out_licht_pennation_GM_trial_max', 'out_licht_pennation_GM_ind_max', 'out_licht_pennation_GM_common_max', 'out_licht_pennation_GM_submax_1', 'out_licht_pennation_GM_submax_2', 'out_licht_pennation_GM_max', 'out_licht_pennation_GM_zero',...
-'out_licht_fas_length_GM_trial_max', 'out_licht_fas_length_GM_ind_max', 'out_licht_fas_length_GM_common_max', 'out_licht_fas_length_GM_submax_1', 'out_licht_fas_length_GM_submax_2', 'out_licht_fas_length_GM_max', 'out_licht_fas_length_GM_zero',...
-'out_licht_fas_elong_GM_trial_max', 'out_licht_fas_elong_GM_ind_max', 'out_licht_fas_elong_GM_common_max', 'out_licht_fas_elong_GM_submax_1', 'out_licht_fas_elong_GM_submax_2', 'out_licht_fas_elong_GM_max', 'out_licht_fas_elong_GM_zero',...
-'out_licht_fas_strain_GM_trial_max', 'out_licht_fas_strain_GM_ind_max', 'out_licht_fas_strain_GM_common_max', 'out_licht_fas_strain_GM_submax_1', 'out_licht_fas_strain_GM_submax_2', 'out_licht_fas_strain_GM_max', 'out_licht_fas_strain_GM_zero',...
-'out_licht_pennation_SOL_trial_max', 'out_licht_pennation_SOL_ind_max', 'out_licht_pennation_SOL_common_max', 'out_licht_pennation_SOL_submax_1', 'out_licht_pennation_SOL_submax_2', 'out_licht_pennation_SOL_max', 'out_licht_pennation_SOL_zero',... %', 'normalized', 'SEE', '&', 'muscle
-'out_licht_fas_length_SOL_trial_max', 'out_licht_fas_length_SOL_ind_max', 'out_licht_fas_length_SOL_common_max', 'out_licht_fas_length_SOL_submax_1', 'out_licht_fas_length_SOL_submax_2', 'out_licht_fas_length_SOL_max', 'out_licht_fas_length_SOL_zero',...
-'out_norm_licht_fas_length_GM_trial_max', 'out_norm_licht_fas_length_GM_ind_max', 'out_norm_licht_fas_length_GM_common_max', 'out_norm_licht_fas_length_GM_submax_1', 'out_norm_licht_fas_length_GM_submax_2', 'out_norm_licht_fas_length_GM_max', 'out_norm_licht_fas_length_GM_zero',...
-'out_norm_licht_fas_elong_GM_trial_max', 'out_norm_licht_fas_elong_GM_ind_max', 'out_norm_licht_fas_elong_GM_common_max', 'out_norm_licht_fas_elong_GM_submax_1', 'out_norm_licht_fas_elong_GM_max', 'out_norm_licht_fas_elong_GM_submax_2', 'out_norm_licht_fas_elong_GM_zero',... %', 'misc
-'out_emg_gm_trial_max', 'out_emg_gm_ind_max', 'out_emg_gm_common_max', 'out_emg_gm_submax_1', 'out_emg_gm_submax_2', 'out_emg_gm_max', 'out_emg_gm_zero',...
-'out_emg_gl_trial_max', 'out_emg_gl_ind_max', 'out_emg_gl_common_max', 'out_emg_gl_submax_1', 'out_emg_gl_submax_2', 'out_emg_gl_max', 'out_emg_gl_zero',...
-'out_emg_sol_trial_max', 'out_emg_sol_ind_max', 'out_emg_sol_common_max', 'out_emg_sol_submax_1', 'out_emg_sol_submax_2', 'out_emg_sol_max', 'out_emg_sol_zero',...
-                }; % PROJECTSPECIFIC
-    else
-        resume_after_loop = 0;
-    end
-    
-          
+              
     %% Plots: determine which plots to display
     global plot_achilles plot_norm plot_emg plot_check plot_us subject_id plot_licht plot_individual plot_conversion
 
@@ -186,56 +122,56 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
     txt_gonio = 'Gonio angle (°)';
     txt_elong_norm = 'Elongation (% of MTU length)';
     txt_length_norm = 'Length (% of MTU length)';
-    txt_elong_norm_perc = 'Length (% of MTU ELONG)';
+    txt_elong_norm_perc = 'Elongation (% of MTU ELONG)';
     
-    angle_max = 37;
+    angle_max = 36;
     
-    axis_EMG = [-1 angle_max 0 25];
+    axis_EMG = [-1 angle_max 0 30];
 
-    axis_displ_GMFAS = [-1 angle_max -3 5];
+    axis_displ_GMFAS = [-1 angle_max -2 4];
 
-    axis_el_MTU = [-1 angle_max 10 50];
+    axis_el_MTU = [-1 angle_max 20 50];
     axis_str_MTU = [-1 angle_max -0.5 8];
-    axis_len_MTU = [-30 angle_max 400 550];
+    axis_len_MTU = [-25 angle_max 440 540];
 
-    axis_penn_GMFAS = [-30 angle_max 0 25];
-    axis_len_GMFAS = [-30 angle_max 35 100];
-    axis_el_GMFAS = [-1 angle_max -10 30];
-    axis_str_GMFAS = [-1 angle_max -16 45];
+    axis_penn_GMFAS = [-30 angle_max 0 8]; % fasicle
+    axis_len_GMFAS = [-30 angle_max 30 90];
+    axis_el_GMFAS = [-1 angle_max -10 25];
+    axis_str_GMFAS = [-1 angle_max -10 40];
 
-    axis_el_SEE_arch = [-1 angle_max -1 45];
-    axis_str_SEE_arch = [-1 angle_max -2 12];
-    axis_len_SEE_arch = [-30 angle_max 300 500];
+    axis_el_SEE_arch = [-1 angle_max 5 40];
+    axis_str_SEE_arch = [-1 angle_max 2 9];
+    axis_len_SEE_arch = [-25 angle_max 380 480];
 
-    axis_el_GMmsc_arch = [-1 angle_max -10 45];
-    axis_str_GMmsc_arch = [-1 angle_max -20 60];
-    axis_len_GMmsc_arch = [-1 angle_max 35 100];
+    axis_el_GMmsc_arch = [-1 angle_max 0 30];
+    axis_str_GMmsc_arch = [-1 angle_max 0 55];
+    axis_len_GMmsc_arch = [-1 angle_max 50 80];
 
     axis_displ_SOL = [-1 angle_max -3 11];
 
     axis_el_GMmsc = [-1 angle_max -5 55];
     axis_str_GMmsc = [-1 angle_max -1 22];
-    axis_len_GMmsc = [-1 angle_max 200 380];
+    axis_len_GMmsc = [-1 angle_max 250 350];
 
     axis_el_SOL = [-1 angle_max 10 45];
     axis_str_SOL = [-1 angle_max 3 15];
-    axis_len_SOL = [-1 angle_max 200 310];
+    axis_len_SOL = [-1 angle_max 230 310];
     
     axis_el_GMapo = [-1 angle_max -10 10];
     axis_str_GMapo = [-1 angle_max -10 10];
-    axis_len_GMapo = [-1 angle_max 50 150];
+    axis_len_GMapo = [-1 angle_max 90 160];
 
     axis_el_AT = [-1 angle_max -15 20];
-    axis_str_AT = [-1 angle_max -30 30];
-    axis_len_AT = [-1 angle_max 20 100];
+    axis_str_AT = [-1 angle_max -20 40];
+    axis_len_AT = [-1 angle_max 20 90];
 
     axis_el_GMtend = [-1 angle_max -18 15];
-    axis_str_GMtend = [-1 angle_max -8 10];
-    axis_len_GMtend = [-1 angle_max 120 210];
+    axis_str_GMtend = [-1 angle_max -5 10];
+    axis_len_GMtend = [-1 angle_max 150 220];
 
-    axis_torque = [-1 angle_max 0 100];
+    axis_torque = [-1 angle_max 0 80];
 
-    axis_force = [-1 angle_max 0 1800];
+    axis_force = [-1 angle_max 0 1700];
     % axis_PP = [-5 100 0 105];
 
     axis_ind_elong = [-1 angle_max -8 55];
@@ -279,25 +215,27 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
     global at_momentarm 
     global filepath
     dm_filename = 'data/datamaster_passive.tsv';
-    if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
+    
+    if input_resumerun == 1
+        % resume running of loop
         load all_data_passive_inloop
+        input_resumerun = 1; % overwrite loaded variable
         line_start = line+1; % all_data_stiff_inloop was saved at the "end" of a line (trial) - resume with next line
-        % needed only if using input_resumerun later in the script: input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
-    else
-        line_start = 1;
-    end
-    linestotal = read_datamaster_passive(dm_filename);
-
-        
-    %% Prepare for LOOP or resume_after_loop
-    if resume_after_loop == 1
-        % load complete loop data:
+        linestotal = read_datamaster_passive(dm_filename); % allow edits in datamaster (filenames may be edited, line order prior to restart may NOT!)
+    elseif input_resumerun == 2
+        % do not run loop at all, no need for line_start or linestotal
         load all_data_passive_endloop
-        % continue after loop is finished
-    else % run loop from beginning
-
-                
-        %% Preallocate output arrays 
+        input_resumerun = 2; % overwrite loaded variable
+    else
+        % == 0, start from beginning
+        line_start = 1;
+        linestotal = read_datamaster_passive(dm_filename);
+    end
+    
+            
+    %% Preallocate output arrays 
+    % preallocate only if starting from beginning:
+    if input_resumerun == 0
         % common arrays for all subjects:
             all_passive_output_head = {...
 'Subject', 'Time', 'Side', 'Trial', ...
@@ -368,35 +306,31 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
         STR_PRE_prone(ceil(linestotal),12) = zeros;
         STR_PRE_angle_vars{ceil(linestotal)} = zeros;
         STR_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-%         STR_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-%         STR_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-%         STR_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         STR_POST_no(ceil(linestotal)) = zeros;
         STR_POST_prone(ceil(linestotal),12) = zeros;
         STR_POST_angle_vars{ceil(linestotal)} = zeros;
         STR_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-%         STR_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-%         STR_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-%         STR_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         CON_PRE_no(ceil(linestotal)) = zeros;
         CON_PRE_prone(ceil(linestotal),12) = zeros;
         CON_PRE_angle_vars{ceil(linestotal)} = zeros;
         CON_PRE_angle_vars_mean{ceil(linestotal)} = zeros;
-%         CON_PRE_angle_vars_norm{ceil(linestotal)} = zeros;
-%         CON_PRE_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-%         CON_PRE_angle_vars_norm_mean{ceil(linestotal)} = zeros;
 
         CON_POST_no(ceil(linestotal)) = zeros;
         CON_POST_prone(ceil(linestotal),12) = zeros;
         CON_POST_angle_vars{ceil(linestotal)} = zeros;
         CON_POST_angle_vars_mean{ceil(linestotal)} = zeros;
-%         CON_POST_angle_vars_norm{ceil(linestotal)} = zeros;
-%         CON_POST_angle_vars_norm_indlength{ceil(linestotal)} = zeros;
-%         CON_POST_angle_vars_norm_mean{ceil(linestotal)} = zeros;
+    end
+    
+    
+    %% Prepare for LOOP (if not "resume after loop")
+    if input_resumerun < 2
+        % 0 = run loop from beginning
+        % OR:
+        % 1 = continue running loop from "inloop"
 
-
+              
         %% LOOP through all lines in datamaster file %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         for line = line_start:linestotal 
             
@@ -811,7 +745,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             % plot all 6 trials separately: Force-angle
             if plot_check && plot_individual
-                plottitle = horzcat('IND force vs angle, ', subject_id);
+                plottitle = horzcat('IND force vs angle singletrials, ', subject_id);
                 figure('Name',plottitle);
                 plot(SOL_gonio_1,SOL_force_1,'LineWidth',2, 'Color',[1 0 0])
                 hold on
@@ -867,37 +801,37 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
             
-            % TMP: separate EMG plots MMM
-            if plot_check && plot_individual
-
-                figure('Name','EMG GM')
-                plot(data_force_gonio(:,2),data_force_gonio(:,4),'y','LineWidth',2); % mean GM
-                hold on
-                for i = 1:6 % 6 trials GM
-                    if ~isempty(emg_all{1,i})
-                        plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2));
-                    end
-                end
-
-                figure('Name','EMG GL')
-                plot(data_force_gonio(:,2),data_force_gonio(:,5),'m','LineWidth',2); % mean GL
-                hold on
-                for i = 1:6 % 6 trials GL
-                    if ~isempty(emg_all{1,i})
-                        plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2));
-                    end
-                end
-
-                figure('Name','EMG SOL')
-                plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
-                hold on
-                for i = 1:6 % 6 trials SOL
-                    if ~isempty(emg_all{1,i})
-                        plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2));
-                    end
-                end
-
-            end
+%             % TMP: separate EMG plots
+%             if plot_check && plot_individual
+% 
+%                 figure('Name','EMG GM')
+%                 plot(data_force_gonio(:,2),data_force_gonio(:,4),'y','LineWidth',2); % mean GM
+%                 hold on
+%                 for i = 1:6 % 6 trials GM
+%                     if ~isempty(emg_all{1,i})
+%                         plot(emg_all{1,i}(:,1),emg_all{1,i}(:,2));
+%                     end
+%                 end
+% 
+%                 figure('Name','EMG GL')
+%                 plot(data_force_gonio(:,2),data_force_gonio(:,5),'m','LineWidth',2); % mean GL
+%                 hold on
+%                 for i = 1:6 % 6 trials GL
+%                     if ~isempty(emg_all{1,i})
+%                         plot(emg_all{2,i}(:,1),emg_all{2,i}(:,2));
+%                     end
+%                 end
+% 
+%                 figure('Name','EMG SOL')
+%                 plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
+%                 hold on
+%                 for i = 1:6 % 6 trials SOL
+%                     if ~isempty(emg_all{1,i})
+%                         plot(emg_all{3,i}(:,1),emg_all{3,i}(:,2));
+%                     end
+%                 end
+% 
+%             end
 
 
             %% Check conformation of GONIOMETER to norm angle
@@ -954,7 +888,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             col_GMfaslen = 12;
 
             % calculate MTU lengths
-            [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle, dm_at_SOL_zero{line}, dm_at_GM_zero{line});
+            [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_array, MTU_prone_vars] = calculate_mtu_length(data_SOL(:,2:3), data_GMMTJ(:,2:3), data_GMFAS(:,2:3), data_GMFAS_licht_GM, dm_at_SOL_length{line}, dm_at_GM_length{line}, trial_calf_length, prone_GMfas_penn, prone_GMfas_length, out_ROM_trial_max, prone_GMfas_ankle, dm_at_SOL_zero{line}, dm_at_GM_zero{line});
              % NB: prone_vars contains pennation angle and fascicle length
              %     in the columns normally used for GMFAS displacement and apo
 
@@ -989,8 +923,12 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             MTU_normalized(:,5) = MTU_elong_array(:,col_GMmsc_Fukunaga)/MTU_length_rest*100;
             MTU_normalized(:,6) = MTU_elong_array(:,col_SEE_Fukunaga)/MTU_length_rest*100;
             % GMmsc/SEE elongation in % of MTU ELONGATION
-            MTU_normalized(:,7) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_array(:,col_leg)*100;
-            MTU_normalized(:,8) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+            % version 1: % of elongation from resting length
+            %MTU_normalized(:,7) = MTU_elong_array(:,col_GMmsc_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+            %MTU_normalized(:,8) = MTU_elong_array(:,col_SEE_Fukunaga)./MTU_elong_array(:,col_leg)*100;
+            % version 2: % of elongation from zero length
+            MTU_normalized(:,7) = MTU_percentelong_array(:,1); % GMmsc
+            MTU_normalized(:,8) = MTU_percentelong_array(:,2); % SEE
 
             % Normalization of fascicle length/elongation 
             % to prone MTU length
@@ -1023,7 +961,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 ylabel(txt_length)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('Full GM MTU', 'SEE (from archi)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
+                legend('Full GM MTU', 'SEE (archi)', 'SOL MTU', 'GM tendon (linear)', 'AT free', 'GM msc. (linear)', 'GM msc. (from archi)', 'SOL msc.', 'GM apo.', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
 
                 % raw elongation (mm) - linear
@@ -1084,7 +1022,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 ylabel(txt_elong)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
+                legend('GM MTU', 'SEE (archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
 
                 % strain (percent of initial length) - Lichtwark
@@ -1099,7 +1037,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 ylabel(txt_strain)
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
-                legend('GM MTU', 'SEE (from archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
+                legend('GM MTU', 'SEE (archi)', 'GM msc. (from archi)', 'GM fascicle', 'Location','Southeast');
                 print(horzcat('data_plots/',plottitle),'-dpng')
             end
 
@@ -1964,10 +1902,10 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 STR_PRE_angle_vars{STR_PRE_count} = [ ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18old
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gm) ...          3old
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gl)...           4old
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_sol) ...          5old
                     ...
                     MTU_length_array(:,2) ...                                       12
                     MTU_length_array(:,3) ...                                       13
@@ -2016,7 +1954,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,2) ... % norm fas len
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... % norm fas elong
                     ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
 
 %                 % all data in ONE cell, NORMALIZED data:
@@ -2049,9 +1987,9 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gm) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gl)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_sol) ...          5
                     ...
                     MTU_length_array(:,2) ...                                       12
                     MTU_length_array(:,3) ...                                       13
@@ -2100,7 +2038,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,2) ... 
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
 % 
 %                 % all data in ONE cell, NORMALIZED data:
@@ -2133,9 +2071,9 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gm) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gl)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_sol) ...          5
                     ...
                     MTU_length_array(:,2) ...                                       12
                     MTU_length_array(:,3) ...                                       13
@@ -2184,7 +2122,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,2) ... 
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
 
 %                 % all data in ONE cell, NORMALIZED data:
@@ -2217,9 +2155,9 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...  1
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_force) ...  2
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_torque) ... % 18
-                    data_force_gonio(loc_angle_start:loc_angle_stop,3) ...          3
-                    data_force_gonio(loc_angle_start:loc_angle_stop,4)...           4
-                    data_force_gonio(loc_angle_start:loc_angle_stop,5) ...          5
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gm) ...          3
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_gl)...           4
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_AV_EMG_sol) ...          5
                     ...
                     MTU_length_array(:,2) ...                                       12
                     MTU_length_array(:,3) ...                                       13
@@ -2268,7 +2206,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,2) ... 
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
-                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   38
+                    data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ... 
                     ];
 
 %                 % all data in ONE cell, NORMALIZED data:
@@ -3424,7 +3362,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('force vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('force vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3443,7 +3381,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('force vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('force vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3466,7 +3404,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % - but will not be plot unless equal amount of 4 legs/timepoints - rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND force vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND force vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3529,7 +3467,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('torque vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('torque vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3548,7 +3486,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('torque vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('torque vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3570,7 +3508,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND torque vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND torque vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3616,7 +3554,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('free AT length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('free AT length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3635,7 +3573,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('free AT length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3657,7 +3595,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT length vs angle - SUBJECT ',CON_PRE_ID{i} ,' PRE-POST');
+                    plottitle = horzcat('IND free AT length vs angle - ',CON_PRE_ID{i}(1:6) ,' PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3703,7 +3641,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('free AT elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('free AT elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3722,7 +3660,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('free AT elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3744,7 +3682,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND free AT elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3790,7 +3728,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('free AT strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('free AT strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3809,7 +3747,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('free AT strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('free AT strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3831,7 +3769,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND free AT strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND free AT strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3879,7 +3817,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3898,7 +3836,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -3920,7 +3858,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -3966,7 +3904,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -3985,7 +3923,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4007,7 +3945,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4053,7 +3991,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4072,7 +4010,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM tendon (from calc) strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4094,7 +4032,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM tendon (from calc) strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4140,7 +4078,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4159,7 +4097,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4181,7 +4119,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4227,7 +4165,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4246,7 +4184,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4268,7 +4206,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4314,7 +4252,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4333,7 +4271,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM apo (SOL ins-GM ins) strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4355,7 +4293,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM apo (SOL ins-GM ins) strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4403,7 +4341,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4422,7 +4360,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4444,7 +4382,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle SOL length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4490,7 +4428,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4509,7 +4447,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4531,7 +4469,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle SOL elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4577,7 +4515,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4596,7 +4534,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle SOL strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4618,7 +4556,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle SOL strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle SOL strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4664,7 +4602,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4683,7 +4621,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4705,7 +4643,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4751,7 +4689,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4770,7 +4708,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4792,7 +4730,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4838,7 +4776,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4857,7 +4795,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (ins-knee) strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4879,7 +4817,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (ins-knee) strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -4900,7 +4838,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             
             %% GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle - 1');
+                plottitle = horzcat('muscle GM (archi) length vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_len_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -4932,7 +4870,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -4961,7 +4899,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -4992,7 +4930,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (archi) length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5011,7 +4949,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             %% GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 1');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -5038,7 +4976,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5057,7 +4995,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5079,7 +5017,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (archi) elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5098,7 +5036,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             %% GM MUSCLE Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) strain vs angle - 1');
+                plottitle = horzcat('muscle GM (archi) strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_strain_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -5125,7 +5063,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5144,7 +5082,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5166,7 +5104,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (archi) strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5185,7 +5123,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             
             %% SEE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle - 1');
+                plottitle = horzcat('SEE (archi) length vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_len_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -5217,7 +5155,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5245,7 +5183,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5276,7 +5214,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND SEE (archi) length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5295,7 +5233,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             %% SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle - 1');
+                plottitle = horzcat('SEE (archi) elongation vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -5322,7 +5260,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5341,7 +5279,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5363,7 +5301,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND SEE (archi) elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5382,7 +5320,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
 
             %% SEE Lichtwark/Fukunaga: Strain vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) strain vs angle - 1');
+                plottitle = horzcat('SEE (archi) strain vs angle - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_strain_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -5409,7 +5347,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5428,7 +5366,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5450,7 +5388,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND SEE (archi) strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5503,7 +5441,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5531,7 +5469,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5562,7 +5500,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM fascicle length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5608,7 +5546,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5627,7 +5565,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5649,7 +5587,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM fascicle elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5695,7 +5633,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5714,7 +5652,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5736,7 +5674,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM fascicle strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5787,7 +5725,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM pennation angle vs ankle angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM pennation angle vs ankle angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5815,7 +5753,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM pennation angle vs ankle angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM pennation angle vs ankle angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5846,7 +5784,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM pennation angle vs ankle angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM pennation angle vs ankle angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -5899,7 +5837,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('MTU length vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('MTU length vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -5927,7 +5865,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU length vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('MTU length vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -5958,7 +5896,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU length vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND MTU length vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6004,7 +5942,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6023,7 +5961,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6045,7 +5983,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU elongation vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND MTU elongation vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6093,7 +6031,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check && plot_old
-                plottitle = horzcat('MTU strain vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('MTU strain vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6112,7 +6050,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check && plot_old
-                plottitle = horzcat('MTU strain vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('MTU strain vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6134,7 +6072,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU strain vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND MTU strain vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6180,7 +6118,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('displacement GMFAS vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('displacement GMFAS vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6199,7 +6137,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('displacement GMFAS vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('displacement GMFAS vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6221,7 +6159,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual && plot_old
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND displacement GMFAS vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND displacement GMFAS vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6273,7 +6211,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas med vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas med vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6292,7 +6230,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas med vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas med vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6314,7 +6252,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas med vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND EMG gas med vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6360,7 +6298,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('EMG gas lat vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas lat vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6379,7 +6317,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG gas lat vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('EMG gas lat vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6401,7 +6339,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG gas lat vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND EMG gas lat vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6447,7 +6385,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('EMG soleus vs angle - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('EMG soleus vs angle - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6466,7 +6404,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('EMG soleus vs angle - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('EMG soleus vs angle - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6488,7 +6426,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND EMG soleus vs angle - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND EMG soleus vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6510,7 +6448,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                         
             %% NORMALIZED GM MUSCLE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle NORM - 1');
+                plottitle = horzcat('muscle GM (archi) length vs angle NORM - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6537,7 +6475,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) length vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6557,7 +6495,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) length vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) length vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6580,7 +6518,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) length vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (archi) length vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6599,7 +6537,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                         
             %% NORMALIZED GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 1');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6626,7 +6564,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6645,7 +6583,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6667,7 +6605,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND muscle GM (archi) elongation vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6686,7 +6624,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                                     
             %% NORMALIZED SEE Lichtwark/Fukunaga: Length vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle NORM - 1');
+                plottitle = horzcat('SEE (archi) length vs angle NORM - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_len_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6713,7 +6651,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) length vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6733,7 +6671,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) length vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) length vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6756,7 +6694,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) length vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND SEE (archi) length vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6775,7 +6713,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             
             %% NORMALIZED SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 1');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM - 1');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6802,7 +6740,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6821,7 +6759,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6843,7 +6781,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND SEE (archi) elongation vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -6865,7 +6803,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             
             %% NORMALIZED TO ELONG, GM MUSCLE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 1 % contrib');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM% - 1 % contrib');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6892,7 +6830,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST % contrib');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM% - 2 STRETCHERS ind PRE+POST % contrib');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6911,7 +6849,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('muscle GM (architecture) elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST % contrib');
+                plottitle = horzcat('muscle GM (archi) elongation vs angle NORM% - 3 CONTROLS ind PRE+POST % contrib');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -6933,7 +6871,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND muscle GM (architecture) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST % contrib');
+                    plottitle = horzcat('IND muscle GM (archi) elongation vs angle NORM% - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST % contrib');
                     figure('Name',plottitle)
                     hold on
 
@@ -6952,7 +6890,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             
             %% NORMALIZED TO ELONG, SEE Lichtwark/Fukunaga: Elongation vs angle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 1 % contrib');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM% - 1 % contrib');
                 figure('Name',plottitle)
                 hold on
                 plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightred,'LineStyle','--','LineWidth',1)
@@ -6979,7 +6917,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST % contrib');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM% - 2 STRETCHERS ind PRE+POST % contrib');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -6998,7 +6936,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('SEE (from archi) elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST % contrib');
+                plottitle = horzcat('SEE (archi) elongation vs angle NORM% - 3 CONTROLS ind PRE+POST % contrib');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7020,7 +6958,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND SEE (from archi) elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST % contrib');
+                    plottitle = horzcat('IND SEE (archi) elongation vs angle NORM% - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST % contrib');
                     figure('Name',plottitle)
                     hold on
 
@@ -7066,7 +7004,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7086,7 +7024,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle length vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle length vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7109,7 +7047,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle length vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM fascicle length vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7155,7 +7093,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7174,7 +7112,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('GM fascicle elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('GM fascicle elongation vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7196,7 +7134,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND GM fascicle elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND GM fascicle elongation vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7242,7 +7180,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('MTU length vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('MTU length vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7262,7 +7200,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU length vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('MTU length vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7285,7 +7223,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU length vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND MTU length vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 
@@ -7331,7 +7269,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             end
             
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle NORM - 2 STRETCHERS ind lines PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle NORM - 2 STRETCHERS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:STR_PRE_count
@@ -7350,7 +7288,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
             end
             if plot_check
-                plottitle = horzcat('MTU elongation vs angle NORM - 3 CONTROLS ind lines PRE-POST');
+                plottitle = horzcat('MTU elongation vs angle NORM - 3 CONTROLS ind PRE+POST');
                 figure('Name',plottitle)
                 hold on
                 for i = 1:CON_PRE_count
@@ -7372,7 +7310,7 @@ function [] = passiveUS(input_project, input_plot, input_resumerun)
             % rough coding
             if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
                 for i = 1:CON_PRE_count
-                    plottitle = horzcat('IND MTU elongation vs angle NORM - ', CON_PRE_ID{i} ,' 2legs PRE-POST');
+                    plottitle = horzcat('IND MTU elongation vs angle NORM - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
                     figure('Name',plottitle)
                     hold on
 

@@ -7,7 +7,7 @@
 
 
 
-function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, txt_at_SOL_rest_length, txt_at_GM_rest_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle, txt_at_SOL_zero_length, txt_at_GM_zero_length)
+function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, txt_at_SOL_rest_length, txt_at_GM_rest_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle, txt_at_SOL_zero_length, txt_at_GM_zero_length)
     global at_momentarm  % subject_id
 
         
@@ -241,6 +241,18 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, resting_vars] = c
         msc_GM_strain_Fukunaga ...
     	SEE_strain_Fukunaga ...
         ]; 
+    
+    
+    % GMmsc / SEE in percent of MTU elong:
+    % extract elongations from zero angle:
+    MTU_leg_elongfromzero = MTU_GM_length - MTU_GM_length(1);
+    MTU_GMmsc_elongfromzero = msc_GM_length_Fukunaga - msc_GM_length_Fukunaga(1);
+    MTU_SEE_elongfromzero = SEE_length_Fukunaga - SEE_length_Fukunaga(1);
+    
+    MTU_percentelong_array = [ ...
+        MTU_GMmsc_elongfromzero./MTU_leg_elongfromzero*100 ... % GMmsc
+        MTU_SEE_elongfromzero./MTU_leg_elongfromzero*100 ... % SEE
+    ];
     
     resting_vars = [resting_ankle_angle resting_AT_SOL_length resting_AT_GM_length resting_calf_length_abs resting_msc_GM_length 0 resting_apo_length resting_msc_SOL_length resting_GM_msc_len resting_SEE_len resting_GM_pennation resting_GM_faslen];
     % matching the following col references:

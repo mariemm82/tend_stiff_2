@@ -1,4 +1,8 @@
-============ check 10 trials with negative fas elong
+check new licht elong
+
+do discards from xls
+
+check for way off fasc elong/strain
 
 
 =========== check newly run licht analyses for:

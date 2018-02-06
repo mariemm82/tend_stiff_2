@@ -8,12 +8,13 @@
 
 
 function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, txt_at_SOL_rest_length, txt_at_GM_rest_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle, txt_at_SOL_zero_length, txt_at_GM_zero_length)
-    global at_momentarm  % subject_id
+   % global at_momentarm  % subject_id
 
         
     %% create array of angles common to all 6 trials
     % angle_common is read from file from create_angles_passive, to avoid potential tiny discrepancies between various calculations of max
-    angle_array = (0:0.05:(angle_common+0.01))'; %VAR  - adding 0.01 to ensure that the actual common angle is included - data stored as 10.9999999 
+    angle_interval = 0.05; %VAR
+    angle_array = (0:angle_interval:(angle_common+0.01))'; %VAR  - adding 0.01 to ensure that the actual common angle is included - data stored as 10.9999999 
     
        
     %% LENGTH of whole MTU (ELONGATION further down is based on prone/resting length)
@@ -84,7 +85,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     standing_leg_length_HH = standing_calf_length/MTU_length_HH_GM_rel(1);
     
     % applying H&H percent wise elongation to above H&H 0deg length
-    MTU_length_HH_GM_abs = standing_leg_length_HH * MTU_length_HH_GM_rel;
+%    MTU_length_HH_GM_abs = standing_leg_length_HH * MTU_length_HH_GM_rel;
     
     MTU_length_HH_SOL_abs = standing_leg_length_HH * MTU_length_HH_SOL_rel;
     MTU_length_HH_SOL_abs_rest = standing_leg_length_HH * MTU_length_HH_SOL_rel_rest;
@@ -93,7 +94,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     
     %%% elongation from ankle rotation and moment arm (geometry)
     % convert momentarm from m to mm (* 1000)
-    MTU_length_geometry = standing_calf_length + (at_momentarm * 1000 * sind(angle_array));
+%    MTU_length_geometry = standing_calf_length + (at_momentarm * 1000 * sind(angle_array));
 
     
     
@@ -165,7 +166,13 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     resting_GM_msc_len = resting_GM_faslen * cosd(resting_GM_pennation);
 
     if angle_GM_Fukunaga == 0 % fascicle data not existing
-        msc_GM_elong_Fukunaga(1:length(angle_array),1) = zeros;
+        msc_GM_length_Fukunaga(1:length(angle_array),1) = NaN;
+        msc_GM_elong_Fukunaga(1:length(angle_array),1) = NaN;
+        msc_GM_strain_Fukunaga(1:length(angle_array),1) = NaN;
+        SEE_length_Fukunaga(1:length(angle_array),1) = NaN;
+        SEE_elong_Fukunaga(1:length(angle_array),1) = NaN;
+        SEE_strain_Fukunaga(1:length(angle_array),1) = NaN;
+        resting_SEE_len = NaN;
     else
 %         % version 1: lower leg = tend + msc
 %         loc_frame = find(angle_GM_Fukunaga(:,1)>=0,1,'first');
@@ -253,6 +260,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
         MTU_GMmsc_elongfromzero./MTU_leg_elongfromzero*100 ... % GMmsc
         MTU_SEE_elongfromzero./MTU_leg_elongfromzero*100 ... % SEE
     ];
+    loc_twodegrees = 2/angle_interval; %VAR
+    MTU_percentelong_array(1:loc_twodegrees,:) = NaN;
     
     resting_vars = [resting_ankle_angle resting_AT_SOL_length resting_AT_GM_length resting_calf_length_abs resting_msc_GM_length 0 resting_apo_length resting_msc_SOL_length resting_GM_msc_len resting_SEE_len resting_GM_pennation resting_GM_faslen];
     % matching the following col references:

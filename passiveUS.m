@@ -25,6 +25,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     global mute
     mute = 1; % do not output to screen: conversion factors, EMG%, mom arm
     line = 0; % preallocate for resumerun
+    AAA_today = date;
     
               
     %% Plots: determine which plots to display
@@ -126,7 +127,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     
     angle_max = 36;
     
-    axis_EMG = [-1 angle_max 0 30];
+    axis_EMG_wide = [-1 angle_max 0 30];
+    axis_EMG_narrow = [-1 angle_max 0 16];
 
     axis_displ_GMFAS = [-1 angle_max -2 4];
 
@@ -134,15 +136,17 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     axis_str_MTU = [-1 angle_max -0.5 8];
     axis_len_MTU = [-25 angle_max 440 540];
 
-    axis_penn_GMFAS = [-30 angle_max 0 8]; % fasicle
-    axis_len_GMFAS = [-30 angle_max 30 90];
+    axis_penn_GMFAS = [-30 angle_max 7 18]; % fasicle
+    axis_len_GMFAS = [-30 angle_max 40 80];
     axis_el_GMFAS = [-1 angle_max -10 25];
     axis_str_GMFAS = [-1 angle_max -10 40];
 
     axis_el_SEE_arch = [-1 angle_max 5 40];
     axis_str_SEE_arch = [-1 angle_max 2 9];
     axis_len_SEE_arch = [-25 angle_max 380 480];
-
+    
+    axis_el_percent = [-1 angle_max -5 100];
+    
     axis_el_GMmsc_arch = [-1 angle_max 0 30];
     axis_str_GMmsc_arch = [-1 angle_max 0 55];
     axis_len_GMmsc_arch = [-1 angle_max 50 80];
@@ -793,7 +797,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 end
                 plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
 
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 ylabel('Muscle activation (% of MVC)')
                 xlabel(txt_gonio)
                 title(plottitle,'Interpreter', 'none')
@@ -1641,11 +1645,17 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             out_strain_msc_GM_Fuku_max = max(MTU_strain_array(loc_zero:end,col_GMmsc_Fukunaga));
             out_length_SEE_Fuku_max = max(MTU_length_array(loc_zero:end,col_SEE_Fukunaga));
             out_length_msc_GM_Fuku_max = max(MTU_length_array(loc_zero:end,col_GMmsc_Fukunaga));
-
-            out_licht_fas_length_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_faslen));
-            out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_penn));
-            out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_elong));
-            out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_strain));
+            if (length((data_GMFAS_licht_GM)) == 5) == 0
+                out_licht_fas_length_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_faslen));
+                out_licht_pennation_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_penn));
+                out_licht_fas_elong_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_elong));
+                out_licht_fas_strain_GM_max = max(data_GMFAS_licht_GM(loc_zero:end,col_licht_fas_strain));
+            else
+                out_licht_fas_length_GM_max = NaN;
+                out_licht_pennation_GM_max = NaN;
+                out_licht_fas_elong_GM_max = NaN;
+                out_licht_fas_strain_GM_max = NaN;
+            end
             if (length((data_GMFAS_licht_SOL)) == 3) == 0
                 % SOL exists
                 out_licht_fas_length_SOL_max = max(data_GMFAS_licht_SOL(loc_zero:end,col_licht_faslen));
@@ -1663,8 +1673,13 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             out_norm_elong_SEE_Fuku_max = max(MTU_normalized(loc_zero:end,6));
             out_norm_elong_percent_msc_GM_Fuku_max = max(MTU_normalized(loc_zero:end,7));
             out_norm_elong_percent_SEE_Fuku_max = max(MTU_normalized(loc_zero:end,8));
-            out_norm_licht_fas_elong_GM_max = max(MTU_normalized_licht(loc_zero:end,3));
-            out_norm_licht_fas_length_GM_max = max(MTU_normalized_licht(loc_zero:end,2));
+            if (length((MTU_normalized_licht)) == 3) == 0
+                out_norm_licht_fas_elong_GM_max = max(MTU_normalized_licht(loc_zero:end,3));
+                out_norm_licht_fas_length_GM_max = max(MTU_normalized_licht(loc_zero:end,2));
+            else
+                out_norm_licht_fas_elong_GM_max = NaN;
+                out_norm_licht_fas_length_GM_max = NaN;
+            end
 
 
             %% Calculate PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006)
@@ -2661,10 +2676,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     %%%  mean and stdav of each subject's INDIVIDUAL MAX ROM, force, elong, EMG, etc
        
     % prone variables
-    STR_PRE_prone_mean = mean(STR_PRE_prone);
-    STR_POST_prone_mean = mean(STR_POST_prone);
-    CON_PRE_prone_mean = mean(CON_PRE_prone);
-    CON_POST_prone_mean = mean(CON_POST_prone);
+    STR_PRE_prone_mean = nanmean(STR_PRE_prone);
+    STR_POST_prone_mean = nanmean(STR_POST_prone);
+    CON_PRE_prone_mean = nanmean(CON_PRE_prone);
+    CON_POST_prone_mean = nanmean(CON_POST_prone);
 
     n_o_array_elements = max( [length(CON_PRE_angle_vars{1,1}(1,:)) length(STR_PRE_angle_vars{1,1}(1,:)) length(CON_POST_angle_vars{1,1}(1,:)) length(STR_POST_angle_vars{1,1}(1,:))] );
 
@@ -2672,16 +2687,13 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     if STR_PRE_count > 0
         % preallocate array
         STR_PRE_max(STR_PRE_count,n_o_array_elements) = zeros;
-%        STR_PRE_max_norm(STR_PRE_count,n_o_array_elements) = zeros;
         % collect variables per subject
         for i = 1:STR_PRE_count % per subject
             for j = 1:n_o_array_elements % per element in arrays
                 % OLD: Max values
 %                STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(:,j));
-%                STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(:,j));
                 % NEW: end of array values
                 STR_PRE_max(i,j) = max(STR_PRE_angle_vars{1,i}(end,j));
- %               STR_PRE_max_norm(i,j) = max(STR_PRE_angle_vars_norm{1,i}(end,j));
             end
         end
         
@@ -4863,7 +4875,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
-                ylabel(txt_elong)
+                ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Southeast')
                 print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
@@ -4891,7 +4903,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
 
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
-                ylabel(txt_elong)
+                ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
                 legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
@@ -4920,7 +4932,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 
                 axis(axis_len_GMmsc_arch)
                 xlabel(txt_gonio)
-                ylabel(txt_elong)
+                ylabel(txt_length)
                 title(plottitle,'Interpreter', 'none')
                 fig=get(gca,'Children');
                 legend([fig(end), fig(length(fig)/4*3), fig(length(fig)/4*2), fig(length(fig)/4*1)],'PRE', 'POST', 'PRE rest', 'POST rest')
@@ -4938,9 +4950,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_len_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_len_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_len_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
-                axis(axis_len_GMmsc_arch)
-                xlabel(txt_gonio)
-                ylabel(txt_elong)
+                    axis(axis_len_GMmsc_arch)
+                    xlabel(txt_gonio)
+                    ylabel(txt_length)
                     title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     print(horzcat('data_plots/',plottitle),'-dpng')
@@ -6201,7 +6213,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_gm_mean, CON_POST_EMG_gm_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                axis(axis_EMG)
+                axis(axis_EMG_narrow)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6221,7 +6233,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_EMG_gm))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6240,7 +6252,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_EMG_gm))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6260,7 +6272,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_EMG_gm),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_EMG_gm),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_EMG_gm),'b','LineStyle','-','LineWidth',1)
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                     title(plottitle,'Interpreter', 'none')
@@ -6289,7 +6301,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 herrorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_gl_mean, CON_POST_EMG_gl_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                axis(axis_EMG)
+                axis(axis_EMG_narrow)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6308,7 +6320,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_EMG_gl))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_narrow)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6327,7 +6339,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_EMG_gl))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_narrow)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6347,9 +6359,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_EMG_gl),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_EMG_gl),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_EMG_gl),'b','LineStyle','-','LineWidth',1)
-                axis(axis_EMG)
-                xlabel(txt_gonio)
-                ylabel(txt_emg)
+                    axis(axis_EMG_narrow)
+                    xlabel(txt_gonio)
+                    ylabel(txt_emg)
                     title(plottitle,'Interpreter', 'none')
                     legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
                     print(horzcat('data_plots/',plottitle),'-dpng')
@@ -6376,7 +6388,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 herrorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_EMG_sol_mean, CON_POST_EMG_sol_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                axis(axis_EMG)
+                axis(axis_EMG_narrow)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6395,7 +6407,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_EMG_sol))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6414,7 +6426,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_EMG_sol))
                 end
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                 title(plottitle,'Interpreter', 'none')
@@ -6434,7 +6446,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_EMG_sol),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_EMG_sol),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_EMG_sol),'b','LineStyle','-','LineWidth',1)
-                axis(axis_EMG)
+                axis(axis_EMG_wide)
                 xlabel(txt_gonio)
                 ylabel(txt_emg)
                     title(plottitle,'Interpreter', 'none')
@@ -6821,7 +6833,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_msc_GM_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_msc_GM_licht_mean, CON_POST_elong_norm_percent_msc_GM_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6840,7 +6852,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku))
                 end
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6859,7 +6871,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku))
                 end
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6879,7 +6891,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_msc_GM_fuku),'b','LineStyle','-','LineWidth',1)
-                    %axis(axis_el_GMFAS)
+                    axis(axis_el_percent)
                     xlabel(txt_gonio)
                     ylabel(txt_elong_norm_perc)
                     title(plottitle,'Interpreter', 'none')
@@ -6908,7 +6920,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 herrorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_SEE_licht_mean, CON_POST_ROM_SD, 'b.')
                 errorbar(CON_POST_ROM_mean, CON_POST_elong_norm_percent_SEE_licht_mean, CON_POST_elong_norm_percent_SEE_licht_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
                 
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6927,7 +6939,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:STR_POST_count
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku))
                 end
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6946,7 +6958,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 for i = 1:CON_POST_count
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku))
                 end
-                %axis(axis_el_GMFAS)
+                axis(axis_el_percent)
                 xlabel(txt_gonio)
                 ylabel(txt_elong_norm_perc)
                 title(plottitle,'Interpreter', 'none')
@@ -6966,7 +6978,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'r','LineStyle','-','LineWidth',1)
                     plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
                     plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_norm_percent_elong_SEE_fuku),'b','LineStyle','-','LineWidth',1)
-                    %axis(axis_el_GMFAS)
+                    axis(axis_el_percent)
                     xlabel(txt_gonio)
                     ylabel(txt_elong_norm_perc)
                     title(plottitle,'Interpreter', 'none')

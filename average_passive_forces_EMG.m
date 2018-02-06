@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, trials_GMFAS, subject_nr)
+function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, trials_GMFAS, ~) % ~ = subject_nr
     global subject_id
     
     angle_step = 0.05; % VAR - reshaped, averaged data extracted every x degrees

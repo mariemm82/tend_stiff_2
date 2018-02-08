@@ -1,5 +1,5 @@
-Time	Fascicle Length R1_F1	Pennation Angle R1_F1	Fascicle Length R1_F2	Pennation Angle R1_F2	
-0.055261	56.912	0.30055	55.144	0.2944
+Time	Fascicle Length R1_F1	Pennation Angle R1_F1	Fascicle Length R1_F2	Pennation Angle R1_F2
+0.055261	58.301	0.30055	55.144	0.2944
 0.11052	58.299	0.28909	55.171	0.29395
 0.16578	58.296	0.28884	55.17	0.29369
 0.22104	58.305	0.28878	55.178	0.29364

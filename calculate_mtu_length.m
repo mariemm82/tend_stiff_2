@@ -263,6 +263,8 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     loc_twodegrees = 2/angle_interval; %VAR
     MTU_percentelong_array(1:loc_twodegrees,:) = NaN;
     
+    
+    % resting variables
     resting_vars = [resting_ankle_angle resting_AT_SOL_length resting_AT_GM_length resting_calf_length_abs resting_msc_GM_length 0 resting_apo_length resting_msc_SOL_length resting_GM_msc_len resting_SEE_len resting_GM_pennation resting_GM_faslen];
     % matching the following col references:
 %         col_angle_elong = 1;

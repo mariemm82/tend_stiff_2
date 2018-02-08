@@ -4,7 +4,7 @@
 % 
 % input argument 1 = project selection (1 = BD, 2 = intervent)
 % input argument 2 = plot selection (0 = none, 1 = group plots, 2 = ind plots)
-% input argument 3 = resume run (0 = start from beginning, 2 = start inloop, 3 = start after loop)
+% input argument 3 = resume run (0 = start from beginning, 1 = start inloop, 2 = start after loop)
 % 
 % 2017-12-28: Moving normalization to separate output columns + removing
 %    opportunity to analyse BD data from this script. Go back to
@@ -1848,9 +1848,16 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             % identify locations of start/stop angles in above mentioned arrays
             loc_angle_start = find(data_force_gonio(:,col_angle_DFG)>=angle_start,1,'first');
             loc_angle_stop = find(data_force_gonio(:,col_angle_DFG)>=angle_stop,1,'first');
-            loc_angle_licht_start = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_start,1,'first');
-            loc_angle_licht_stop = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_stop,1,'first');
-
+            % check if licht data exist
+            if length(data_GMFAS_licht_GM) > 5
+                loc_angle_licht_start = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_start,1,'first');
+                loc_angle_licht_stop = find(data_GMFAS_licht_GM(:,col_licht_angle)>=angle_stop,1,'first');
+            else % change tables to NaN
+                loc_angle_licht_start = 1;
+                loc_angle_licht_stop = loc_angle_stop-loc_angle_start+1;
+                MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,:) = NaN;
+                data_GMFAS_licht_GM(loc_angle_licht_start:loc_angle_licht_stop,:) = NaN;
+            end
 
             % contents of below angle_vars arrays /// angle_vars contain:
             col_AV_angle = 1;
@@ -1972,28 +1979,6 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
 
-%                 % all data in ONE cell, NORMALIZED data:
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count} = STR_PRE_angle_vars{STR_PRE_count};
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,1) = STR_PRE_angle_vars{1,STR_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,2) = STR_PRE_angle_vars{1,STR_PRE_count}(:,2)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,2));   % 2 force - to maximal force in trial
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,12) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,12)-STR_PRE_angle_vars{1,STR_PRE_count}(1,12)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,12); % 12 length - to initial length of free AT
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,13) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,13)-STR_PRE_angle_vars{1,STR_PRE_count}(1,13)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,13); % 13 length - to initial length of GM tend
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,14) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,14)-STR_PRE_angle_vars{1,STR_PRE_count}(1,14)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,14); % 14 leg length - to initial leg length
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,16) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,16)-STR_PRE_angle_vars{1,STR_PRE_count}(1,16)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,17) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,17)-STR_PRE_angle_vars{1,STR_PRE_count}(1,17)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,18) = STR_PRE_angle_vars{1,STR_PRE_count}(:,18)*100/max(STR_PRE_angle_vars{1,STR_PRE_count}(:,18));  %        18 torque - to max torque in trial
-%                 STR_PRE_angle_vars_norm_indlength{STR_PRE_count}(:,20) = (STR_PRE_angle_vars{1,STR_PRE_count}(:,20)-STR_PRE_angle_vars{1,STR_PRE_count}(1,20)) *100/STR_PRE_angle_vars{1,STR_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-% 
-%                 % resample for plots
-% 
-%                 % tweak for NaN EMG data - replace  with 1000
-%                 STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(isnan(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count})) = 1000;       
-%                 % spline
-%                 STR_PRE_angle_vars_norm{STR_PRE_count} = spline(STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}(:,1)',STR_PRE_angle_vars_norm_indlength{1,STR_PRE_count}',0:angle_step_plots:100)';
-%                 % replace 1000 with NaN
-%                 if STR_PRE_angle_vars_norm{STR_PRE_count}(1,3) == 1000
-%                     STR_PRE_angle_vars_norm{STR_PRE_count}(:,3:5) = NaN;
-%                 end
 
             elseif trial_timepoint == 1 && trial_leg == 1 % POST, STR
                 %% STR POST
@@ -2055,29 +2040,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
-% 
-%                 % all data in ONE cell, NORMALIZED data:
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count} = STR_POST_angle_vars{STR_POST_count};
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,1) = STR_POST_angle_vars{1,STR_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,2) = STR_POST_angle_vars{1,STR_POST_count}(:,2)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,2));   % 2 force - to maximal force in trial
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,12) = (STR_POST_angle_vars{1,STR_POST_count}(:,12)-STR_POST_angle_vars{1,STR_POST_count}(1,12)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,12); % 12 length - to initial length of free AT
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,13) = (STR_POST_angle_vars{1,STR_POST_count}(:,13)-STR_POST_angle_vars{1,STR_POST_count}(1,13)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,13); % 13 length - to initial length of GM tend
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,14) = (STR_POST_angle_vars{1,STR_POST_count}(:,14)-STR_POST_angle_vars{1,STR_POST_count}(1,14)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,14); % 14 leg length - to initial leg length
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,16) = (STR_POST_angle_vars{1,STR_POST_count}(:,16)-STR_POST_angle_vars{1,STR_POST_count}(1,16)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,17) = (STR_POST_angle_vars{1,STR_POST_count}(:,17)-STR_POST_angle_vars{1,STR_POST_count}(1,17)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,18) = STR_POST_angle_vars{1,STR_POST_count}(:,18)*100/max(STR_POST_angle_vars{1,STR_POST_count}(:,18));  %        18 torque - to max torque in trial
-%                 STR_POST_angle_vars_norm_indlength{STR_POST_count}(:,20) = (STR_POST_angle_vars{1,STR_POST_count}(:,20)-STR_POST_angle_vars{1,STR_POST_count}(1,20)) *100/STR_POST_angle_vars{1,STR_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-% 
-%                 % resample for plots
-% 
-%                 % tweak for NaN EMG data - replace  with 1000
-%                 STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(isnan(STR_POST_angle_vars_norm_indlength{1,STR_POST_count})) = 1000;       
-%                 % spline
-%                 STR_POST_angle_vars_norm{STR_POST_count} = spline(STR_POST_angle_vars_norm_indlength{1,STR_POST_count}(:,1)',STR_POST_angle_vars_norm_indlength{1,STR_POST_count}',0:angle_step_plots:100)';
-%                 % replace 1000 with NaN
-%                 if STR_POST_angle_vars_norm{STR_POST_count}(1,3) == 1000
-%                     STR_POST_angle_vars_norm{STR_POST_count}(:,3:5) = NaN;
-%                 end
+
 
             elseif trial_timepoint == 0 && trial_leg == 0 % PRE, CON
                 %% CON PRE
@@ -2140,29 +2103,6 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
                     ];
 
-%                 % all data in ONE cell, NORMALIZED data:
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count} = CON_PRE_angle_vars{CON_PRE_count};
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,1) = CON_PRE_angle_vars{1,CON_PRE_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,2) = CON_PRE_angle_vars{1,CON_PRE_count}(:,2)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,2));   % 2 force - to maximal force in trial
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,12) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,12)-CON_PRE_angle_vars{1,CON_PRE_count}(1,12)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,12); % 12 length - to initial length of free AT
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,13) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,13)-CON_PRE_angle_vars{1,CON_PRE_count}(1,13)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,13); % 13 length - to initial length of GM tend
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,14) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,14)-CON_PRE_angle_vars{1,CON_PRE_count}(1,14)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,14); % 14 leg length - to initial leg length
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,16) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,16)-CON_PRE_angle_vars{1,CON_PRE_count}(1,16)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,17) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,17)-CON_PRE_angle_vars{1,CON_PRE_count}(1,17)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,17); % 17 GM msc length - normalized to initial msc length
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,18) = CON_PRE_angle_vars{1,CON_PRE_count}(:,18)*100/max(CON_PRE_angle_vars{1,CON_PRE_count}(:,18));  %        18 torque - to max torque in trial
-%                 CON_PRE_angle_vars_norm_indlength{CON_PRE_count}(:,20) = (CON_PRE_angle_vars{1,CON_PRE_count}(:,20)-CON_PRE_angle_vars{1,CON_PRE_count}(1,20)) *100/CON_PRE_angle_vars{1,CON_PRE_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-% 
-%                 % resample for plots
-% 
-%                 % tweak for NaN EMG data - replace  with 1000
-%                 CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(isnan(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count})) = 1000;       
-%                 % spline
-%                 CON_PRE_angle_vars_norm{CON_PRE_count} = spline(CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}(:,1)',CON_PRE_angle_vars_norm_indlength{1,CON_PRE_count}',0:angle_step_plots:100)';
-%                 % replace 1000 with NaN
-%                 if CON_PRE_angle_vars_norm{CON_PRE_count}(1,3) == 1000
-%                     CON_PRE_angle_vars_norm{CON_PRE_count}(:,3:5) = NaN;
-%                 end
-
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
                 %% CON POST
                 % all data in ONE cell, up to each subject's max angle, RAW data:
@@ -2223,29 +2163,6 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ... 
                     ];
-
-%                 % all data in ONE cell, NORMALIZED data:
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count} = CON_POST_angle_vars{CON_POST_count};
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,1) = CON_POST_angle_vars{1,CON_POST_count}(:,1)*100/out_ROM_trial_max;                     % 1 angle - normalized to trial max ROM 
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,2) = CON_POST_angle_vars{1,CON_POST_count}(:,2)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,2));   % 2 force - to maximal force in trial
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,12) = (CON_POST_angle_vars{1,CON_POST_count}(:,12)-CON_POST_angle_vars{1,CON_POST_count}(1,12)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,12); % 12 length - to initial length of free AT
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,13) = (CON_POST_angle_vars{1,CON_POST_count}(:,13)-CON_POST_angle_vars{1,CON_POST_count}(1,13)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,13); % 13 length - to initial length of GM tend
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,14) = (CON_POST_angle_vars{1,CON_POST_count}(:,14)-CON_POST_angle_vars{1,CON_POST_count}(1,14)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,14); % 14 leg length - to initial leg length
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,16) = (CON_POST_angle_vars{1,CON_POST_count}(:,16)-CON_POST_angle_vars{1,CON_POST_count}(1,16)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,16); % 16 GM apo length - normalized to initial length of apo
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,17) = (CON_POST_angle_vars{1,CON_POST_count}(:,17)-CON_POST_angle_vars{1,CON_POST_count}(1,17)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,17); % 17 GM msc length - normalized to initial msc length
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,18) = CON_POST_angle_vars{1,CON_POST_count}(:,18)*100/max(CON_POST_angle_vars{1,CON_POST_count}(:,18));  %        18 torque - to max torque in trial
-%                 CON_POST_angle_vars_norm_indlength{CON_POST_count}(:,20) = (CON_POST_angle_vars{1,CON_POST_count}(:,20)-CON_POST_angle_vars{1,CON_POST_count}(1,20)) *100/CON_POST_angle_vars{1,CON_POST_count}(1,20); % 20 SOL msc length - normalized to initial msc length
-% 
-%                 % resample for plots
-% 
-%                 % tweak for NaN EMG data - replace  with 1000
-%                 CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(isnan(CON_POST_angle_vars_norm_indlength{1,CON_POST_count})) = 1000;       
-%                 % spline
-%                 CON_POST_angle_vars_norm{CON_POST_count} = spline(CON_POST_angle_vars_norm_indlength{1,CON_POST_count}(:,col_AV_angle)',CON_POST_angle_vars_norm_indlength{1,CON_POST_count}',0:angle_step_plots:100)';
-%                 % replace 1000 with NaN
-%                 if CON_POST_angle_vars_norm{CON_POST_count}(1,3) == 1000
-%                     CON_POST_angle_vars_norm{CON_POST_count}(:,3:5) = NaN;
-%                 end
 
             end
 
@@ -2352,11 +2269,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_POST_angle_vars(CON_POST_count+1:end) = [];
         CON_POST_prone(CON_POST_count+1:end,:) = [];
 
-%         STR_PRE_angle_vars_norm(STR_PRE_count+1:end) = [];
-%         STR_POST_angle_vars_norm(STR_POST_count+1:end) = [];
-%         CON_PRE_angle_vars_norm(CON_PRE_count+1:end) = [];
-%         CON_POST_angle_vars_norm(CON_POST_count+1:end) = [];
-        
+%TMP
+%    if input_resumerun < 2
     
     %% OUTPUT individual trial data XLS 
     
@@ -2486,54 +2400,38 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         
         % preallocate
         STR_PRE_angle_vars_STAT{STR_PRE_count} = zeros;
-%        STR_PRE_angle_vars_norm_STAT{STR_PRE_count} = zeros;
         STR_POST_angle_vars_STAT{STR_POST_count} = zeros;
-%        STR_POST_angle_vars_norm_STAT{STR_POST_count} = zeros;
         CON_PRE_angle_vars_STAT{CON_PRE_count} = zeros;
-%        CON_PRE_angle_vars_norm_STAT{CON_PRE_count} = zeros;
         CON_POST_angle_vars_STAT{CON_POST_count} = zeros;
-%        CON_POST_angle_vars_norm_STAT{CON_POST_count} = zeros;
         
         % for absolute arrays: select common angle range = the subject/cell item containing the shortest matrix/ROM
         loc_commonROM = min([cellfun('length',STR_PRE_angle_vars) cellfun('length',STR_POST_angle_vars) cellfun('length',CON_PRE_angle_vars) cellfun('length',CON_POST_angle_vars)]); % location of largest common ROM
         
-        % resample absolute & normalized arrays - ommit columns with NaN only
+        % resample arrays - ommit columns with NaN only
         
         for i = 1:STR_PRE_count
             locate_NaN_cols = ~all(isnan(STR_PRE_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:STR_PRE_angle_vars{1,i}(loc_commonROM,1))';
             STR_PRE_angle_vars_STAT{i} = STR_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
             STR_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
- %           resample_axis = 0:angle_step_stats_norm:100;
- %           STR_PRE_angle_vars_norm_STAT{i} = STR_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
- %           STR_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:STR_POST_count
             locate_NaN_cols = ~all(isnan(STR_POST_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:STR_POST_angle_vars{1,i}(loc_commonROM,1))';
             STR_POST_angle_vars_STAT{i} = STR_POST_angle_vars{1,i}(1:numel(resample_axis),:);
             STR_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-  %          resample_axis = 0:angle_step_stats_norm:100;
-  %          STR_POST_angle_vars_norm_STAT{i} = STR_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-  %          STR_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',STR_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_PRE_count
             locate_NaN_cols = ~all(isnan(CON_PRE_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:CON_PRE_angle_vars{1,i}(loc_commonROM,1))';
             CON_PRE_angle_vars_STAT{i} = CON_PRE_angle_vars{1,i}(1:numel(resample_axis),:);
             CON_PRE_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
- %           resample_axis = 0:angle_step_stats_norm:100;
- %           CON_PRE_angle_vars_norm_STAT{i} = CON_PRE_angle_vars_norm{1,i}(1:numel(resample_axis),:);
- %           CON_PRE_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_PRE_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         for i = 1:CON_POST_count
             locate_NaN_cols = ~all(isnan(CON_POST_angle_vars{1,i}(1:5,:)),1);
             resample_axis = (0:angle_step_stats_abs:CON_POST_angle_vars{1,i}(loc_commonROM,1))';
             CON_POST_angle_vars_STAT{i} = CON_POST_angle_vars{1,i}(1:numel(resample_axis),:);
             CON_POST_angle_vars_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
-  %          resample_axis = 0:angle_step_stats_norm:100;
-  %          CON_POST_angle_vars_norm_STAT{i} = CON_POST_angle_vars_norm{1,i}(1:numel(resample_axis),:);
-  %          CON_POST_angle_vars_norm_STAT{i}(:,locate_NaN_cols) = spline(CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,1)',CON_POST_angle_vars_norm{1,i}(1:loc_commonROM,locate_NaN_cols).',resample_axis).';
         end
         
         % create table headers (subject numbers)
@@ -2575,74 +2473,45 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         rows_diff = STR_PRE_count+CON_PRE_count + 1; % adding 1 for column for joint angles
         out_arrays_abs(cols_abs,rows) = zeros;
         out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
- %       cols_norm = size(STR_PRE_angle_vars_norm_STAT{1},1);
-  %      out_arrays_norm(cols_norm,rows) = zeros;
-   %     out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
 
         % organize and output table for each of the selected variables
         for var = 1:length(out_arrays_input_cols)
             % reset output arrays
             out_arrays_abs(cols_abs,rows) = zeros;
             out_arrays_abs_diff(cols_abs,rows_diff) = zeros;
-%            out_arrays_norm(cols_norm,rows) = zeros;
-%            out_arrays_norm_diff(cols_norm,rows_diff) = zeros;
             
             % add as first column, joint angles: abs and normalized angles
             out_arrays_abs(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
             out_arrays_abs_diff(:,1) = STR_PRE_angle_vars_STAT{1}(:,1);
-%            out_arrays_norm(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
-%            out_arrays_norm_diff(:,1) = STR_PRE_angle_vars_norm_STAT{1}(:,1);
             
             % add values: pre and post
             
             % add STR PRE first
             for subj = 1:STR_PRE_count
-                % absolute values
                 out_arrays_abs(:,subj+1) = STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
- %               % normalized values
- %               out_arrays_norm(:,subj+1) = STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
-            end
-            
+            end            
             % add STR POST second
             for subj = 1:STR_POST_count
-                % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-%                % normalized values
- %               out_arrays_norm(:,subj+STR_PRE_count+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
-            end
-            
+            end            
             % add CON PRE
             for subj = 1:CON_PRE_count
-                % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-%                % normalized values
-%                out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+1) = CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
-            end
-            
+            end            
             % add CON POST
             for subj = 1:CON_POST_count
-                % absolute values
                 out_arrays_abs(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-  %              % normalized values
-  %              out_arrays_norm(:,subj+STR_PRE_count+STR_POST_count+CON_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
             end
             
             % add values: difference between PRE-POST
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
                 % add STR first
                 for subj = 1:STR_PRE_count
-                    % absolute values
                     out_arrays_abs_diff(:,subj+1) = STR_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-%                    % normalized values
-%                    out_arrays_norm_diff(:,subj+1) = STR_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - STR_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
                 end
-
                 % add CON second
                 for subj = 1:CON_PRE_count
-                    % absolute values
                     out_arrays_abs_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_STAT{subj}(:,out_arrays_input_cols(var));
-   %                 % normalized values
-   %                 out_arrays_norm_diff(:,subj+STR_PRE_count+1) = CON_POST_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var)) - CON_PRE_angle_vars_norm_STAT{subj}(:,out_arrays_input_cols(var));
                 end
             end
             
@@ -2652,25 +2521,19 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             filename_output = strcat('data_output/arrays_passive_acrossangles_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
             writetable(out_arrays_abs_table,filename_output,'Delimiter','\t')
             
-%            out_arrays_norm_table = array2table(out_arrays_abs,'VariableNames',out_arrays_headers);
-%            filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_', datestr(now, 'yyyymmdd_HHMM'));
-%            writetable(out_arrays_norm_table,filename_output,'Delimiter','\t')
-            
             % difference values
             if eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count)
                 out_arrays_abs_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
                 filename_output = strcat('data_output/arrays_passive_acrossangles_PP_', out_arrays_input_labels{var} , '_abs_', datestr(now, 'yyyymmdd_HHMM'));
                 writetable(out_arrays_abs_diff_table,filename_output,'Delimiter','\t')
-
-%                out_arrays_norm_diff_table = array2table(out_arrays_abs_diff,'VariableNames',out_arrays_headers_diff);
-%                filename_output = strcat('data_output/intervention_arrays_', out_arrays_input_labels{var} , '_norm_P-P_', datestr(now, 'yyyymmdd_HHMM'));
-%                writetable(out_arrays_norm_diff_table,filename_output,'Delimiter','\t')
             end
             clear out_arrays_abs_table out_arrays_abs_diff_table % out_arrays_norm_table out_arrays_norm_diff_table
         end
     end
-         
     
+%% TMP end
+
+
     %% GROUP figures - create variables of MEAN + STDAV 
     
     %%%  mean and stdav of each subject's INDIVIDUAL MAX ROM, force, elong, EMG, etc
@@ -7339,6 +7202,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 end
             end
             
+            close all
             
         end
         

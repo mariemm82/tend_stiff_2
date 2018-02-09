@@ -30,9 +30,10 @@
 % MMM TODO 
 % - catch error in solve_sec_poly with fzero when equation never reaches 0.0
 %   --- under header:   GRP: plot FIT, force-elong per subject (groupwise)
-    
-
-
+%     
+% - max points on average figures are not from fit data, but from raw data
+% --- could be solved by editing stiffness_STR_PRE_SOL etc:
+%     use equation og max force instead of raw data from force_elong_...
 
 function [] = tendstiff(input_project, input_plot, input_resumerun)
     close all
@@ -480,6 +481,8 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         force_cutoff_ind = force_elong_array(loc_cutoff,2); % defined cutoff point of 90% of 6-trial-common-force or 90% of manually set force
         stiff_ind_80 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.8, 1.0, 'ind max'); % last two variables are percent range, from 0.00 to 1.00
         stiff_ind_90 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.9, 1.0, 'ind max');
+%        % TMP MMM
+%        text(0,force_cutoff_ind,horzcat('Stiff ind max = ', num2str(stiff_ind_80), ' N/mm'))
        
         
         %% save individual data to common array

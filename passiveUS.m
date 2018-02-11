@@ -2270,7 +2270,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_POST_prone(CON_POST_count+1:end,:) = [];
 
 %TMP
-%    if input_resumerun < 2
+    %if input_resumerun < 2
     
     %% OUTPUT individual trial data XLS 
     
@@ -2531,7 +2531,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         end
     end
     
-%% TMP end
+%% TMP  end
 
 
     %% GROUP figures - create variables of MEAN + STDAV 
@@ -2563,10 +2563,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         % calculate mean and SD of max values across subjects
         
         % misc
-        STR_PRE_ROM_mean = mean(STR_PRE_max(:,col_AV_angle));
-        STR_PRE_ROM_SD = std(STR_PRE_max(:,col_AV_angle));
-        STR_PRE_F_mean = mean(STR_PRE_max(:,col_AV_F));
-        STR_PRE_F_SD = std(STR_PRE_max(:,col_AV_F));
+        STR_PRE_ROM_mean = nanmean(STR_PRE_max(:,col_AV_angle));
+        STR_PRE_ROM_SD = nanstd(STR_PRE_max(:,col_AV_angle));
+        STR_PRE_F_mean = nanmean(STR_PRE_max(:,col_AV_F));
+        STR_PRE_F_SD = nanstd(STR_PRE_max(:,col_AV_F));
         STR_PRE_EMG_gm_mean = nanmean(STR_PRE_max(:,col_AV_EMG_gm));
         STR_PRE_EMG_gm_SD = nanstd(STR_PRE_max(:,col_AV_EMG_gm));
         STR_PRE_EMG_gl_mean = nanmean(STR_PRE_max(:,col_AV_EMG_gl));
@@ -2575,107 +2575,107 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_PRE_EMG_sol_SD = nanstd(STR_PRE_max(:,col_AV_EMG_sol));
 
         % elong
-        STR_PRE_elong_AT_mean = mean(STR_PRE_max(:,col_AV_elong_AT)); % elong AT
-        STR_PRE_elong_AT_SD = std(STR_PRE_max(:,col_AV_elong_AT));
-        STR_PRE_elong_GMtend_mean = mean(STR_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
-        STR_PRE_elong_GMtend_SD = std(STR_PRE_max(:,col_AV_elong_GMtend));
-        STR_PRE_elong_MTU_mean = mean(STR_PRE_max(:,col_AV_elong_leg)); % elong leg
-        STR_PRE_elong_MTU_SD = std(STR_PRE_max(:,col_AV_elong_leg));
-        STR_PRE_displ_GMFAS_mean = mean(STR_PRE_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
-        STR_PRE_displ_GMFAS_SD = std(STR_PRE_max(:,col_AV_elong_GMFAS));
-        STR_PRE_elong_GMapo_mean = mean(STR_PRE_max(:,col_AV_elong_GMapo)); 
-        STR_PRE_elong_GMapo_SD = std(STR_PRE_max(:,col_AV_elong_GMapo));
-        STR_PRE_elong_msc_GM_mean = mean(STR_PRE_max(:,col_AV_elong_msc_GM)); % GM msc
-        STR_PRE_elong_msc_GM_SD = std(STR_PRE_max(:,col_AV_elong_msc_GM));
-        STR_PRE_elong_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_elong_msc_SOL)); 
-        STR_PRE_elong_msc_SOL_SD = std(STR_PRE_max(:,col_AV_elong_msc_SOL));
+        STR_PRE_elong_AT_mean = nanmean(STR_PRE_max(:,col_AV_elong_AT)); % elong AT
+        STR_PRE_elong_AT_SD = nanstd(STR_PRE_max(:,col_AV_elong_AT));
+        STR_PRE_elong_GMtend_mean = nanmean(STR_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
+        STR_PRE_elong_GMtend_SD = nanstd(STR_PRE_max(:,col_AV_elong_GMtend));
+        STR_PRE_elong_MTU_mean = nanmean(STR_PRE_max(:,col_AV_elong_leg)); % elong leg
+        STR_PRE_elong_MTU_SD = nanstd(STR_PRE_max(:,col_AV_elong_leg));
+        STR_PRE_displ_GMFAS_mean = nanmean(STR_PRE_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
+        STR_PRE_displ_GMFAS_SD = nanstd(STR_PRE_max(:,col_AV_elong_GMFAS));
+        STR_PRE_elong_GMapo_mean = nanmean(STR_PRE_max(:,col_AV_elong_GMapo)); 
+        STR_PRE_elong_GMapo_SD = nanstd(STR_PRE_max(:,col_AV_elong_GMapo));
+        STR_PRE_elong_msc_GM_mean = nanmean(STR_PRE_max(:,col_AV_elong_msc_GM)); % GM msc
+        STR_PRE_elong_msc_GM_SD = nanstd(STR_PRE_max(:,col_AV_elong_msc_GM));
+        STR_PRE_elong_msc_SOL_mean = nanmean(STR_PRE_max(:,col_AV_elong_msc_SOL)); 
+        STR_PRE_elong_msc_SOL_SD = nanstd(STR_PRE_max(:,col_AV_elong_msc_SOL));
 
         % length
-        STR_PRE_L_at_SOL_mean = mean(STR_PRE_max(:,col_AV_len_AT)); % L AT
-        STR_PRE_L_at_SOL_SD = std(STR_PRE_max(:,col_AV_len_AT));
-        STR_PRE_L_at_GM_mean = mean(STR_PRE_max(:,col_AV_len_GMtend)); % L GM tend
-        STR_PRE_L_at_GM_SD = std(STR_PRE_max(:,col_AV_len_GMtend));
-        STR_PRE_L_MTU_mean = mean(STR_PRE_max(:,col_AV_len_leg)); % L leg
-        STR_PRE_L_MTU_SD = std(STR_PRE_max(:,col_AV_len_leg));
+        STR_PRE_L_at_SOL_mean = nanmean(STR_PRE_max(:,col_AV_len_AT)); % L AT
+        STR_PRE_L_at_SOL_SD = nanstd(STR_PRE_max(:,col_AV_len_AT));
+        STR_PRE_L_at_GM_mean = nanmean(STR_PRE_max(:,col_AV_len_GMtend)); % L GM tend
+        STR_PRE_L_at_GM_SD = nanstd(STR_PRE_max(:,col_AV_len_GMtend));
+        STR_PRE_L_MTU_mean = nanmean(STR_PRE_max(:,col_AV_len_leg)); % L leg
+        STR_PRE_L_MTU_SD = nanstd(STR_PRE_max(:,col_AV_len_leg));
         % no L GMFAS
-        STR_PRE_L_GMapo_mean = mean(STR_PRE_max(:,col_AV_len_GMapo)); 
-        STR_PRE_L_GMapo_SD = std(STR_PRE_max(:,col_AV_len_GMapo));
-        STR_PRE_L_msc_GM_mean = mean(STR_PRE_max(:,col_AV_len_msc_GM)); 
-        STR_PRE_L_msc_GM_SD = std(STR_PRE_max(:,col_AV_len_msc_GM));
-        STR_PRE_L_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_len_msc_SOL)); 
-        STR_PRE_L_msc_SOL_SD = std(STR_PRE_max(:,col_AV_len_msc_SOL));
+        STR_PRE_L_GMapo_mean = nanmean(STR_PRE_max(:,col_AV_len_GMapo)); 
+        STR_PRE_L_GMapo_SD = nanstd(STR_PRE_max(:,col_AV_len_GMapo));
+        STR_PRE_L_msc_GM_mean = nanmean(STR_PRE_max(:,col_AV_len_msc_GM)); 
+        STR_PRE_L_msc_GM_SD = nanstd(STR_PRE_max(:,col_AV_len_msc_GM));
+        STR_PRE_L_msc_SOL_mean = nanmean(STR_PRE_max(:,col_AV_len_msc_SOL)); 
+        STR_PRE_L_msc_SOL_SD = nanstd(STR_PRE_max(:,col_AV_len_msc_SOL));
 
         % strain
-        STR_PRE_strain_at_SOL_mean = mean(STR_PRE_max(:,col_AV_strain_AT)); % L AT
-        STR_PRE_strain_at_SOL_SD = std(STR_PRE_max(:,col_AV_strain_AT));
-        STR_PRE_strain_at_GM_mean = mean(STR_PRE_max(:,col_AV_strain_GMtend)); % L GM tend
-        STR_PRE_strain_at_GM_SD = std(STR_PRE_max(:,col_AV_strain_GMtend));
-        STR_PRE_strain_MTU_mean = mean(STR_PRE_max(:,col_AV_strain_leg)); % L calf
-        STR_PRE_strain_MTU_SD = std(STR_PRE_max(:,col_AV_strain_leg));
+        STR_PRE_strain_at_SOL_mean = nanmean(STR_PRE_max(:,col_AV_strain_AT)); % L AT
+        STR_PRE_strain_at_SOL_SD = nanstd(STR_PRE_max(:,col_AV_strain_AT));
+        STR_PRE_strain_at_GM_mean = nanmean(STR_PRE_max(:,col_AV_strain_GMtend)); % L GM tend
+        STR_PRE_strain_at_GM_SD = nanstd(STR_PRE_max(:,col_AV_strain_GMtend));
+        STR_PRE_strain_MTU_mean = nanmean(STR_PRE_max(:,col_AV_strain_leg)); % L calf
+        STR_PRE_strain_MTU_SD = nanstd(STR_PRE_max(:,col_AV_strain_leg));
         % no strain GMfas
-        STR_PRE_strain_GMapo_mean = mean(STR_PRE_max(:,col_AV_strain_GMapo)); 
-        STR_PRE_strain_GMapo_SD = std(STR_PRE_max(:,col_AV_strain_GMapo));
-        STR_PRE_strain_msc_GM_mean = mean(STR_PRE_max(:,col_AV_strain_msc_GM)); 
-        STR_PRE_strain_msc_GM_SD = std(STR_PRE_max(:,col_AV_strain_msc_GM));
-        STR_PRE_strain_msc_SOL_mean = mean(STR_PRE_max(:,col_AV_strain_msc_SOL)); 
-        STR_PRE_strain_msc_SOL_SD = std(STR_PRE_max(:,col_AV_strain_msc_SOL));
+        STR_PRE_strain_GMapo_mean = nanmean(STR_PRE_max(:,col_AV_strain_GMapo)); 
+        STR_PRE_strain_GMapo_SD = nanstd(STR_PRE_max(:,col_AV_strain_GMapo));
+        STR_PRE_strain_msc_GM_mean = nanmean(STR_PRE_max(:,col_AV_strain_msc_GM)); 
+        STR_PRE_strain_msc_GM_SD = nanstd(STR_PRE_max(:,col_AV_strain_msc_GM));
+        STR_PRE_strain_msc_SOL_mean = nanmean(STR_PRE_max(:,col_AV_strain_msc_SOL)); 
+        STR_PRE_strain_msc_SOL_SD = nanstd(STR_PRE_max(:,col_AV_strain_msc_SOL));
 
         % elong licht msc/SEE
-        STR_PRE_elong_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_elong_msc_GM_fuku)); 
-        STR_PRE_elong_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_elong_msc_GM_fuku));
-        STR_PRE_elong_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_elong_SEE_fuku)); 
-        STR_PRE_elong_SEE_licht_SD = std(STR_PRE_max(:,col_AV_elong_SEE_fuku));
+        STR_PRE_elong_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_elong_msc_GM_fuku)); 
+        STR_PRE_elong_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_elong_msc_GM_fuku));
+        STR_PRE_elong_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_elong_SEE_fuku)); 
+        STR_PRE_elong_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_elong_SEE_fuku));
         % strain licht msc/SEE
-        STR_PRE_strain_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_strain_msc_GM_fuku)); 
-        STR_PRE_strain_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_strain_msc_GM_fuku));
-        STR_PRE_strain_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_strain_SEE_fuku)); 
-        STR_PRE_strain_SEE_licht_SD = std(STR_PRE_max(:,col_AV_strain_SEE_fuku));
+        STR_PRE_strain_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_strain_msc_GM_fuku)); 
+        STR_PRE_strain_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_strain_msc_GM_fuku));
+        STR_PRE_strain_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_strain_SEE_fuku)); 
+        STR_PRE_strain_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_strain_SEE_fuku));
         
         %licht fascicle
-        STR_PRE_length_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
-        STR_PRE_length_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
-        STR_PRE_pennation_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_pennation_GMfas_licht)); 
-        STR_PRE_pennation_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_pennation_GMfas_licht)); 
-        STR_PRE_elong_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_elong_GMfas_licht)); 
-        STR_PRE_elong_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_elong_GMfas_licht)); 
-        STR_PRE_strain_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
-        STR_PRE_strain_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
+        STR_PRE_length_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
+        STR_PRE_length_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_len_GMfas_licht)); 
+        STR_PRE_pennation_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_pennation_GMfas_licht)); 
+        STR_PRE_pennation_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_pennation_GMfas_licht)); 
+        STR_PRE_elong_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_elong_GMfas_licht)); 
+        STR_PRE_elong_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_elong_GMfas_licht)); 
+        STR_PRE_strain_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
+        STR_PRE_strain_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_strain_GMfas_licht)); 
 
         % length licht msc/SEE
-        STR_PRE_length_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_len_msc_GM_fuku)); 
-        STR_PRE_length_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_len_msc_GM_fuku));
-        STR_PRE_length_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_len_SEE_fuku)); 
-        STR_PRE_length_SEE_licht_SD = std(STR_PRE_max(:,col_AV_len_SEE_fuku));
+        STR_PRE_length_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_len_msc_GM_fuku)); 
+        STR_PRE_length_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_len_msc_GM_fuku));
+        STR_PRE_length_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_len_SEE_fuku)); 
+        STR_PRE_length_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_len_SEE_fuku));
 
         % normalized 10 vars
-        STR_PRE_length_norm_MTU_mean = mean(STR_PRE_max(:,col_AV_norm_len_leg)); % L leg
-        STR_PRE_length_norm_MTU_SD = std(STR_PRE_max(:,col_AV_norm_len_leg));
-        STR_PRE_elong_norm_MTU_mean = mean(STR_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
-        STR_PRE_elong_norm_MTU_SD = std(STR_PRE_max(:,col_AV_norm_elong_leg));
+        STR_PRE_length_norm_MTU_mean = nanmean(STR_PRE_max(:,col_AV_norm_len_leg)); % L leg
+        STR_PRE_length_norm_MTU_SD = nanstd(STR_PRE_max(:,col_AV_norm_len_leg));
+        STR_PRE_elong_norm_MTU_mean = nanmean(STR_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
+        STR_PRE_elong_norm_MTU_SD = nanstd(STR_PRE_max(:,col_AV_norm_elong_leg));
 
-        STR_PRE_length_norm_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
-        STR_PRE_length_norm_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
-        STR_PRE_elong_norm_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
-        STR_PRE_elong_norm_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
+        STR_PRE_length_norm_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        STR_PRE_length_norm_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
+        STR_PRE_elong_norm_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        STR_PRE_elong_norm_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
 
-        STR_PRE_length_norm_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
-        STR_PRE_length_norm_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_SEE_fuku));
-        STR_PRE_elong_norm_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
-        STR_PRE_elong_norm_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku));
+        STR_PRE_length_norm_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
+        STR_PRE_length_norm_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_len_SEE_fuku));
+        STR_PRE_elong_norm_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
+        STR_PRE_elong_norm_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_elong_SEE_fuku));
 
-        STR_PRE_elong_norm_percent_msc_GM_licht_mean = mean(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
-        STR_PRE_elong_norm_percent_msc_GM_licht_SD = std(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
-        STR_PRE_elong_norm_percent_SEE_licht_mean = mean(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
-        STR_PRE_elong_norm_percent_SEE_licht_SD = std(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
+        STR_PRE_elong_norm_percent_msc_GM_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        STR_PRE_elong_norm_percent_msc_GM_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        STR_PRE_elong_norm_percent_SEE_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        STR_PRE_elong_norm_percent_SEE_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
 
-        STR_PRE_length_norm_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
-        STR_PRE_length_norm_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
-        STR_PRE_elong_norm_GMfas_licht_mean = mean(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
-        STR_PRE_elong_norm_GMfas_licht_SD = std(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_PRE_length_norm_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_PRE_length_norm_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_PRE_elong_norm_GMfas_licht_mean = nanmean(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_PRE_elong_norm_GMfas_licht_SD = nanstd(STR_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
         
         % misc
-        STR_PRE_torque_mean = mean(STR_PRE_max(:,col_AV_T));
-        STR_PRE_torque_SD = std(STR_PRE_max(:,col_AV_T));
+        STR_PRE_torque_mean = nanmean(STR_PRE_max(:,col_AV_T));
+        STR_PRE_torque_SD = nanstd(STR_PRE_max(:,col_AV_T));
         % determine common angle range
         STR_PRE_common_ROM = min(STR_PRE_max(:,col_AV_angle));
     end
@@ -2697,10 +2697,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             end
         end
         % calculate mean and SD of max values across subjects
-        STR_POST_ROM_mean = mean(STR_POST_max(:,col_AV_angle));
-        STR_POST_ROM_SD = std(STR_POST_max(:,col_AV_angle));
-        STR_POST_F_mean = mean(STR_POST_max(:,col_AV_F));
-        STR_POST_F_SD = std(STR_POST_max(:,col_AV_F));
+        STR_POST_ROM_mean = nanmean(STR_POST_max(:,col_AV_angle));
+        STR_POST_ROM_SD = nanstd(STR_POST_max(:,col_AV_angle));
+        STR_POST_F_mean = nanmean(STR_POST_max(:,col_AV_F));
+        STR_POST_F_SD = nanstd(STR_POST_max(:,col_AV_F));
         STR_POST_EMG_gm_mean = nanmean(STR_POST_max(:,col_AV_EMG_gm));
         STR_POST_EMG_gm_SD = nanstd(STR_POST_max(:,col_AV_EMG_gm));
         STR_POST_EMG_gl_mean = nanmean(STR_POST_max(:,col_AV_EMG_gl));
@@ -2708,99 +2708,99 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_POST_EMG_sol_mean = nanmean(STR_POST_max(:,col_AV_EMG_sol));
         STR_POST_EMG_sol_SD = nanstd(STR_POST_max(:,col_AV_EMG_sol));
 
-        STR_POST_elong_AT_mean = mean(STR_POST_max(:,col_AV_elong_AT)); % elong AT
-        STR_POST_elong_AT_SD = std(STR_POST_max(:,col_AV_elong_AT));
-        STR_POST_elong_GMtend_mean = mean(STR_POST_max(:,col_AV_elong_GMtend)); % elong GM tend
-        STR_POST_elong_GMtend_SD = std(STR_POST_max(:,col_AV_elong_GMtend));
-        STR_POST_elong_MTU_mean = mean(STR_POST_max(:,col_AV_elong_leg)); % elong leg
-        STR_POST_elong_MTU_SD = std(STR_POST_max(:,col_AV_elong_leg));
-        STR_POST_displ_GMFAS_mean = mean(STR_POST_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
-        STR_POST_displ_GMFAS_SD = std(STR_POST_max(:,col_AV_elong_GMFAS));
-        STR_POST_elong_GMapo_mean = mean(STR_POST_max(:,col_AV_elong_GMapo)); 
-        STR_POST_elong_GMapo_SD = std(STR_POST_max(:,col_AV_elong_GMapo));
-        STR_POST_elong_msc_GM_mean = mean(STR_POST_max(:,col_AV_elong_msc_GM)); % GM msc
-        STR_POST_elong_msc_GM_SD = std(STR_POST_max(:,col_AV_elong_msc_GM));
-        STR_POST_elong_msc_SOL_mean = mean(STR_POST_max(:,col_AV_elong_msc_SOL)); 
-        STR_POST_elong_msc_SOL_SD = std(STR_POST_max(:,col_AV_elong_msc_SOL));
+        STR_POST_elong_AT_mean = nanmean(STR_POST_max(:,col_AV_elong_AT)); % elong AT
+        STR_POST_elong_AT_SD = nanstd(STR_POST_max(:,col_AV_elong_AT));
+        STR_POST_elong_GMtend_mean = nanmean(STR_POST_max(:,col_AV_elong_GMtend)); % elong GM tend
+        STR_POST_elong_GMtend_SD = nanstd(STR_POST_max(:,col_AV_elong_GMtend));
+        STR_POST_elong_MTU_mean = nanmean(STR_POST_max(:,col_AV_elong_leg)); % elong leg
+        STR_POST_elong_MTU_SD = nanstd(STR_POST_max(:,col_AV_elong_leg));
+        STR_POST_displ_GMFAS_mean = nanmean(STR_POST_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
+        STR_POST_displ_GMFAS_SD = nanstd(STR_POST_max(:,col_AV_elong_GMFAS));
+        STR_POST_elong_GMapo_mean = nanmean(STR_POST_max(:,col_AV_elong_GMapo)); 
+        STR_POST_elong_GMapo_SD = nanstd(STR_POST_max(:,col_AV_elong_GMapo));
+        STR_POST_elong_msc_GM_mean = nanmean(STR_POST_max(:,col_AV_elong_msc_GM)); % GM msc
+        STR_POST_elong_msc_GM_SD = nanstd(STR_POST_max(:,col_AV_elong_msc_GM));
+        STR_POST_elong_msc_SOL_mean = nanmean(STR_POST_max(:,col_AV_elong_msc_SOL)); 
+        STR_POST_elong_msc_SOL_SD = nanstd(STR_POST_max(:,col_AV_elong_msc_SOL));
 
-        STR_POST_L_at_SOL_mean = mean(STR_POST_max(:,col_AV_len_AT)); % L AT
-        STR_POST_L_at_SOL_SD = std(STR_POST_max(:,col_AV_len_AT));
-        STR_POST_L_at_GM_mean = mean(STR_POST_max(:,col_AV_len_GMtend)); % L GM tend
-        STR_POST_L_at_GM_SD = std(STR_POST_max(:,col_AV_len_GMtend));
-        STR_POST_L_MTU_mean = mean(STR_POST_max(:,col_AV_len_leg)); % L leg
-        STR_POST_L_MTU_SD = std(STR_POST_max(:,col_AV_len_leg));
+        STR_POST_L_at_SOL_mean = nanmean(STR_POST_max(:,col_AV_len_AT)); % L AT
+        STR_POST_L_at_SOL_SD = nanstd(STR_POST_max(:,col_AV_len_AT));
+        STR_POST_L_at_GM_mean = nanmean(STR_POST_max(:,col_AV_len_GMtend)); % L GM tend
+        STR_POST_L_at_GM_SD = nanstd(STR_POST_max(:,col_AV_len_GMtend));
+        STR_POST_L_MTU_mean = nanmean(STR_POST_max(:,col_AV_len_leg)); % L leg
+        STR_POST_L_MTU_SD = nanstd(STR_POST_max(:,col_AV_len_leg));
         % no L GMFAS
-        STR_POST_L_GMapo_mean = mean(STR_POST_max(:,col_AV_len_GMapo)); 
-        STR_POST_L_GMapo_SD = std(STR_POST_max(:,col_AV_len_GMapo));
-        STR_POST_L_msc_GM_mean = mean(STR_POST_max(:,col_AV_len_msc_GM)); 
-        STR_POST_L_msc_GM_SD = std(STR_POST_max(:,col_AV_len_msc_GM));
-        STR_POST_L_msc_SOL_mean = mean(STR_POST_max(:,col_AV_len_msc_SOL)); 
-        STR_POST_L_msc_SOL_SD = std(STR_POST_max(:,col_AV_len_msc_SOL));
+        STR_POST_L_GMapo_mean = nanmean(STR_POST_max(:,col_AV_len_GMapo)); 
+        STR_POST_L_GMapo_SD = nanstd(STR_POST_max(:,col_AV_len_GMapo));
+        STR_POST_L_msc_GM_mean = nanmean(STR_POST_max(:,col_AV_len_msc_GM)); 
+        STR_POST_L_msc_GM_SD = nanstd(STR_POST_max(:,col_AV_len_msc_GM));
+        STR_POST_L_msc_SOL_mean = nanmean(STR_POST_max(:,col_AV_len_msc_SOL)); 
+        STR_POST_L_msc_SOL_SD = nanstd(STR_POST_max(:,col_AV_len_msc_SOL));
 
-        STR_POST_strain_at_SOL_mean = mean(STR_POST_max(:,col_AV_strain_AT)); % L AT
-        STR_POST_strain_at_SOL_SD = std(STR_POST_max(:,col_AV_strain_AT));
-        STR_POST_strain_at_GM_mean = mean(STR_POST_max(:,col_AV_strain_GMtend)); % L GM tend
-        STR_POST_strain_at_GM_SD = std(STR_POST_max(:,col_AV_strain_GMtend));
-        STR_POST_strain_MTU_mean = mean(STR_POST_max(:,col_AV_strain_leg)); % L calf
-        STR_POST_strain_MTU_SD = std(STR_POST_max(:,col_AV_strain_leg));
+        STR_POST_strain_at_SOL_mean = nanmean(STR_POST_max(:,col_AV_strain_AT)); % L AT
+        STR_POST_strain_at_SOL_SD = nanstd(STR_POST_max(:,col_AV_strain_AT));
+        STR_POST_strain_at_GM_mean = nanmean(STR_POST_max(:,col_AV_strain_GMtend)); % L GM tend
+        STR_POST_strain_at_GM_SD = nanstd(STR_POST_max(:,col_AV_strain_GMtend));
+        STR_POST_strain_MTU_mean = nanmean(STR_POST_max(:,col_AV_strain_leg)); % L calf
+        STR_POST_strain_MTU_SD = nanstd(STR_POST_max(:,col_AV_strain_leg));
         % no strain GMfas
-        STR_POST_strain_GMapo_mean = mean(STR_POST_max(:,col_AV_strain_GMapo)); 
-        STR_POST_strain_GMapo_SD = std(STR_POST_max(:,col_AV_strain_GMapo));
-        STR_POST_strain_msc_GM_mean = mean(STR_POST_max(:,col_AV_strain_msc_GM)); 
-        STR_POST_strain_msc_GM_SD = std(STR_POST_max(:,col_AV_strain_msc_GM));
-        STR_POST_strain_msc_SOL_mean = mean(STR_POST_max(:,col_AV_strain_msc_SOL)); 
-        STR_POST_strain_msc_SOL_SD = std(STR_POST_max(:,col_AV_strain_msc_SOL));
+        STR_POST_strain_GMapo_mean = nanmean(STR_POST_max(:,col_AV_strain_GMapo)); 
+        STR_POST_strain_GMapo_SD = nanstd(STR_POST_max(:,col_AV_strain_GMapo));
+        STR_POST_strain_msc_GM_mean = nanmean(STR_POST_max(:,col_AV_strain_msc_GM)); 
+        STR_POST_strain_msc_GM_SD = nanstd(STR_POST_max(:,col_AV_strain_msc_GM));
+        STR_POST_strain_msc_SOL_mean = nanmean(STR_POST_max(:,col_AV_strain_msc_SOL)); 
+        STR_POST_strain_msc_SOL_SD = nanstd(STR_POST_max(:,col_AV_strain_msc_SOL));
 
-        STR_POST_elong_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_elong_msc_GM_fuku)); 
-        STR_POST_elong_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_elong_msc_GM_fuku));
-        STR_POST_elong_tend_GM_licht_mean = mean(STR_POST_max(:,col_AV_elong_SEE_fuku)); 
-        STR_POST_elong_tend_GM_licht_SD = std(STR_POST_max(:,col_AV_elong_SEE_fuku));
-        STR_POST_strain_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_strain_msc_GM_fuku)); 
-        STR_POST_strain_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_strain_msc_GM_fuku));
-        STR_POST_strain_tend_GM_licht_mean = mean(STR_POST_max(:,col_AV_strain_SEE_fuku)); 
-        STR_POST_strain_tend_GM_licht_SD = std(STR_POST_max(:,col_AV_strain_SEE_fuku));
+        STR_POST_elong_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_elong_msc_GM_fuku)); 
+        STR_POST_elong_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_elong_msc_GM_fuku));
+        STR_POST_elong_tend_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_elong_SEE_fuku)); 
+        STR_POST_elong_tend_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_elong_SEE_fuku));
+        STR_POST_strain_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_strain_msc_GM_fuku)); 
+        STR_POST_strain_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_strain_msc_GM_fuku));
+        STR_POST_strain_tend_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_strain_SEE_fuku)); 
+        STR_POST_strain_tend_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_strain_SEE_fuku));
 
-        STR_POST_length_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_len_GMfas_licht)); 
-        STR_POST_length_GMfas_licht_SD = std(STR_POST_max(:,col_AV_len_GMfas_licht)); 
-        STR_POST_pennation_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_pennation_GMfas_licht)); 
-        STR_POST_pennation_GMfas_licht_SD = std(STR_POST_max(:,col_AV_pennation_GMfas_licht)); 
-        STR_POST_elong_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_elong_GMfas_licht)); 
-        STR_POST_elong_GMfas_licht_SD = std(STR_POST_max(:,col_AV_elong_GMfas_licht)); 
-        STR_POST_strain_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_strain_GMfas_licht)); 
-        STR_POST_strain_GMfas_licht_SD = std(STR_POST_max(:,col_AV_strain_GMfas_licht)); 
+        STR_POST_length_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_len_GMfas_licht)); 
+        STR_POST_length_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_len_GMfas_licht)); 
+        STR_POST_pennation_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_pennation_GMfas_licht)); 
+        STR_POST_pennation_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_pennation_GMfas_licht)); 
+        STR_POST_elong_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_elong_GMfas_licht)); 
+        STR_POST_elong_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_elong_GMfas_licht)); 
+        STR_POST_strain_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_strain_GMfas_licht)); 
+        STR_POST_strain_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_strain_GMfas_licht)); 
 
-        STR_POST_length_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_len_msc_GM_fuku)); 
-        STR_POST_length_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_len_msc_GM_fuku));
-        STR_POST_length_tend_GM_licht_mean = mean(STR_POST_max(:,col_AV_len_SEE_fuku)); 
-        STR_POST_length_tend_GM_licht_SD = std(STR_POST_max(:,col_AV_len_SEE_fuku));
+        STR_POST_length_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_len_msc_GM_fuku)); 
+        STR_POST_length_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_len_msc_GM_fuku));
+        STR_POST_length_tend_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_len_SEE_fuku)); 
+        STR_POST_length_tend_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_len_SEE_fuku));
 
-        STR_POST_length_norm_MTU_mean = mean(STR_POST_max(:,col_AV_norm_len_leg)); % L leg
-        STR_POST_length_norm_MTU_SD = std(STR_POST_max(:,col_AV_norm_len_leg));
-        STR_POST_elong_norm_MTU_mean = mean(STR_POST_max(:,col_AV_norm_elong_leg)); % elong leg
-        STR_POST_elong_norm_MTU_SD = std(STR_POST_max(:,col_AV_norm_elong_leg));
+        STR_POST_length_norm_MTU_mean = nanmean(STR_POST_max(:,col_AV_norm_len_leg)); % L leg
+        STR_POST_length_norm_MTU_SD = nanstd(STR_POST_max(:,col_AV_norm_len_leg));
+        STR_POST_elong_norm_MTU_mean = nanmean(STR_POST_max(:,col_AV_norm_elong_leg)); % elong leg
+        STR_POST_elong_norm_MTU_SD = nanstd(STR_POST_max(:,col_AV_norm_elong_leg));
 
-        STR_POST_length_norm_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
-        STR_POST_length_norm_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku));
-        STR_POST_elong_norm_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
-        STR_POST_elong_norm_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
+        STR_POST_length_norm_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        STR_POST_length_norm_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_len_msc_GM_fuku));
+        STR_POST_elong_norm_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        STR_POST_elong_norm_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
 
-        STR_POST_length_norm_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_SEE_fuku)); 
-        STR_POST_length_norm_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_len_SEE_fuku));
-        STR_POST_elong_norm_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
-        STR_POST_elong_norm_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_SEE_fuku));
+        STR_POST_length_norm_SEE_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_len_SEE_fuku)); 
+        STR_POST_length_norm_SEE_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_len_SEE_fuku));
+        STR_POST_elong_norm_SEE_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
+        STR_POST_elong_norm_SEE_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_elong_SEE_fuku));
 
-        STR_POST_elong_norm_percent_msc_GM_licht_mean = mean(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
-        STR_POST_elong_norm_percent_msc_GM_licht_SD = std(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
-        STR_POST_elong_norm_percent_SEE_licht_mean = mean(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
-        STR_POST_elong_norm_percent_SEE_licht_SD = std(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
+        STR_POST_elong_norm_percent_msc_GM_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        STR_POST_elong_norm_percent_msc_GM_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        STR_POST_elong_norm_percent_SEE_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        STR_POST_elong_norm_percent_SEE_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
 
-        STR_POST_length_norm_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
-        STR_POST_length_norm_GMfas_licht_SD = std(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
-        STR_POST_elong_norm_GMfas_licht_mean = mean(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
-        STR_POST_elong_norm_GMfas_licht_SD = std(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_POST_length_norm_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_POST_length_norm_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        STR_POST_elong_norm_GMfas_licht_mean = nanmean(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        STR_POST_elong_norm_GMfas_licht_SD = nanstd(STR_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
         
-        STR_POST_torque_mean = mean(STR_POST_max(:,col_AV_T));
-        STR_POST_torque_SD = std(STR_POST_max(:,col_AV_T));
+        STR_POST_torque_mean = nanmean(STR_POST_max(:,col_AV_T));
+        STR_POST_torque_SD = nanstd(STR_POST_max(:,col_AV_T));
         % determine common angle range
         STR_POST_common_ROM = min(STR_POST_max(:,col_AV_angle));
     end
@@ -2822,10 +2822,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             end
         end
         % calculate mean and SD of max values across subjects
-        CON_PRE_ROM_mean = mean(CON_PRE_max(:,col_AV_angle));
-        CON_PRE_ROM_SD = std(CON_PRE_max(:,col_AV_angle));
-        CON_PRE_F_mean = mean(CON_PRE_max(:,col_AV_F));
-        CON_PRE_F_SD = std(CON_PRE_max(:,col_AV_F));
+        CON_PRE_ROM_mean = nanmean(CON_PRE_max(:,col_AV_angle));
+        CON_PRE_ROM_SD = nanstd(CON_PRE_max(:,col_AV_angle));
+        CON_PRE_F_mean = nanmean(CON_PRE_max(:,col_AV_F));
+        CON_PRE_F_SD = nanstd(CON_PRE_max(:,col_AV_F));
         CON_PRE_EMG_gm_mean = nanmean(CON_PRE_max(:,col_AV_EMG_gm));
         CON_PRE_EMG_gm_SD = nanstd(CON_PRE_max(:,col_AV_EMG_gm));
         CON_PRE_EMG_gl_mean = nanmean(CON_PRE_max(:,col_AV_EMG_gl));
@@ -2833,99 +2833,99 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_PRE_EMG_sol_mean = nanmean(CON_PRE_max(:,col_AV_EMG_sol));
         CON_PRE_EMG_sol_SD = nanstd(CON_PRE_max(:,col_AV_EMG_sol));
 
-        CON_PRE_elong_AT_mean = mean(CON_PRE_max(:,col_AV_elong_AT)); % elong AT
-        CON_PRE_elong_AT_SD = std(CON_PRE_max(:,col_AV_elong_AT));
-        CON_PRE_elong_GMtend_mean = mean(CON_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
-        CON_PRE_elong_GMtend_SD = std(CON_PRE_max(:,col_AV_elong_GMtend));
-        CON_PRE_elong_MTU_mean = mean(CON_PRE_max(:,col_AV_elong_leg)); % elong leg
-        CON_PRE_elong_MTU_SD = std(CON_PRE_max(:,col_AV_elong_leg));
-        CON_PRE_displ_GMFAS_mean = mean(CON_PRE_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
-        CON_PRE_displ_GMFAS_SD = std(CON_PRE_max(:,col_AV_elong_GMFAS));
-        CON_PRE_elong_GMapo_mean = mean(CON_PRE_max(:,col_AV_elong_GMapo)); 
-        CON_PRE_elong_GMapo_SD = std(CON_PRE_max(:,col_AV_elong_GMapo));
-        CON_PRE_elong_msc_GM_mean = mean(CON_PRE_max(:,col_AV_elong_msc_GM)); % GM msc
-        CON_PRE_elong_msc_GM_SD = std(CON_PRE_max(:,col_AV_elong_msc_GM));
-        CON_PRE_elong_msc_SOL_mean = mean(CON_PRE_max(:,col_AV_elong_msc_SOL)); 
-        CON_PRE_elong_msc_SOL_SD = std(CON_PRE_max(:,col_AV_elong_msc_SOL));
+        CON_PRE_elong_AT_mean = nanmean(CON_PRE_max(:,col_AV_elong_AT)); % elong AT
+        CON_PRE_elong_AT_SD = nanstd(CON_PRE_max(:,col_AV_elong_AT));
+        CON_PRE_elong_GMtend_mean = nanmean(CON_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
+        CON_PRE_elong_GMtend_SD = nanstd(CON_PRE_max(:,col_AV_elong_GMtend));
+        CON_PRE_elong_MTU_mean = nanmean(CON_PRE_max(:,col_AV_elong_leg)); % elong leg
+        CON_PRE_elong_MTU_SD = nanstd(CON_PRE_max(:,col_AV_elong_leg));
+        CON_PRE_displ_GMFAS_mean = nanmean(CON_PRE_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
+        CON_PRE_displ_GMFAS_SD = nanstd(CON_PRE_max(:,col_AV_elong_GMFAS));
+        CON_PRE_elong_GMapo_mean = nanmean(CON_PRE_max(:,col_AV_elong_GMapo)); 
+        CON_PRE_elong_GMapo_SD = nanstd(CON_PRE_max(:,col_AV_elong_GMapo));
+        CON_PRE_elong_msc_GM_mean = nanmean(CON_PRE_max(:,col_AV_elong_msc_GM)); % GM msc
+        CON_PRE_elong_msc_GM_SD = nanstd(CON_PRE_max(:,col_AV_elong_msc_GM));
+        CON_PRE_elong_msc_SOL_mean = nanmean(CON_PRE_max(:,col_AV_elong_msc_SOL)); 
+        CON_PRE_elong_msc_SOL_SD = nanstd(CON_PRE_max(:,col_AV_elong_msc_SOL));
 
-        CON_PRE_L_at_SOL_mean = mean(CON_PRE_max(:,col_AV_len_AT)); % L AT
-        CON_PRE_L_at_SOL_SD = std(CON_PRE_max(:,col_AV_len_AT));
-        CON_PRE_L_at_GM_mean = mean(CON_PRE_max(:,col_AV_len_GMtend)); % L GM tend
-        CON_PRE_L_at_GM_SD = std(CON_PRE_max(:,col_AV_len_GMtend));
-        CON_PRE_L_MTU_mean = mean(CON_PRE_max(:,col_AV_len_leg)); % L leg
-        CON_PRE_L_MTU_SD = std(CON_PRE_max(:,col_AV_len_leg));
+        CON_PRE_L_at_SOL_mean = nanmean(CON_PRE_max(:,col_AV_len_AT)); % L AT
+        CON_PRE_L_at_SOL_SD = nanstd(CON_PRE_max(:,col_AV_len_AT));
+        CON_PRE_L_at_GM_mean = nanmean(CON_PRE_max(:,col_AV_len_GMtend)); % L GM tend
+        CON_PRE_L_at_GM_SD = nanstd(CON_PRE_max(:,col_AV_len_GMtend));
+        CON_PRE_L_MTU_mean = nanmean(CON_PRE_max(:,col_AV_len_leg)); % L leg
+        CON_PRE_L_MTU_SD = nanstd(CON_PRE_max(:,col_AV_len_leg));
         % no L GMFAS
-        CON_PRE_L_GMapo_mean = mean(CON_PRE_max(:,col_AV_len_GMapo)); 
-        CON_PRE_L_GMapo_SD = std(CON_PRE_max(:,col_AV_len_GMapo));
-        CON_PRE_L_msc_GM_mean = mean(CON_PRE_max(:,col_AV_len_msc_GM)); 
-        CON_PRE_L_msc_GM_SD = std(CON_PRE_max(:,col_AV_len_msc_GM));
-        CON_PRE_L_msc_SOL_mean = mean(CON_PRE_max(:,col_AV_len_msc_SOL)); 
-        CON_PRE_L_msc_SOL_SD = std(CON_PRE_max(:,col_AV_len_msc_SOL));
+        CON_PRE_L_GMapo_mean = nanmean(CON_PRE_max(:,col_AV_len_GMapo)); 
+        CON_PRE_L_GMapo_SD = nanstd(CON_PRE_max(:,col_AV_len_GMapo));
+        CON_PRE_L_msc_GM_mean = nanmean(CON_PRE_max(:,col_AV_len_msc_GM)); 
+        CON_PRE_L_msc_GM_SD = nanstd(CON_PRE_max(:,col_AV_len_msc_GM));
+        CON_PRE_L_msc_SOL_mean = nanmean(CON_PRE_max(:,col_AV_len_msc_SOL)); 
+        CON_PRE_L_msc_SOL_SD = nanstd(CON_PRE_max(:,col_AV_len_msc_SOL));
 
-        CON_PRE_strain_at_SOL_mean = mean(CON_PRE_max(:,col_AV_strain_AT)); % L AT
-        CON_PRE_strain_at_SOL_SD = std(CON_PRE_max(:,col_AV_strain_AT));
-        CON_PRE_strain_at_GM_mean = mean(CON_PRE_max(:,col_AV_strain_GMtend)); % L GM tend
-        CON_PRE_strain_at_GM_SD = std(CON_PRE_max(:,col_AV_strain_GMtend));
-        CON_PRE_strain_MTU_mean = mean(CON_PRE_max(:,col_AV_strain_leg)); % L calf
-        CON_PRE_strain_MTU_SD = std(CON_PRE_max(:,col_AV_strain_leg));
+        CON_PRE_strain_at_SOL_mean = nanmean(CON_PRE_max(:,col_AV_strain_AT)); % L AT
+        CON_PRE_strain_at_SOL_SD = nanstd(CON_PRE_max(:,col_AV_strain_AT));
+        CON_PRE_strain_at_GM_mean = nanmean(CON_PRE_max(:,col_AV_strain_GMtend)); % L GM tend
+        CON_PRE_strain_at_GM_SD = nanstd(CON_PRE_max(:,col_AV_strain_GMtend));
+        CON_PRE_strain_MTU_mean = nanmean(CON_PRE_max(:,col_AV_strain_leg)); % L calf
+        CON_PRE_strain_MTU_SD = nanstd(CON_PRE_max(:,col_AV_strain_leg));
         % no strain GMfas
-        CON_PRE_strain_GMapo_mean = mean(CON_PRE_max(:,col_AV_strain_GMapo)); 
-        CON_PRE_strain_GMapo_SD = std(CON_PRE_max(:,col_AV_strain_GMapo));
-        CON_PRE_strain_msc_GM_mean = mean(CON_PRE_max(:,col_AV_strain_msc_GM)); 
-        CON_PRE_strain_msc_GM_SD = std(CON_PRE_max(:,col_AV_strain_msc_GM));
-        CON_PRE_strain_msc_SOL_mean = mean(CON_PRE_max(:,col_AV_strain_msc_SOL)); 
-        CON_PRE_strain_msc_SOL_SD = std(CON_PRE_max(:,col_AV_strain_msc_SOL));
+        CON_PRE_strain_GMapo_mean = nanmean(CON_PRE_max(:,col_AV_strain_GMapo)); 
+        CON_PRE_strain_GMapo_SD = nanstd(CON_PRE_max(:,col_AV_strain_GMapo));
+        CON_PRE_strain_msc_GM_mean = nanmean(CON_PRE_max(:,col_AV_strain_msc_GM)); 
+        CON_PRE_strain_msc_GM_SD = nanstd(CON_PRE_max(:,col_AV_strain_msc_GM));
+        CON_PRE_strain_msc_SOL_mean = nanmean(CON_PRE_max(:,col_AV_strain_msc_SOL)); 
+        CON_PRE_strain_msc_SOL_SD = nanstd(CON_PRE_max(:,col_AV_strain_msc_SOL));
 
-        CON_PRE_elong_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_elong_msc_GM_fuku)); 
-        CON_PRE_elong_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_elong_msc_GM_fuku));
-        CON_PRE_elong_tend_GM_licht_mean = mean(CON_PRE_max(:,col_AV_elong_SEE_fuku)); 
-        CON_PRE_elong_tend_GM_licht_SD = std(CON_PRE_max(:,col_AV_elong_SEE_fuku));
-        CON_PRE_strain_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_strain_msc_GM_fuku)); 
-        CON_PRE_strain_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_strain_msc_GM_fuku));
-        CON_PRE_strain_tend_GM_licht_mean = mean(CON_PRE_max(:,col_AV_strain_SEE_fuku)); 
-        CON_PRE_strain_tend_GM_licht_SD = std(CON_PRE_max(:,col_AV_strain_SEE_fuku));
+        CON_PRE_elong_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_elong_msc_GM_fuku)); 
+        CON_PRE_elong_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_elong_msc_GM_fuku));
+        CON_PRE_elong_tend_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_elong_SEE_fuku)); 
+        CON_PRE_elong_tend_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_elong_SEE_fuku));
+        CON_PRE_strain_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_strain_msc_GM_fuku)); 
+        CON_PRE_strain_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_strain_msc_GM_fuku));
+        CON_PRE_strain_tend_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_strain_SEE_fuku)); 
+        CON_PRE_strain_tend_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_strain_SEE_fuku));
 
-        CON_PRE_length_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_len_GMfas_licht)); 
-        CON_PRE_length_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_len_GMfas_licht)); 
-        CON_PRE_pennation_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_pennation_GMfas_licht)); 
-        CON_PRE_pennation_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_pennation_GMfas_licht)); 
-        CON_PRE_elong_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_elong_GMfas_licht)); 
-        CON_PRE_elong_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_elong_GMfas_licht)); 
-        CON_PRE_strain_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_strain_GMfas_licht)); 
-        CON_PRE_strain_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_strain_GMfas_licht)); 
+        CON_PRE_length_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_len_GMfas_licht)); 
+        CON_PRE_length_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_len_GMfas_licht)); 
+        CON_PRE_pennation_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_pennation_GMfas_licht)); 
+        CON_PRE_pennation_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_pennation_GMfas_licht)); 
+        CON_PRE_elong_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_elong_GMfas_licht)); 
+        CON_PRE_elong_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_elong_GMfas_licht)); 
+        CON_PRE_strain_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_strain_GMfas_licht)); 
+        CON_PRE_strain_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_strain_GMfas_licht)); 
 
-        CON_PRE_length_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_len_msc_GM_fuku)); 
-        CON_PRE_length_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_len_msc_GM_fuku));
-        CON_PRE_length_tend_GM_licht_mean = mean(CON_PRE_max(:,col_AV_len_SEE_fuku)); 
-        CON_PRE_length_tend_GM_licht_SD = std(CON_PRE_max(:,col_AV_len_SEE_fuku));
+        CON_PRE_length_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_len_msc_GM_fuku)); 
+        CON_PRE_length_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_len_msc_GM_fuku));
+        CON_PRE_length_tend_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_len_SEE_fuku)); 
+        CON_PRE_length_tend_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_len_SEE_fuku));
 
-        CON_PRE_length_norm_MTU_mean = mean(CON_PRE_max(:,col_AV_norm_len_leg)); % L leg
-        CON_PRE_length_norm_MTU_SD = std(CON_PRE_max(:,col_AV_norm_len_leg));
-        CON_PRE_elong_norm_MTU_mean = mean(CON_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
-        CON_PRE_elong_norm_MTU_SD = std(CON_PRE_max(:,col_AV_norm_elong_leg));
+        CON_PRE_length_norm_MTU_mean = nanmean(CON_PRE_max(:,col_AV_norm_len_leg)); % L leg
+        CON_PRE_length_norm_MTU_SD = nanstd(CON_PRE_max(:,col_AV_norm_len_leg));
+        CON_PRE_elong_norm_MTU_mean = nanmean(CON_PRE_max(:,col_AV_norm_elong_leg)); % elong leg
+        CON_PRE_elong_norm_MTU_SD = nanstd(CON_PRE_max(:,col_AV_norm_elong_leg));
 
-        CON_PRE_length_norm_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
-        CON_PRE_length_norm_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
-        CON_PRE_elong_norm_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
-        CON_PRE_elong_norm_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
+        CON_PRE_length_norm_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        CON_PRE_length_norm_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_len_msc_GM_fuku));
+        CON_PRE_elong_norm_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        CON_PRE_elong_norm_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_elong_msc_GM_fuku));
 
-        CON_PRE_length_norm_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
-        CON_PRE_length_norm_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_SEE_fuku));
-        CON_PRE_elong_norm_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
-        CON_PRE_elong_norm_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku));
+        CON_PRE_length_norm_SEE_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_len_SEE_fuku)); 
+        CON_PRE_length_norm_SEE_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_len_SEE_fuku));
+        CON_PRE_elong_norm_SEE_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku)); 
+        CON_PRE_elong_norm_SEE_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_elong_SEE_fuku));
 
-        CON_PRE_elong_norm_percent_msc_GM_licht_mean = mean(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
-        CON_PRE_elong_norm_percent_msc_GM_licht_SD = std(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
-        CON_PRE_elong_norm_percent_SEE_licht_mean = mean(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
-        CON_PRE_elong_norm_percent_SEE_licht_SD = std(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
+        CON_PRE_elong_norm_percent_msc_GM_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        CON_PRE_elong_norm_percent_msc_GM_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        CON_PRE_elong_norm_percent_SEE_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        CON_PRE_elong_norm_percent_SEE_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_percent_elong_SEE_fuku));
 
-        CON_PRE_length_norm_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
-        CON_PRE_length_norm_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
-        CON_PRE_elong_norm_GMfas_licht_mean = mean(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
-        CON_PRE_elong_norm_GMfas_licht_SD = std(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_PRE_length_norm_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_PRE_length_norm_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_PRE_elong_norm_GMfas_licht_mean = nanmean(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_PRE_elong_norm_GMfas_licht_SD = nanstd(CON_PRE_max(:,col_AV_norm_elong_GMfas_licht)); 
         
-        CON_PRE_torque_mean = mean(CON_PRE_max(:,col_AV_T));
-        CON_PRE_torque_SD = std(CON_PRE_max(:,col_AV_T));
+        CON_PRE_torque_mean = nanmean(CON_PRE_max(:,col_AV_T));
+        CON_PRE_torque_SD = nanstd(CON_PRE_max(:,col_AV_T));
         % determine common angle range
         CON_PRE_common_ROM = min(CON_PRE_max(:,col_AV_angle));
     end
@@ -2947,10 +2947,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             end
         end
         % calculate mean and SD of max values across subjects
-        CON_POST_ROM_mean = mean(CON_POST_max(:,col_AV_angle));
-        CON_POST_ROM_SD = std(CON_POST_max(:,col_AV_angle));
-        CON_POST_F_mean = mean(CON_POST_max(:,col_AV_F));
-        CON_POST_F_SD = std(CON_POST_max(:,col_AV_F));
+        CON_POST_ROM_mean = nanmean(CON_POST_max(:,col_AV_angle));
+        CON_POST_ROM_SD = nanstd(CON_POST_max(:,col_AV_angle));
+        CON_POST_F_mean = nanmean(CON_POST_max(:,col_AV_F));
+        CON_POST_F_SD = nanstd(CON_POST_max(:,col_AV_F));
         CON_POST_EMG_gm_mean = nanmean(CON_POST_max(:,col_AV_EMG_gm));
         CON_POST_EMG_gm_SD = nanstd(CON_POST_max(:,col_AV_EMG_gm));
         CON_POST_EMG_gl_mean = nanmean(CON_POST_max(:,col_AV_EMG_gl));
@@ -2958,99 +2958,99 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_POST_EMG_sol_mean = nanmean(CON_POST_max(:,col_AV_EMG_sol));
         CON_POST_EMG_sol_SD = nanstd(CON_POST_max(:,col_AV_EMG_sol));
 
-        CON_POST_elong_AT_mean = mean(CON_POST_max(:,col_AV_elong_AT)); % elong AT
-        CON_POST_elong_AT_SD = std(CON_POST_max(:,col_AV_elong_AT));
-        CON_POST_elong_GMtend_mean = mean(CON_POST_max(:,col_AV_elong_GMtend)); % elong GM tend
-        CON_POST_elong_GMtend_SD = std(CON_POST_max(:,col_AV_elong_GMtend));
-        CON_POST_elong_MTU_mean = mean(CON_POST_max(:,col_AV_elong_leg)); % elong leg
-        CON_POST_elong_MTU_SD = std(CON_POST_max(:,col_AV_elong_leg));
-        CON_POST_displ_GMFAS_mean = mean(CON_POST_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
-        CON_POST_displ_GMFAS_SD = std(CON_POST_max(:,col_AV_elong_GMFAS));
-        CON_POST_elong_GMapo_mean = mean(CON_POST_max(:,col_AV_elong_GMapo)); 
-        CON_POST_elong_GMapo_SD = std(CON_POST_max(:,col_AV_elong_GMapo));
-        CON_POST_elong_msc_GM_mean = mean(CON_POST_max(:,col_AV_elong_msc_GM)); % GM msc
-        CON_POST_elong_msc_GM_SD = std(CON_POST_max(:,col_AV_elong_msc_GM));
-        CON_POST_elong_msc_SOL_mean = mean(CON_POST_max(:,col_AV_elong_msc_SOL)); 
-        CON_POST_elong_msc_SOL_SD = std(CON_POST_max(:,col_AV_elong_msc_SOL));
+        CON_POST_elong_AT_mean = nanmean(CON_POST_max(:,col_AV_elong_AT)); % elong AT
+        CON_POST_elong_AT_SD = nanstd(CON_POST_max(:,col_AV_elong_AT));
+        CON_POST_elong_GMtend_mean = nanmean(CON_POST_max(:,col_AV_elong_GMtend)); % elong GM tend
+        CON_POST_elong_GMtend_SD = nanstd(CON_POST_max(:,col_AV_elong_GMtend));
+        CON_POST_elong_MTU_mean = nanmean(CON_POST_max(:,col_AV_elong_leg)); % elong leg
+        CON_POST_elong_MTU_SD = nanstd(CON_POST_max(:,col_AV_elong_leg));
+        CON_POST_displ_GMFAS_mean = nanmean(CON_POST_max(:,col_AV_elong_GMFAS));  % GMFAS displ 
+        CON_POST_displ_GMFAS_SD = nanstd(CON_POST_max(:,col_AV_elong_GMFAS));
+        CON_POST_elong_GMapo_mean = nanmean(CON_POST_max(:,col_AV_elong_GMapo)); 
+        CON_POST_elong_GMapo_SD = nanstd(CON_POST_max(:,col_AV_elong_GMapo));
+        CON_POST_elong_msc_GM_mean = nanmean(CON_POST_max(:,col_AV_elong_msc_GM)); % GM msc
+        CON_POST_elong_msc_GM_SD = nanstd(CON_POST_max(:,col_AV_elong_msc_GM));
+        CON_POST_elong_msc_SOL_mean = nanmean(CON_POST_max(:,col_AV_elong_msc_SOL)); 
+        CON_POST_elong_msc_SOL_SD = nanstd(CON_POST_max(:,col_AV_elong_msc_SOL));
 
-        CON_POST_L_at_SOL_mean = mean(CON_POST_max(:,col_AV_len_AT)); % L AT
-        CON_POST_L_at_SOL_SD = std(CON_POST_max(:,col_AV_len_AT));
-        CON_POST_L_at_GM_mean = mean(CON_POST_max(:,col_AV_len_GMtend)); % L GM tend
-        CON_POST_L_at_GM_SD = std(CON_POST_max(:,col_AV_len_GMtend));
-        CON_POST_L_MTU_mean = mean(CON_POST_max(:,col_AV_len_leg)); % L leg
-        CON_POST_L_MTU_SD = std(CON_POST_max(:,col_AV_len_leg));
+        CON_POST_L_at_SOL_mean = nanmean(CON_POST_max(:,col_AV_len_AT)); % L AT
+        CON_POST_L_at_SOL_SD = nanstd(CON_POST_max(:,col_AV_len_AT));
+        CON_POST_L_at_GM_mean = nanmean(CON_POST_max(:,col_AV_len_GMtend)); % L GM tend
+        CON_POST_L_at_GM_SD = nanstd(CON_POST_max(:,col_AV_len_GMtend));
+        CON_POST_L_MTU_mean = nanmean(CON_POST_max(:,col_AV_len_leg)); % L leg
+        CON_POST_L_MTU_SD = nanstd(CON_POST_max(:,col_AV_len_leg));
         % no L GMFAS
-        CON_POST_L_GMapo_mean = mean(CON_POST_max(:,col_AV_len_GMapo)); 
-        CON_POST_L_GMapo_SD = std(CON_POST_max(:,col_AV_len_GMapo));
-        CON_POST_L_msc_GM_mean = mean(CON_POST_max(:,col_AV_len_msc_GM)); 
-        CON_POST_L_msc_GM_SD = std(CON_POST_max(:,col_AV_len_msc_GM));
-        CON_POST_L_msc_SOL_mean = mean(CON_POST_max(:,col_AV_len_msc_SOL)); 
-        CON_POST_L_msc_SOL_SD = std(CON_POST_max(:,col_AV_len_msc_SOL));
+        CON_POST_L_GMapo_mean = nanmean(CON_POST_max(:,col_AV_len_GMapo)); 
+        CON_POST_L_GMapo_SD = nanstd(CON_POST_max(:,col_AV_len_GMapo));
+        CON_POST_L_msc_GM_mean = nanmean(CON_POST_max(:,col_AV_len_msc_GM)); 
+        CON_POST_L_msc_GM_SD = nanstd(CON_POST_max(:,col_AV_len_msc_GM));
+        CON_POST_L_msc_SOL_mean = nanmean(CON_POST_max(:,col_AV_len_msc_SOL)); 
+        CON_POST_L_msc_SOL_SD = nanstd(CON_POST_max(:,col_AV_len_msc_SOL));
 
-        CON_POST_strain_at_SOL_mean = mean(CON_POST_max(:,col_AV_strain_AT)); % L AT
-        CON_POST_strain_at_SOL_SD = std(CON_POST_max(:,col_AV_strain_AT));
-        CON_POST_strain_at_GM_mean = mean(CON_POST_max(:,col_AV_strain_GMtend)); % L GM tend
-        CON_POST_strain_at_GM_SD = std(CON_POST_max(:,col_AV_strain_GMtend));
-        CON_POST_strain_MTU_mean = mean(CON_POST_max(:,col_AV_strain_leg)); % L calf
-        CON_POST_strain_MTU_SD = std(CON_POST_max(:,col_AV_strain_leg));
+        CON_POST_strain_at_SOL_mean = nanmean(CON_POST_max(:,col_AV_strain_AT)); % L AT
+        CON_POST_strain_at_SOL_SD = nanstd(CON_POST_max(:,col_AV_strain_AT));
+        CON_POST_strain_at_GM_mean = nanmean(CON_POST_max(:,col_AV_strain_GMtend)); % L GM tend
+        CON_POST_strain_at_GM_SD = nanstd(CON_POST_max(:,col_AV_strain_GMtend));
+        CON_POST_strain_MTU_mean = nanmean(CON_POST_max(:,col_AV_strain_leg)); % L calf
+        CON_POST_strain_MTU_SD = nanstd(CON_POST_max(:,col_AV_strain_leg));
         % no strain GMfas
-        CON_POST_strain_GMapo_mean = mean(CON_POST_max(:,col_AV_strain_GMapo)); 
-        CON_POST_strain_GMapo_SD = std(CON_POST_max(:,col_AV_strain_GMapo));
-        CON_POST_strain_msc_GM_mean = mean(CON_POST_max(:,col_AV_strain_msc_GM)); 
-        CON_POST_strain_msc_GM_SD = std(CON_POST_max(:,col_AV_strain_msc_GM));
-        CON_POST_strain_msc_SOL_mean = mean(CON_POST_max(:,col_AV_strain_msc_SOL)); 
-        CON_POST_strain_msc_SOL_SD = std(CON_POST_max(:,col_AV_strain_msc_SOL));
+        CON_POST_strain_GMapo_mean = nanmean(CON_POST_max(:,col_AV_strain_GMapo)); 
+        CON_POST_strain_GMapo_SD = nanstd(CON_POST_max(:,col_AV_strain_GMapo));
+        CON_POST_strain_msc_GM_mean = nanmean(CON_POST_max(:,col_AV_strain_msc_GM)); 
+        CON_POST_strain_msc_GM_SD = nanstd(CON_POST_max(:,col_AV_strain_msc_GM));
+        CON_POST_strain_msc_SOL_mean = nanmean(CON_POST_max(:,col_AV_strain_msc_SOL)); 
+        CON_POST_strain_msc_SOL_SD = nanstd(CON_POST_max(:,col_AV_strain_msc_SOL));
 
-        CON_POST_elong_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_elong_msc_GM_fuku)); 
-        CON_POST_elong_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_elong_msc_GM_fuku));
-        CON_POST_elong_tend_GM_licht_mean = mean(CON_POST_max(:,col_AV_elong_SEE_fuku)); 
-        CON_POST_elong_tend_GM_licht_SD = std(CON_POST_max(:,col_AV_elong_SEE_fuku));
-        CON_POST_strain_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_strain_msc_GM_fuku)); 
-        CON_POST_strain_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_strain_msc_GM_fuku));
-        CON_POST_strain_tend_GM_licht_mean = mean(CON_POST_max(:,col_AV_strain_SEE_fuku)); 
-        CON_POST_strain_tend_GM_licht_SD = std(CON_POST_max(:,col_AV_strain_SEE_fuku));
+        CON_POST_elong_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_elong_msc_GM_fuku)); 
+        CON_POST_elong_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_elong_msc_GM_fuku));
+        CON_POST_elong_tend_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_elong_SEE_fuku)); 
+        CON_POST_elong_tend_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_elong_SEE_fuku));
+        CON_POST_strain_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_strain_msc_GM_fuku)); 
+        CON_POST_strain_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_strain_msc_GM_fuku));
+        CON_POST_strain_tend_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_strain_SEE_fuku)); 
+        CON_POST_strain_tend_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_strain_SEE_fuku));
 
-        CON_POST_length_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_len_GMfas_licht)); 
-        CON_POST_length_GMfas_licht_SD = std(CON_POST_max(:,col_AV_len_GMfas_licht)); 
-        CON_POST_pennation_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_pennation_GMfas_licht)); 
-        CON_POST_pennation_GMfas_licht_SD = std(CON_POST_max(:,col_AV_pennation_GMfas_licht)); 
-        CON_POST_elong_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_elong_GMfas_licht)); 
-        CON_POST_elong_GMfas_licht_SD = std(CON_POST_max(:,col_AV_elong_GMfas_licht)); 
-        CON_POST_strain_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_strain_GMfas_licht)); 
-        CON_POST_strain_GMfas_licht_SD = std(CON_POST_max(:,col_AV_strain_GMfas_licht)); 
+        CON_POST_length_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_len_GMfas_licht)); 
+        CON_POST_length_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_len_GMfas_licht)); 
+        CON_POST_pennation_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_pennation_GMfas_licht)); 
+        CON_POST_pennation_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_pennation_GMfas_licht)); 
+        CON_POST_elong_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_elong_GMfas_licht)); 
+        CON_POST_elong_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_elong_GMfas_licht)); 
+        CON_POST_strain_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_strain_GMfas_licht)); 
+        CON_POST_strain_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_strain_GMfas_licht)); 
 
-        CON_POST_length_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_len_msc_GM_fuku)); 
-        CON_POST_length_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_len_msc_GM_fuku));
-        CON_POST_length_tend_GM_licht_mean = mean(CON_POST_max(:,col_AV_len_SEE_fuku)); 
-        CON_POST_length_tend_GM_licht_SD = std(CON_POST_max(:,col_AV_len_SEE_fuku));
+        CON_POST_length_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_len_msc_GM_fuku)); 
+        CON_POST_length_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_len_msc_GM_fuku));
+        CON_POST_length_tend_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_len_SEE_fuku)); 
+        CON_POST_length_tend_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_len_SEE_fuku));
 
-        CON_POST_length_norm_MTU_mean = mean(CON_POST_max(:,col_AV_norm_len_leg)); % L leg
-        CON_POST_length_norm_MTU_SD = std(CON_POST_max(:,col_AV_norm_len_leg));
-        CON_POST_elong_norm_MTU_mean = mean(CON_POST_max(:,col_AV_norm_elong_leg)); % elong leg
-        CON_POST_elong_norm_MTU_SD = std(CON_POST_max(:,col_AV_norm_elong_leg));
+        CON_POST_length_norm_MTU_mean = nanmean(CON_POST_max(:,col_AV_norm_len_leg)); % L leg
+        CON_POST_length_norm_MTU_SD = nanstd(CON_POST_max(:,col_AV_norm_len_leg));
+        CON_POST_elong_norm_MTU_mean = nanmean(CON_POST_max(:,col_AV_norm_elong_leg)); % elong leg
+        CON_POST_elong_norm_MTU_SD = nanstd(CON_POST_max(:,col_AV_norm_elong_leg));
 
-        CON_POST_length_norm_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
-        CON_POST_length_norm_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku));
-        CON_POST_elong_norm_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
-        CON_POST_elong_norm_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
+        CON_POST_length_norm_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku)); 
+        CON_POST_length_norm_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_len_msc_GM_fuku));
+        CON_POST_elong_norm_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku)); 
+        CON_POST_elong_norm_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_elong_msc_GM_fuku));
 
-        CON_POST_length_norm_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_SEE_fuku)); 
-        CON_POST_length_norm_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_len_SEE_fuku));
-        CON_POST_elong_norm_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
-        CON_POST_elong_norm_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_SEE_fuku));
+        CON_POST_length_norm_SEE_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_len_SEE_fuku)); 
+        CON_POST_length_norm_SEE_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_len_SEE_fuku));
+        CON_POST_elong_norm_SEE_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_elong_SEE_fuku)); 
+        CON_POST_elong_norm_SEE_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_elong_SEE_fuku));
 
-        CON_POST_elong_norm_percent_msc_GM_licht_mean = mean(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
-        CON_POST_elong_norm_percent_msc_GM_licht_SD = std(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
-        CON_POST_elong_norm_percent_SEE_licht_mean = mean(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
-        CON_POST_elong_norm_percent_SEE_licht_SD = std(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
+        CON_POST_elong_norm_percent_msc_GM_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku)); 
+        CON_POST_elong_norm_percent_msc_GM_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_percent_elong_msc_GM_fuku));
+        CON_POST_elong_norm_percent_SEE_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku)); 
+        CON_POST_elong_norm_percent_SEE_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_percent_elong_SEE_fuku));
 
-        CON_POST_length_norm_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
-        CON_POST_length_norm_GMfas_licht_SD = std(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
-        CON_POST_elong_norm_GMfas_licht_mean = mean(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
-        CON_POST_elong_norm_GMfas_licht_SD = std(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_POST_length_norm_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_POST_length_norm_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_len_GMfas_licht)); 
+        CON_POST_elong_norm_GMfas_licht_mean = nanmean(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
+        CON_POST_elong_norm_GMfas_licht_SD = nanstd(CON_POST_max(:,col_AV_norm_elong_GMfas_licht)); 
         
-        CON_POST_torque_mean = mean(CON_POST_max(:,col_AV_T));
-        CON_POST_torque_SD = std(CON_POST_max(:,col_AV_T));
+        CON_POST_torque_mean = nanmean(CON_POST_max(:,col_AV_T));
+        CON_POST_torque_SD = nanstd(CON_POST_max(:,col_AV_T));
         % determine common angle range
         CON_POST_common_ROM = min(CON_POST_max(:,col_AV_angle));
     end

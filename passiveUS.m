@@ -10,6 +10,10 @@
 %    opportunity to analyse BD data from this script. Go back to
 %    passiveUS.with_norm.old for reviewing BD data.
 % 
+% 2018-02-13: Changing "ind_max" angles and forces to be leg independent,
+%    i.e. left and right leg may have different individual angles common to
+%    PRE and POST.
+% 
 % The scripts assume a certain structure for input files from Tracker and
 % Noraxon. I.e. number of and order of EMG and other channels. If these
 % scripts are to be used for other projects, some of the code must be
@@ -26,7 +30,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     mute = 1; % do not output to screen: conversion factors, EMG%, mom arm
     line = 0; % preallocate for resumerun
     AAA_today = date;
-    
+    cprintf('*black', horzcat('---------------- PASSIVEUS ', datestr(AAA_today), ' ------------------\n'))
               
     %% Plots: determine which plots to display
     global plot_achilles plot_norm plot_emg plot_check plot_us subject_id plot_licht plot_individual plot_conversion
@@ -188,6 +192,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     % Produces arrays with angles and forces per subject/side/trial/group
 
     global input_gon_pre_r input_gon_pre_l input_gon_post_r input_gon_post_l input_gon_ind_max input_gon_common_max % gon = goniometer ankle angle
+    global input_gon_ind_rmax input_gon_ind_lmax
     global input_for_pre_r input_for_pre_l input_for_post_r input_for_post_l input_for_ind_max input_for_common_max 
     global input_for_ind_rmax input_for_ind_lmax
     dm_filename = 'angles_output.tsv';
@@ -292,6 +297,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
 'out_emg_gm_trial_max', 'out_emg_gm_ind_max', 'out_emg_gm_common_max', 'out_emg_gm_submax_1', 'out_emg_gm_submax_2', 'out_emg_gm_max', 'out_emg_gm_zero',...
 'out_emg_gl_trial_max', 'out_emg_gl_ind_max', 'out_emg_gl_common_max', 'out_emg_gl_submax_1', 'out_emg_gl_submax_2', 'out_emg_gl_max', 'out_emg_gl_zero',...
 'out_emg_sol_trial_max', 'out_emg_sol_ind_max', 'out_emg_sol_common_max', 'out_emg_sol_submax_1', 'out_emg_sol_submax_2', 'out_emg_sol_max', 'out_emg_sol_zero',...
+'out_emg_mean_trial_max', 'out_emg_mean_ind_max', 'out_emg_mean_common_max', 'out_emg_mean_submax_1', 'out_emg_mean_submax_2', 'out_emg_mean_max', 'out_emg_mean_zero',...
                 }; % PROJECTSPECIFIC
         all_passive_output = zeros(ceil(linestotal),length(all_passive_output_head)-4); 
         all_passive_output_txt = cell(ceil(linestotal),4);
@@ -796,7 +802,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     end
                 end
                 plot(data_force_gonio(:,2),data_force_gonio(:,6),'c','LineWidth',2); % mean SOL
-
+                
+                plot(data_force_gonio(:,2),data_force_gonio(:,7),'LineWidth',2); % mean all 3 muscles
+                
                 axis(axis_EMG_wide)
                 ylabel('Muscle activation (% of MVC)')
                 xlabel(txt_gonio)
@@ -1073,20 +1081,22 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             if strcmpi(dm_timepoint{line}, 'PRE') == 1
                 if strcmpi(dm_side{line}, 'R') == 1
                     out_ROM_trial_max = str2double(input_gon_pre_r{trial_subjectno}) - 0.00000001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
+                    out_ROM_ind_max = str2double(input_gon_ind_rmax{trial_subjectno}) - 0.00000001;
                 else % L
                     out_ROM_trial_max = str2double(input_gon_pre_l{trial_subjectno}) - 0.00000001;
+                    out_ROM_ind_max = str2double(input_gon_ind_lmax{trial_subjectno}) - 0.00000001;
                 end
             else % POST
                 if strcmpi(dm_side{line}, 'R') == 1
                     out_ROM_trial_max = str2double(input_gon_post_r{trial_subjectno}) - 0.00000001;
+                    out_ROM_ind_max = str2double(input_gon_ind_rmax{trial_subjectno}) - 0.00000001;
                 else % L
                     out_ROM_trial_max = str2double(input_gon_post_l{trial_subjectno}) - 0.00000001;
+                    out_ROM_ind_max = str2double(input_gon_ind_lmax{trial_subjectno}) - 0.00000001;
                 end
             end
-            out_ROM_ind_max = str2double(input_gon_ind_max{trial_subjectno}) - 0.00000001;
             out_ROM_common_max = str2double(input_gon_common_max{trial_subjectno}) - 0.00000001;
             out_ROM_submax_1 = 10; %VAR
-           % out_ROM_submax_1 = out_ROM_trial_max * 1/3; %VAR --- old, replaced by 10 degrees (reused submax_1 for simplicity)
             out_ROM_submax_2 =  out_ROM_trial_max * 2/3; %VAR
 
             % forces (using data_force_gonio = averaged data from 3 scan locations / 6 trials)
@@ -1428,15 +1438,25 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             out_emg_sol_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,6));
             out_emg_sol_zero = data_force_gonio(1,6); % mean(data_force_gonio(emg_step:loc_frame_zero,6));
             out_emg_sol_max = max(data_force_gonio(:,6));
-
+            
+            % EMG mean 3 msc
+            out_emg_mean_trial_max = mean(data_force_gonio(loc_frame_trial_max-emg_step:loc_frame_trial_max,7)); % EMG mean = column 7
+            out_emg_mean_ind_max = mean(data_force_gonio(loc_frame_ind_max-emg_step:loc_frame_ind_max,7));
+            out_emg_mean_common_max = mean(data_force_gonio(loc_frame_common_max-emg_step:loc_frame_common_max,7));
+            out_emg_mean_submax_2 = mean(data_force_gonio(loc_frame_submax_2-emg_step:loc_frame_submax_2,7));
+            out_emg_mean_zero = data_force_gonio(1,7); % mean(data_force_gonio(emg_step:loc_frame_zero,7));
+            out_emg_mean_max = max(data_force_gonio(:,7));
+            
             if isempty(loc_frame_submax_1)
                 out_emg_gm_submax_1 = NaN;
                 out_emg_gl_submax_1 = NaN;
                 out_emg_sol_submax_1 = NaN;
+                out_emg_mean_submax_1 = NaN;
             else
                 out_emg_gm_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,4));
                 out_emg_gl_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,5));
                 out_emg_sol_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,6));
+                out_emg_mean_submax_1 = mean(data_force_gonio(loc_frame_submax_1-emg_step:loc_frame_submax_1,7));
             end
 
 
@@ -1748,20 +1768,23 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             if strcmpi(dm_timepoint{line}, 'PRE') == 1
                 if strcmpi(dm_side{line}, 'R') == 1
                     loc_F_trial_max = str2double(input_for_pre_r{trial_subjectno}) - 0.0001; % tweak for computer storage of numbers, where 8.3000 is stored as 8.2999999999999999
+                    loc_F_ind_max = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001;
                 else % L
                     loc_F_trial_max = str2double(input_for_pre_l{trial_subjectno}) - 0.0001;
+                    loc_F_ind_max = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001;
                 end
             else % POST
                 if strcmpi(dm_side{line}, 'R') == 1
                     loc_F_trial_max = str2double(input_for_post_r{trial_subjectno}) - 0.0001;
+                    loc_F_ind_max = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001;
                 else % L
                     loc_F_trial_max = str2double(input_for_post_l{trial_subjectno}) - 0.0001;
+                    loc_F_ind_max = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001;
                 end
             end
-            loc_F_ind_max = str2double(input_for_ind_max{trial_subjectno}) - 0.0001;
             loc_F_common_max = str2double(input_for_common_max{trial_subjectno}) - 0.0001;
-            loc_F_ind_rmax = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001;
-            loc_F_ind_lmax = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001;
+            loc_F_ind_rmax = str2double(input_for_ind_rmax{trial_subjectno}) - 0.0001; % will not be used, left in script for simplicity
+            loc_F_ind_lmax = str2double(input_for_ind_lmax{trial_subjectno}) - 0.0001; % will not be used, left in script for simplicity
 
             % find goniometer angles (from all 3 scan locations / 6 trials, averaged)
             loc_frame = find(data_force_gonio(:,col_force)>=loc_F_trial_max,1,'first'); % when averaging angles across trials, intervals of 0.05 degrees are used. This means that any required angle will exist in all data series
@@ -1779,9 +1802,10 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             loc_frame = find(data_force_gonio(:,col_force)>=loc_F_common_max,1,'first');
             out_angle_common_max = data_force_gonio(loc_frame,col_angle_DFG);
 
+            % the following will not be used - left in script for simplicity
             % for current trial (L or R), find the angle at the max force for
             % the other leg, if the other leg has a lower max force as lowest
-            % PRE/POST (not really sure what these data should be used for...)
+            % PRE/POST
             if str2double(input_for_ind_rmax(trial_subjectno)) > 9000
                 % data do not exist for the right side (array preloaded with "empty" values of 10000)
                 out_angle_ind_rmax = NaN;
@@ -1916,6 +1940,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
             col_AV_norm_elong_GMfas_licht = 47; % MTU_normalized_licht
             
             %col_AV_angle2 = 48; %(repeated - without normalization)
+            col_AV_EMG_mean = 49;
 
             
             if trial_timepoint == 0 && trial_leg == 1 % PRE, STR
@@ -1977,6 +2002,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... % norm fas elong
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
+                    ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,7) ... % mean EMG 3 msc
                     ];
 
 
@@ -2039,6 +2066,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
+                    ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,7) ... % mean EMG 3 msc
                     ];
 
 
@@ -2101,6 +2130,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ...   
+                    ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,7) ... % mean EMG 3 msc
                     ];
 
             elseif trial_timepoint == 1 && trial_leg == 0 % POST, CON
@@ -2162,6 +2193,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     MTU_normalized_licht(loc_angle_licht_start:loc_angle_licht_stop,3) ... 
                     ...
                     data_force_gonio(loc_angle_start:loc_angle_stop,col_angle_DFG) ... 
+                    ...
+                    data_force_gonio(loc_angle_start:loc_angle_stop,7) ... % mean EMG 3 msc
                     ];
 
             end
@@ -2244,6 +2277,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 out_emg_gm_trial_max out_emg_gm_ind_max out_emg_gm_common_max out_emg_gm_submax_1 out_emg_gm_submax_2 out_emg_gm_max out_emg_gm_zero ...
                 out_emg_gl_trial_max out_emg_gl_ind_max out_emg_gl_common_max out_emg_gl_submax_1 out_emg_gl_submax_2 out_emg_gl_max out_emg_gl_zero...
                 out_emg_sol_trial_max out_emg_sol_ind_max out_emg_sol_common_max out_emg_sol_submax_1 out_emg_sol_submax_2 out_emg_sol_max out_emg_sol_zero...
+                out_emg_mean_trial_max out_emg_mean_ind_max out_emg_mean_common_max out_emg_mean_submax_1 out_emg_mean_submax_2 out_emg_mean_max out_emg_mean_zero...
                 ];
 
             clear noraxon_mvc_plantar
@@ -2286,53 +2320,13 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         csvwrite(filename_output, all_passive_output)
     end
     
-    % TEMP output fascicle data
+    % TMP output fascicle data
 %    filename_output = strcat('data_output/all_GMfas_output_', datestr(now, 'yyyymmdd_HHMM'), appendix, '.csv');
 %    csvwrite(filename_output, all_GMfas_output)
     
     
     %% OUTPUT individual trial data for Graphpad Prism 
     filename_basis = strcat('data_output/prism_passive/all_passive', '_');   % datestr(now, 'yyyymmdd_HHMM'), '_');
-    
-%     % MY INITIAL FORMAT - 4 COLUMNS    
-%     
-%     % create output file header
-%     j = 1;
-%     prism_array_head2 = strcat(all_passive_output_txt{j,2}, '_', all_passive_output_txt{j,4});
-%     prism_array_head3 = strcat(all_passive_output_txt{j+1,2}, '_', all_passive_output_txt{j+1,4});
-%     prism_array_head4 = strcat(all_passive_output_txt{j+2,2}, '_', all_passive_output_txt{j+2,4});
-%     prism_array_head5 = strcat(all_passive_output_txt{j+3,2}, '_', all_passive_output_txt{j+3,4});
-%     prism_array_header = {'Subj', prism_array_head2, prism_array_head3, prism_array_head4, prism_array_head5};
-%     
-%     % for each output variable (column):
-%     loc_relevant_var = 1; % first column of all_passive_data that has data for prism
-%     for i = loc_relevant_var:size(all_passive_output,2)
-%         
-%         % reset
-%         prism_array(1:size(all_passive_output_txt,1)/4,1:5) = NaN;
-%         write_line = 1;
-%         
-%         % filename with output variable
-%         filename_variable = strcat(filename_basis, all_passive_output_head{i+4}, '.xlsx');
-%         
-%         for j = 1:4:size(all_passive_output_txt,1) % number of lines / trials
-%             
-%             % column 1 = subject no
-%             prism_array(write_line,1) = str2double(all_passive_output_txt{j,1});
-%             
-%             % column 2-5 = data
-%             prism_array(write_line,2) = all_passive_output(j,i);
-%             prism_array(write_line,3) = all_passive_output(j+1,i);
-%             prism_array(write_line,4) = all_passive_output(j+2,i);
-%             prism_array(write_line,5) = all_passive_output(j+3,i);
-%             write_line = write_line + 1;
-%         end
-%
-%         % write header
-%         xlswrite(filename_variable, prism_array_header, 1, 'A1')
-%         % write data
-%         xlswrite(filename_variable, prism_array, 1, 'A2')
-
 
     % GRAPHPAD "BY ROWS" FORMAT - 2 LINES (CON - STR) AND 2 COL (PRE-POST)
     
@@ -2376,7 +2370,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
     end
 
     
-    %% OUTPUT group arrays for STATS, TO FILE
+    %% OUTPUT group arrays for CURVE STATS, TO FILE
     
     % variables to export to file (OLD index numbers here):
         %   2 F
@@ -2391,10 +2385,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         % 34 elongation fascicles GM (from Lichtwark)
         % 35 strain fascicles GM (from Lichtwark)
         % 33 pennation GM (from Lichtwark)
-    out_arrays_input_cols = [col_AV_F col_AV_T col_AV_len_msc_GM_fuku col_AV_elong_msc_GM_fuku col_AV_strain_msc_GM_fuku col_AV_len_SEE_fuku col_AV_elong_SEE_fuku col_AV_strain_SEE_fuku col_AV_len_GMfas_licht col_AV_elong_GMfas_licht col_AV_strain_GMfas_licht col_AV_pennation_GMfas_licht];
-    out_arrays_input_labels = {'Force' 'Torque' 'GM muscle length' 'GM muscle elong' 'GM muscle strain' 'GM tendon length' 'GM tendon elong' 'GM tendon strain' 'GMfas length' 'GMfas elong' 'GMfas strain' 'GMfas pennation'};
-
-
+        % EMG mean
+    out_arrays_input_cols = [col_AV_F col_AV_T col_AV_len_msc_GM_fuku col_AV_elong_msc_GM_fuku col_AV_strain_msc_GM_fuku col_AV_len_SEE_fuku col_AV_elong_SEE_fuku col_AV_strain_SEE_fuku col_AV_len_GMfas_licht col_AV_elong_GMfas_licht col_AV_strain_GMfas_licht col_AV_pennation_GMfas_licht col_AV_EMG_mean];
+    out_arrays_input_labels = {'Force' 'Torque' 'GM muscle length' 'GM muscle elong' 'GM muscle strain' 'GM tendon length' 'GM tendon elong' 'GM tendon strain' 'GMfas length' 'GMfas elong' 'GMfas strain' 'GMfas pennation' 'EMG mean 3 msc'};
     
     if CON_PRE_count > 0 && CON_POST_count > 0 && STR_PRE_count > 0 && STR_POST_count > 0
         
@@ -2573,7 +2566,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_PRE_EMG_gl_SD = nanstd(STR_PRE_max(:,col_AV_EMG_gl));
         STR_PRE_EMG_sol_mean = nanmean(STR_PRE_max(:,col_AV_EMG_sol));
         STR_PRE_EMG_sol_SD = nanstd(STR_PRE_max(:,col_AV_EMG_sol));
-
+        STR_PRE_EMG_mean_mean = nanmean(STR_PRE_max(:,col_AV_EMG_mean));
+        STR_PRE_EMG_mean_SD = nanstd(STR_PRE_max(:,col_AV_EMG_mean));
+        
         % elong
         STR_PRE_elong_AT_mean = nanmean(STR_PRE_max(:,col_AV_elong_AT)); % elong AT
         STR_PRE_elong_AT_SD = nanstd(STR_PRE_max(:,col_AV_elong_AT));
@@ -2707,7 +2702,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_POST_EMG_gl_SD = nanstd(STR_POST_max(:,col_AV_EMG_gl));
         STR_POST_EMG_sol_mean = nanmean(STR_POST_max(:,col_AV_EMG_sol));
         STR_POST_EMG_sol_SD = nanstd(STR_POST_max(:,col_AV_EMG_sol));
-
+        STR_POST_EMG_mean_mean = nanmean(STR_POST_max(:,col_AV_EMG_mean));
+        STR_POST_EMG_mean_SD = nanstd(STR_POST_max(:,col_AV_EMG_mean));
+        
         STR_POST_elong_AT_mean = nanmean(STR_POST_max(:,col_AV_elong_AT)); % elong AT
         STR_POST_elong_AT_SD = nanstd(STR_POST_max(:,col_AV_elong_AT));
         STR_POST_elong_GMtend_mean = nanmean(STR_POST_max(:,col_AV_elong_GMtend)); % elong GM tend
@@ -2832,7 +2829,9 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_PRE_EMG_gl_SD = nanstd(CON_PRE_max(:,col_AV_EMG_gl));
         CON_PRE_EMG_sol_mean = nanmean(CON_PRE_max(:,col_AV_EMG_sol));
         CON_PRE_EMG_sol_SD = nanstd(CON_PRE_max(:,col_AV_EMG_sol));
-
+        CON_PRE_EMG_mean_mean = nanmean(CON_PRE_max(:,col_AV_EMG_mean));
+        CON_PRE_EMG_mean_SD = nanstd(CON_PRE_max(:,col_AV_EMG_mean));
+        
         CON_PRE_elong_AT_mean = nanmean(CON_PRE_max(:,col_AV_elong_AT)); % elong AT
         CON_PRE_elong_AT_SD = nanstd(CON_PRE_max(:,col_AV_elong_AT));
         CON_PRE_elong_GMtend_mean = nanmean(CON_PRE_max(:,col_AV_elong_GMtend)); % elong GM tend
@@ -2957,6 +2956,8 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_POST_EMG_gl_SD = nanstd(CON_POST_max(:,col_AV_EMG_gl));
         CON_POST_EMG_sol_mean = nanmean(CON_POST_max(:,col_AV_EMG_sol));
         CON_POST_EMG_sol_SD = nanstd(CON_POST_max(:,col_AV_EMG_sol));
+        CON_POST_EMG_mean_mean = nanmean(CON_POST_max(:,col_AV_EMG_mean));
+        CON_POST_EMG_mean_SD = nanstd(CON_POST_max(:,col_AV_EMG_mean));
 
         CON_POST_elong_AT_mean = nanmean(CON_POST_max(:,col_AV_elong_AT)); % elong AT
         CON_POST_elong_AT_SD = nanstd(CON_POST_max(:,col_AV_elong_AT));
@@ -3078,19 +3079,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_PRE_angle_vars_mean = nanmean(STR_PRE_angle_vars_mean_tmp, 3);
         %STR_PRE_angle_vars_SD = nanstd(STR_PRE_angle_vars_mean_tmp,1,3);
 
-%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-% 
-%         % preallocate
-%         STR_PRE_angle_vars_norm_mean_tmp(length(STR_PRE_angle_vars_norm{:,1}),n_o_array_elements,STR_PRE_count) = zeros;
-% 
-%         % STR_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-%         for i = 1:STR_PRE_count
-%             STR_PRE_angle_vars_norm_mean_tmp(:,:,i) = STR_PRE_angle_vars_norm{i}(:,:);
-%         end
-%         STR_PRE_angle_vars_norm_mean = nanmean(STR_PRE_angle_vars_norm_mean_tmp, 3);
-
         %%% clean up
-
         clear STR_PRE_angle_vars_mean_tmp % STR_PRE_angle_vars_norm_mean_tmp
     end
 
@@ -3115,19 +3104,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         STR_POST_angle_vars_mean = nanmean(STR_POST_angle_vars_mean_tmp, 3);
         %STR_POST_angle_vars_SD = nanstd(STR_POST_angle_vars_mean_tmp,1,3);
 
-%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-% 
-%         % preallocate
-%         STR_POST_angle_vars_norm_mean_tmp(length(STR_POST_angle_vars_norm{:,1}),n_o_array_elements,STR_POST_count) = zeros;
-% 
-%         % STR_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-%         for i = 1:STR_POST_count
-%             STR_POST_angle_vars_norm_mean_tmp(:,:,i) = STR_POST_angle_vars_norm{i}(:,:);
-%         end
-%         STR_POST_angle_vars_norm_mean = nanmean(STR_POST_angle_vars_norm_mean_tmp, 3);
-
         %%% clean up
-
         clear STR_POST_angle_vars_mean_tmp % STR_POST_angle_vars_norm_mean_tmp
     end
 
@@ -3151,17 +3128,6 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         end
         CON_PRE_angle_vars_mean = nanmean(CON_PRE_angle_vars_mean_tmp, 3);
         %CON_PRE_angle_vars_SD = nanstd(CON_PRE_angle_vars_mean_tmp,1,3);
-
-%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-% 
-%         % preallocate
-%         CON_PRE_angle_vars_norm_mean_tmp(length(CON_PRE_angle_vars_norm{:,1}),n_o_array_elements,CON_PRE_count) = zeros;
-% 
-%         % CON_PRE_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-%         for i = 1:CON_PRE_count
-%             CON_PRE_angle_vars_norm_mean_tmp(:,:,i) = CON_PRE_angle_vars_norm{i}(:,:);
-%         end
-%         CON_PRE_angle_vars_norm_mean = nanmean(CON_PRE_angle_vars_norm_mean_tmp, 3);
 
         %%% clean up
         clear CON_PRE_angle_vars_mean_tmp % CON_PRE_angle_vars_norm_mean_tmp
@@ -3188,19 +3154,7 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         CON_POST_angle_vars_mean = nanmean(CON_POST_angle_vars_mean_tmp, 3);
         %CON_POST_angle_vars_SD = nanstd(CON_POST_angle_vars_mean_tmp,1,3);
 
-%         %%% average NORMALIZED arrays, up to all subjects' INDIVIDUAL ROM, for force, elong, EMG
-% 
-%         % preallocate
-%         CON_POST_angle_vars_norm_mean_tmp(length(CON_POST_angle_vars_norm{:,1}),n_o_array_elements,CON_POST_count) = zeros;
-% 
-%         % CON_POST_angle_vars_norm has same angles (column 1) for all subjects, from 0 to 100% for all subjects
-%         for i = 1:CON_POST_count
-%             CON_POST_angle_vars_norm_mean_tmp(:,:,i) = CON_POST_angle_vars_norm{i}(:,:);
-%         end
-%         CON_POST_angle_vars_norm_mean = nanmean(CON_POST_angle_vars_norm_mean_tmp, 3);
-
         %%% clean up
-
         clear CON_POST_angle_vars_mean_tmp % CON_POST_angle_vars_norm_mean_tmp
     end
 
@@ -6317,6 +6271,96 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                     print(horzcat('data_plots/',plottitle),'-dpng')
                 end
             end
+            
+            
+            
+            %% EMG vs angle, average 3 muscles %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if plot_check
+                plottitle = horzcat('EMG 3msc vs angle - 1');
+                figure('Name',plottitle)
+                hold on
+                plot(STR_PRE_angle_vars_mean(:,col_AV_angle), STR_PRE_angle_vars_mean(:,col_AV_EMG_mean),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                plot(STR_POST_angle_vars_mean(:,col_AV_angle), STR_POST_angle_vars_mean(:,col_AV_EMG_mean),'r','LineStyle','-','LineWidth',1)
+                plot(CON_PRE_angle_vars_mean(:,col_AV_angle), CON_PRE_angle_vars_mean(:,col_AV_EMG_mean),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                plot(CON_POST_angle_vars_mean(:,col_AV_angle), CON_POST_angle_vars_mean(:,col_AV_EMG_mean),'b','LineStyle','-','LineWidth',1)
+                
+                herrorbar(STR_PRE_ROM_mean, STR_PRE_EMG_mean_mean, STR_PRE_ROM_SD, '*m')
+                errorbar(STR_PRE_ROM_mean, STR_PRE_EMG_mean_mean, STR_PRE_EMG_mean_SD, 'Color', col_lightred, 'Marker', '.', 'MarkerFaceColor', col_lightred)
+                herrorbar(STR_POST_ROM_mean, STR_POST_EMG_mean_mean, STR_POST_ROM_SD, 'r.')
+                errorbar(STR_POST_ROM_mean, STR_POST_EMG_mean_mean, STR_POST_EMG_mean_SD, 'Color', 'r', 'Marker', '.', 'MarkerFaceColor', 'r')
+                
+                herrorbar(CON_PRE_ROM_mean, CON_PRE_EMG_mean_mean, CON_PRE_ROM_SD, '*c')
+                errorbar(CON_PRE_ROM_mean, CON_PRE_EMG_mean_mean, CON_PRE_EMG_mean_SD, 'Color', col_lightblue, 'Marker', '.', 'MarkerFaceColor', col_lightblue)
+                herrorbar(CON_POST_ROM_mean, CON_POST_EMG_mean_mean, CON_POST_ROM_SD, 'b.')
+                errorbar(CON_POST_ROM_mean, CON_POST_EMG_mean_mean, CON_POST_EMG_mean_SD, 'Color', 'b', 'Marker', '.', 'MarkerFaceColor', 'b')
+                
+                axis(axis_EMG_narrow)
+                xlabel(txt_gonio)
+                ylabel(txt_emg)
+                title(plottitle,'Interpreter', 'none')
+                legend('STR PRE','STR POST','CON PRE','CON POST','STR PRE ind max','Location','Northwest')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            if plot_check
+                plottitle = horzcat('EMG 3msc vs angle - 2 STRETCHERS ind PRE+POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:STR_PRE_count
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle),STR_PRE_angle_vars{1,i}(:,col_AV_EMG_mean),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:STR_POST_count
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle),STR_POST_angle_vars{1,i}(:,col_AV_EMG_mean))
+                end
+                axis(axis_EMG_narrow)
+                xlabel(txt_gonio)
+                ylabel(txt_emg)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            if plot_check
+                plottitle = horzcat('EMG 3msc vs angle - 3 CONTROLS ind PRE+POST');
+                figure('Name',plottitle)
+                hold on
+                for i = 1:CON_PRE_count
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle),CON_PRE_angle_vars{1,i}(:,col_AV_EMG_mean),'LineStyle','--')
+                end
+                set(gca,'ColorOrderIndex',1)
+                for i = 1:CON_POST_count
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle),CON_POST_angle_vars{1,i}(:,col_AV_EMG_mean))
+                end
+                axis(axis_EMG_narrow)
+                xlabel(txt_gonio)
+                ylabel(txt_emg)
+                title(plottitle,'Interpreter', 'none')
+                fig=get(gca,'Children');
+                legend([fig(end), fig((length(fig)/2))], 'PRE', 'POST')
+                print(horzcat('data_plots/GRP_INT ',plottitle),'-dpng')
+            end
+            
+            % rough coding
+            if plot_check && eq(CON_PRE_count, CON_POST_count) && eq(STR_PRE_count, STR_POST_count) && eq(CON_PRE_count,STR_PRE_count) && plot_individual
+                for i = 1:CON_PRE_count
+                    plottitle = horzcat('IND EMG 3msc vs angle - ', CON_PRE_ID{i}(1:6) ,' 2legs PRE-POST');
+                    figure('Name',plottitle)
+                    hold on
+
+                    plot(STR_PRE_angle_vars{1,i}(:,col_AV_angle), STR_PRE_angle_vars{1,i}(:,col_AV_EMG_mean),'Color',col_lightred,'LineStyle','--','LineWidth',1)
+                    plot(STR_POST_angle_vars{1,i}(:,col_AV_angle), STR_POST_angle_vars{1,i}(:,col_AV_EMG_mean),'r','LineStyle','-','LineWidth',1)
+                    plot(CON_PRE_angle_vars{1,i}(:,col_AV_angle), CON_PRE_angle_vars{1,i}(:,col_AV_EMG_mean),'Color',col_lightblue,'LineStyle','--','LineWidth',1)
+                    plot(CON_POST_angle_vars{1,i}(:,col_AV_angle), CON_POST_angle_vars{1,i}(:,col_AV_EMG_mean),'b','LineStyle','-','LineWidth',1)
+                axis(axis_EMG_narrow)
+                xlabel(txt_gonio)
+                ylabel(txt_emg)
+                    title(plottitle,'Interpreter', 'none')
+                    legend('STR PRE','STR POST','CON PRE','CON POST','Location','Northwest')
+                    print(horzcat('data_plots/',plottitle),'-dpng')
+                end
+            end
+            
             
             close all
             

@@ -173,6 +173,10 @@ function [output_array] = average_passive_forces_EMG(trials_SOL, trials_GMMTJ, t
     
     end
     
+    %% create mean EMG
+    average_emg_mean_gonio = (average_emg_sol_gonio + average_emg_gm_gonio + average_emg_gl_gonio) / 3;
+    
+    
     %% output variable
-    output_array = [average_force_gonio average_angle_array average_torque_gonio average_emg_gm_gonio average_emg_gl_gonio average_emg_sol_gonio];
+    output_array = [average_force_gonio average_angle_array average_torque_gonio average_emg_gm_gonio average_emg_gl_gonio average_emg_sol_gonio average_emg_mean_gonio];
 end

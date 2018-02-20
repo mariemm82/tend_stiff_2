@@ -17,7 +17,9 @@
 
 function [] = strength_analysis(input_project, input_plot)
     close all
- 
+
+    global mute
+    mute = 1;
     
     
     

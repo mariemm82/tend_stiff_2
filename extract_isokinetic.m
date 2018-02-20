@@ -264,6 +264,13 @@ function [torque_max, torque_max_angle, torque_max_velocity, work_max, array_raw
     end
     
     %% at this point, the 3 trials should be correctly identified
+    
+    % manual correction for one subject where peak ID is not correct:
+    if strcmp(subject_id, 'INT_13_CON_PRE_R') == 1 && strcmp(trial_name,'isokin DF 30') % GOON
+        loc_peak_start(2) = [];
+        loc_peak_end(3) = [];
+    end
+    
     % plot refined peaks
     if plot_conversion
         for i=1:length(loc_peak_start)

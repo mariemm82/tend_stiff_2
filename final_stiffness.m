@@ -401,7 +401,7 @@ force_elong_array = [tend_elong force_array_full];
 
 %% calculate output vars: tendon ELONG, STRAIN, FORCE, YOUNG'S MODULUS
 tendon_length = str2double(tendon_length_txt);
-tendon_CSA = str2double(tendon_CSA_txt); % in mm^2
+tendon_CSA = str2double(tendon_CSA_txt); % in cm^2
 
 young_percentage = 0.8; %VAR calculate between 80% and defined end (max/cutoff)
 
@@ -430,10 +430,10 @@ force_cut_80 = force_elong_array(loc_force_cut_80,2);
 % strain = % elongation between 80 and 100% force
 
 % YOUNG'S MODULUS for max elong (similar to ind max force) and cut force
-ym_stress_80max = (force_elongmax - force_max_80) / (tendon_CSA/1000/1000); % converting mm^2 to m^2
-ym_stress_80cut = (force_cut - force_cut_80) / (tendon_CSA/1000/1000); % converting mm^2 to m^2
-ym_strain_80max = (elong_max - elong_max_80) / tendon_length * 100;
-ym_strain_80cut = (elong_cut - elong_cut_80) / tendon_length * 100;
+ym_stress_80max = (force_elongmax - force_max_80) / (tendon_CSA/100/100); % converting cm^2 to m^2
+ym_stress_80cut = (force_cut - force_cut_80) / (tendon_CSA/100/100); % converting cm^2 to m^2
+ym_strain_80max = (elong_max - elong_max_80) / tendon_length;
+ym_strain_80cut = (elong_cut - elong_cut_80) / tendon_length;
 young_max = ym_stress_80max / ym_strain_80max;
 young_cut = ym_stress_80cut / ym_strain_80cut;
 

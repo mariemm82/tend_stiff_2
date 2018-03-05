@@ -137,7 +137,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global dm_subjectno dm_timepoint dm_side dm_trial dm_group
     global dm_stiff1_NX dm_stiff1_US dm_stiff1_US_frame dm_stiff2_NX dm_stiff2_US dm_stiff2_US_frame dm_stiff3_NX dm_stiff3_US dm_stiff3_US_frame 
 %    global dm_heel1_NX dm_heel1_US dm_heel1_US_frame dm_heel2_NX dm_heel2_US dm_heel2_US_frame dm_heel3_NX dm_heel3_US dm_heel3_US_frame
-    global dm_MVC_PF dm_MVC_DF dm_CPM_calc_NX dm_CPM_sol_NX dm_leg_length % dm_CPM_calc_US dm_CPM_calc_US_frame 
+    global dm_MVC_PF dm_CPM_calc_NX dm_CPM_sol_NX dm_leg_length % dm_CPM_calc_US dm_CPM_calc_US_frame  dm_MVC_DF 
     global dm_tendonlength dm_cutforce
     global dm_rot_const dm_CSA
     global filepath
@@ -167,6 +167,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             'Strain at ind F cutoff, percent', 'Strain ind max-elong', 'Strain at common F cutoff', 'Strain at common F max', ... % 24-27
             'Young at ind F cutoff', 'Young at ind max-elong', 'Young at common F cutoff', 'Young at common F max', ... % 28-31
             'Tend-CSA, cm_2',... % 32
+            'Max ankle rotation, deg',... % 33
             }; % PROJECTSPECIFIC
         loc_stiff_a = 3;
         loc_stiff_b = 4;
@@ -338,14 +339,17 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         convert_norm_angle_a = mean([convert_ind_angle_a1 convert_ind_angle_a2]);
         convert_norm_angle_b = mean([convert_ind_angle_b1 convert_ind_angle_b2]);
         
-        % Read co-activation noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
-        % Produce a new noraxon data array
-        noraxon_coact = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
-
-        % Calculate co-activation constants
-        % Read complete, prepared noraxon array + number of frames to average (freq * time)
-        % Produce max torque, max EMG constants
-        [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
+        % 2018-03-05: Removing co-activation correction, as proposed by reviewer
+%         % Read co-activation noraxon data file, set first frame as time = zero, EMG+torque data treatment, resample
+%         % Produce a new noraxon data array
+%         noraxon_coact = read_noraxon_stiffness(strcat(filepath, dm_MVC_DF{line}), freq_default, dm_side{line}, 'MVC dorsi');
+% 
+%         % Calculate co-activation constants
+%         % Read complete, prepared noraxon array + number of frames to average (freq * time)
+%         % Produce max torque, max EMG constants
+%         [coact_max_torque,coact_max_EMG] = calculate_coactivation(noraxon_coact, freq_default*(mvc_window_ms/1000), dm_side{line});
+        coact_max_torque = 0;
+        coact_max_EMG = 0;
         
 
         %% Calculate achilles tendon MOMENT ARM
@@ -474,14 +478,13 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         %    sending 3+3 trials + max forces from trials + manually set cutoff force
         % Produce stiffness equation (based on CUT data set) +
         %    force-elong-array (up to defined force level of 90% of 6-trial-common-force or 90% of manual cutoff)
-        [stiff_eq, stiff_gof, force_elong_array, loc_cutoff, elong_indmax, force_indelongmax, strain_indmax, young_indmax, elong_indcut, force_indcut, strain_indcut, young_indcut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, dm_tendonlength{line}, dm_CSA{line});
+        [stiff_eq, stiff_gof, force_elong_array, loc_cutoff, elong_indmax, force_indelongmax, strain_indmax, young_indmax, elong_indcut, force_indcut, strain_indcut, young_indcut, anklerot_indmaxF] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, dm_cutforce{line}, trial_force_max, dm_tendonlength{line}, dm_CSA{line});
 
 
         %% calculate stiffness for last 10 and 20% of ind max:
         force_cutoff_ind = force_elong_array(loc_cutoff,2); % defined cutoff point of 90% of 6-trial-common-force or 90% of manually set force
         stiff_ind_80 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.8, 1.0, 'ind max'); % last two variables are percent range, from 0.00 to 1.00
         stiff_ind_90 = calculate_stiffness(stiff_eq, force_cutoff_ind, 0.9, 1.0, 'ind max');
-        % TMP MMM
         text(0,force_cutoff_ind,horzcat('Stiff ind max = ', num2str(stiff_ind_80), ' N/mm'))
        
         
@@ -507,6 +510,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             strain_indcut strain_indmax NaN NaN... % 24-27 --- STRAIN
             young_indcut young_indmax NaN NaN... % 28-31 --- YOUNG'S MODULUS
             str2double(dm_CSA{line}) ... % 32
+            anklerot_indmaxF ... % max ankle rotation angle
             ];
         
         
@@ -566,7 +570,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
             end
          end
          save all_data_stiff_inloop
-         close all
+%TMP         close all
     end
     %% LOOP finished --- loop end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     cprintf('*black', horzcat('----------------', ' Loop finished ', '------------------\n'))

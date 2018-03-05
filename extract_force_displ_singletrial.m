@@ -31,12 +31,13 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial(nor
     noraxon_prepped(:,column_gonio) = noraxon_prepped(:,column_gonio) - gonio_offset;
     
     
-    
-    % Correct TORQUE for co-activation
-    noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max_torque, coact_max_EMG, side, trial_name);
+    % 2018-03-05: Removing co-activation correction, as proposed by reviewer
+%    % Correct TORQUE for co-activation
+%    noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max_torque, coact_max_EMG, side, trial_name);
     
     % Calculate force by applying internal moment arm
-    tendon_force = noraxon_prepped_coact(:,column_achilles) / at_momentarm;
+%    tendon_force = noraxon_prepped_coact(:,column_achilles) / at_momentarm;
+    tendon_force = noraxon_prepped(:,column_achilles) / at_momentarm;
     
     % secondary zero offset for force
     tendon_force_avg = mean(tendon_force(1:5)); % avg of first 5 frames. Previously: 1/20th sec (0,05 s) 

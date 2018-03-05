@@ -8,7 +8,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [time_force_displ_array,maxforce] = extract_force_displ_singletrial_rotation(noraxondata, usdata, usdata_frame, coact_max_torque, coact_max_EMG, at_momentarm, at_rotation_const, side, trial_name)
+function [time_force_displ_array,maxforce] = extract_force_displ_singletrial_rotation(noraxondata, usdata, usdata_frame, ~, ~, at_momentarm, at_rotation_const, side, trial_name) % coact_max_torque, coact_max_EMG
     global column_achilles column_gonio % noraxonfreq
 %    global plot_norm plot_achilles plot_check subject_id % plot_achilles  plot_emg 
     global subject_id
@@ -46,11 +46,13 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial_rot
     %% FORCE data - identical to MTJ trial analysis
     % (could be ommitted here)
     
-    % Correct TORQUE for co-activation
-    noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max_torque, coact_max_EMG, side, trial_name);
+% 2018-03-05: Removing co-activation correction, as proposed by reviewer
+%    % Correct TORQUE for co-activation
+%    noraxon_prepped_coact = correct_coactivation(noraxon_prepped, coact_max_torque, coact_max_EMG, side, trial_name);
     
     % Calculate force by applying internal moment arm
-    tendon_force = noraxon_prepped_coact(:,column_achilles) / at_momentarm;
+%    tendon_force = noraxon_prepped_coact(:,column_achilles) / at_momentarm;
+    tendon_force = noraxon_prepped(:,column_achilles) / at_momentarm;
     
     % secondary zero offset for force
     tendon_force_avg = mean(tendon_force(1:5)); % avg of first 5 frames. Previously: 1/20th sec (0,05 s) 
@@ -140,6 +142,7 @@ function [time_force_displ_array,maxforce] = extract_force_displ_singletrial_rot
     time_force_displ_array(:,1) = usdata_prepped(1:len_array,1); % time array
     time_force_displ_array(:,2) = tendon_force_offset(1:len_array); % force array
     time_force_displ_array(:,3) = usdata_corrected(1:len_array,2); % displacement array
+    time_force_displ_array(:,4) = noraxon_prepped(1:len_array,column_gonio); % ankle angle array
     
     % output raw max force from trial
     maxforce = max(tendon_force_offset(1:len_array));

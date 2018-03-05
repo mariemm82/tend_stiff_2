@@ -10,7 +10,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, young_max, elong_cut, force_cut, strain_cut, young_cut] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt, tendon_CSA_txt) %new 2017-11-15
+function [fitresult, gof, force_elong_array, loc_cutoff, elong_max, force_elongmax, strain_max, young_max, elong_cut, force_cut, strain_cut, young_cut, anklerot_indmaxF] = final_stiffness(time_force_displ_mtj1, time_force_displ_mtj2, time_force_displ_mtj3, time_force_displ_otj1, time_force_displ_otj2, time_force_displ_otj3, forceintervals, force_cutoff_manual, force_max_trials, tendon_length_txt, tendon_CSA_txt) %new 2017-11-15
 global plot_achilles plot_norm subject_id % plot_conversion plot_check %plot_norm plot_emg
 
 
@@ -61,6 +61,7 @@ OTJ_trials = {tfdo1, tfdo2, tfdo3};
 loc_time = 1;
 loc_force = 2;
 loc_displ = 3;
+loc_angle = 4;
 
 
 %% calculate 90% of individual max force (cutoff method 5, June 2017) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -388,9 +389,11 @@ if  str2double(force_cutoff_manual) < force_array_cut(end)
     % manual cutoff
     cprintf('blue',horzcat('Force cutoff is lowered manually (in datamaster), to ', force_cutoff_manual, ' N.\n'))
     loc_cutoff = find(force_array_cut>str2double(force_cutoff_manual),1,'first') - 1;
+    force_cutoff = str2double(force_cutoff_manual);
 else
     % automatic cutoff: 90% of 6-trials-common-force
     loc_cutoff = length(force_array_cut);
+    force_cutoff = force_array_cut(end);
 end
 
 % create FULL force-elongation array - NOT cut at loc_cutoff
@@ -399,7 +402,20 @@ force_elong_array = [tend_elong force_array_full];
 % force_elong_array = [tend_elong(1:loc_cutoff) force_array_full(1:loc_cutoff)];
 
 
+
 %% calculate output vars: tendon ELONG, STRAIN, FORCE, YOUNG'S MODULUS
+
+% average max ankle rotation angle at ind cutoff force:
+    for i = 1:length(OTJ_trials)
+        if length(OTJ_trials{i}) > 1
+            loc_anklerot = find(OTJ_trials{i}(:,loc_force)>force_cutoff,1,'first');
+            anklerot(i) = OTJ_trials{i}(loc_anklerot,loc_angle);
+        else
+            anklerot(i) = NaN;
+        end
+    end
+anklerot_indmaxF = nanmean(anklerot);
+
 tendon_length = str2double(tendon_length_txt);
 tendon_CSA = str2double(tendon_CSA_txt); % in cm^2
 

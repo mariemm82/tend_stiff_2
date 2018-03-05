@@ -31,7 +31,7 @@ opts.Upper = [Inf Inf 0]; % last variable 0
 [fitresult0, gof0] = fit( xData, yData, ft, opts );
 coeffvals = coeffvalues(fitresult0);
 
-if plot_achilles
+if plot_check %TMP plot_achilles
 % Plot fit with data.
     plottitle = horzcat('FIT PLOT, tendon stiffness through ZERO, ', subject_id);
     fignavn = figure('Name', plottitle);

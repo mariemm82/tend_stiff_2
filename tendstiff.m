@@ -670,7 +670,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         else
             % end values
             elong_common_cut = force_elong_ALL{i}(loc_common_force_cut,1);
-            strain_common_cut = elong_common_cut / ym_tendlength;
+            strain_common_cut = elong_common_cut / ym_tendlength * 100;
             force_common_cut = stiff_common_force;
             % 80% of end force - for Young
             loc_force_common_cut_80 = find(force_elong_ALL{i}(:,2) >= (force_common_cut * young_percentage), 1, 'first');
@@ -694,7 +694,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
         else
             % end values
             elong_common_max = force_elong_ALL{i}(loc_common_force_max,1);
-            strain_common_max = elong_common_max / ym_tendlength;
+            strain_common_max = elong_common_max / ym_tendlength  * 100;
             force_common_max = force_elong_ALL{i}(loc_common_force_max,2); % cannot use exact max, do not have corresponding elong
             % 80% of end force - for Young
             loc_force_common_max_80 = find(force_elong_ALL{i}(:,2) >= (stiff_common_force_max * young_percentage), 1, 'first');

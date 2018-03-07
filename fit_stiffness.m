@@ -1,17 +1,9 @@
 function [fitresult, gof] = fit_stiffness(elongation, force, loc_cut, displ_MTJ, displ_OTJ)
+
 global subject_id plot_check plot_achilles
 % 0 = use fit through zero
 % 1 = use fit with free beginning
-choice_of_fit = 0; %VAR
-
-
-
-%CREATEFIT(NMZ_DISP,NMZ_FORCE)
-%      X Input : nmz_disp
-%      Y Output: nmz_force
-%  Output:
-%      fitresult : a fit object representing the fit.
-%      gof : structure with goodness-of fit info.
+choice_of_fit = 1; %VAR
 
 
 %% Fit: 'Stiffness fit'.
@@ -31,6 +23,8 @@ opts.Upper = [Inf Inf 0]; % last variable 0
 [fitresult0, gof0] = fit( xData, yData, ft, opts );
 coeffvals = coeffvalues(fitresult0);
 
+stiff_ind_80 = calculate_stiffness(fitresult0, force(loc_cut), 0.8, 1.0, 'indmax zero');
+
 if plot_check %TMP plot_achilles
 % Plot fit with data.
     plottitle = horzcat('FIT PLOT, tendon stiffness through ZERO, ', subject_id);
@@ -49,7 +43,8 @@ if plot_check %TMP plot_achilles
     loc_text_x = max(displ_MTJ)*0.6;
     loc_text_y = force(end)*0.25;
     text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
-    
+    text(0,force(loc_cut),horzcat('Stiff indmax ZERO = ', num2str(stiff_ind_80), ' N/mm'))
+
     saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_zero'), 'png')
 end
 
@@ -61,7 +56,9 @@ opts.Upper = [Inf Inf Inf]; % last variable 0
 [fitresult1, gof1] = fit( xData, yData, ft, opts );
 coeffvals = coeffvalues(fitresult1);
 
-if plot_achilles
+stiff_ind_80 = calculate_stiffness(fitresult1, force(loc_cut), 0.8, 1.0, 'indmax nozero');
+
+if plot_check %TMP plot_achilles
 % Plot fit with data.
     plottitle = horzcat('FIT PLOT, tendon stiffness FREE onset, ', subject_id);
     fignavn = figure('Name', plottitle);
@@ -79,6 +76,7 @@ if plot_achilles
     loc_text_x = max(displ_MTJ)*0.6;
     loc_text_y = force(end)*0.25;
     text(loc_text_x, loc_text_y, horzcat('Y = ', num2str(coeffvals(1)), 'x^2 + ', num2str(coeffvals(2)), 'x + ', num2str(coeffvals(3))), 'Color', 'r')
+    text(0,force(loc_cut),horzcat('Stiff indmax NOZERO = ', num2str(stiff_ind_80), ' N/mm'))
 
     saveas(fignavn, strcat('data_plots_stiff/IND_stiff_FIT_', subject_id, '_free'), 'png')
     close

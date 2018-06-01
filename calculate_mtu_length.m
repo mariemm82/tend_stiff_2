@@ -3,13 +3,19 @@
 % Marie Moltubakk 12.2.2015
 % Read length of lower leg + ankle angle array
 % Produce array with leg length across angle array
+%
+% 2018-04-29: Extracting MTJ displacement, tendon/muscle elongation, 
+%             t/m strain, as per Blazevich 2014 intervention study
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
 function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_array, resting_vars] = calculate_mtu_length(angle_displ_SOL, angle_displ_GMMTJ, angle_displ_GMFAS, angle_GM_Fukunaga, txt_at_SOL_rest_length, txt_at_GM_rest_length, standing_calf_length, resting_GM_pennation, resting_GM_faslen, angle_common, resting_ankle_angle, txt_at_SOL_zero_length, txt_at_GM_zero_length)
    % global at_momentarm  % subject_id
-
+    
+   % choose 1 for classic output (elongation and strain based on tendon resting lengths)
+   % choose 2 for blazevich output (elongation from 0 degrees point in passive trial, strain from tendon length in Achilles machine = 0 deg)
+   elong_calculation_method = 2;  % TODO MMM
         
     %% create array of angles common to all 6 trials
     % angle_common is read from file from create_angles_passive, to avoid potential tiny discrepancies between various calculations of max
@@ -85,7 +91,7 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     standing_leg_length_HH = standing_calf_length/MTU_length_HH_GM_rel(1);
     
     % applying H&H percent wise elongation to above H&H 0deg length
-%    MTU_length_HH_GM_abs = standing_leg_length_HH * MTU_length_HH_GM_rel;
+    MTU_length_HH_GM_abs = standing_leg_length_HH * MTU_length_HH_GM_rel;
     
     MTU_length_HH_SOL_abs = standing_leg_length_HH * MTU_length_HH_SOL_rel;
     MTU_length_HH_SOL_abs_rest = standing_leg_length_HH * MTU_length_HH_SOL_rel_rest;
@@ -203,52 +209,120 @@ function [MTU_length_array, MTU_elong_array, MTU_strain_array, MTU_percentelong_
     end
     
     
+    %% MTJ displacement --> muscle/tendon elongation and strain as per Blazevich 2014 intervention:
+    
+    % tend elong = (MTU elongation) - MTJ displacement
+    blaz_SOL_tend_elong = (MTU_length_HH_SOL_abs - MTU_length_HH_SOL_abs(1)) - (AT_SOL_displ - AT_SOL_displ(1));
+    % msc elong = distal MTJ displacement
+    blaz_SOL_msc_elong = (AT_SOL_displ - AT_SOL_displ(1));
+    % strain = elongation / initial length
+    blaz_SOL_tend_strain = blaz_SOL_tend_elong / (zero_AT_SOL_length) * 100;
+    blaz_SOL_msc_strain = blaz_SOL_msc_elong / (MTU_length_HH_SOL_abs(1) - zero_AT_SOL_length) * 100;
+    
+    blaz_GM_tend_elong = (MTU_length_HH_GM_abs - MTU_length_HH_GM_abs(1)) - (AT_GM_displ - AT_GM_displ(1));
+    blaz_GM_msc_elong = (AT_GM_displ - AT_GM_displ(1));
+    blaz_GM_tend_strain = blaz_GM_tend_elong / (zero_AT_GM_length) * 100;
+    blaz_GM_msc_strain = blaz_GM_msc_elong / (MTU_length_HH_GM_abs(1) - zero_AT_GM_length) * 100;
+    
+    
     %% Final data
     
-    MTU_length_array = [ ...
-        angle_array ...
-        tend_AT_length_array ...    % = free AT
-        tend_GM_length_array ...    % = GM tend, from calc to GM insert
-        MTU_GM_length ...           % = from calc to knee
-        zeros(length(angle_array),1) ...  % GMFAS displacement has no length
-        apo_GM_array ...            % = from end of free AT to GM ins
-        msc_GM_length_array ...     % = from GM ins to knee
-        msc_SOL_length_array ...    % = H&H SOL length minus free AT
-        msc_GM_length_Fukunaga ...  % = GM muscle length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
-        SEE_length_Fukunaga ...     % = SEE length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
-        ]; 
+    if elong_calculation_method == 1
+        % classic calculation of elongation/strain
+        MTU_length_array = [ ...
+            angle_array ...
+            tend_AT_length_array ...    % = free AT
+            tend_GM_length_array ...    % = GM tend, from calc to GM insert
+            MTU_GM_length ...           % = from calc to knee
+            zeros(length(angle_array),1) ...  % GMFAS displacement has no length
+            apo_GM_array ...            % = from end of free AT to GM ins
+            msc_GM_length_array ...     % = from GM ins to knee
+            msc_SOL_length_array ...    % = H&H SOL length minus free AT
+            msc_GM_length_Fukunaga ...  % = GM muscle length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+            SEE_length_Fukunaga ...     % = SEE length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+            ]; 
 
-    % calculate additional resting lengths:
-    resting_apo_length = resting_AT_GM_length - resting_AT_SOL_length;
-    resting_msc_GM_length = resting_calf_length_abs - resting_AT_GM_length;
-    resting_msc_SOL_length = MTU_length_HH_SOL_abs_rest - resting_AT_SOL_length;
-    
-    MTU_elong_array = [...
-        angle_array ...
-        tend_AT_length_array-resting_AT_SOL_length ...% based on resting free AT length           OLD: tend_AT_length_array-tend_AT_length_array(1)
-        tend_GM_length_array-resting_AT_GM_length ... % based on resting whole AT length          OLD: tend_GM_length_array-tend_GM_length_array(1)
-        MTU_GM_length-resting_calf_length_abs ...        % based on resting leg length
-        GMFAS_displ_array ...                            % DISPLACEMENT from GMFAS tracking
-        apo_GM_array-resting_apo_length ...              % based on resting length                 OLD: apo_GM_array-apo_GM_array(1)
-        msc_GM_length_array-resting_msc_GM_length...     % based on resting length                  OLD: msc_GM_length_array-msc_GM_length_array(1)
-        msc_SOL_length_array-resting_msc_SOL_length...   % based on resting_msc_SOL_length               OLD: (like above)
-        msc_GM_elong_Fukunaga ...                        % based on RESTING GM msc length
-        SEE_elong_Fukunaga ...                           % based on RESTING SEE length
-        ]; 
-    
-    MTU_strain_array = [ ...
-        angle_array ...
-        (tend_AT_length_array-resting_AT_SOL_length) / resting_AT_SOL_length*100 ...
-        (tend_GM_length_array-resting_AT_GM_length) / resting_AT_GM_length*100 ...     
-        (MTU_GM_length-resting_calf_length_abs) / resting_calf_length_abs*100 ...
-        zeros(length(angle_array),1) ...                                                  % GMFAS has no length --> no strain
-        (apo_GM_array-resting_apo_length) / resting_apo_length*100 ...
-        (msc_GM_length_array-resting_msc_GM_length) /resting_msc_GM_length*100 ...
-        (msc_SOL_length_array-resting_msc_SOL_length) / resting_msc_SOL_length*100 ...
-        msc_GM_strain_Fukunaga ...
-    	SEE_strain_Fukunaga ...
-        ]; 
-    
+        % calculate additional resting lengths:
+        resting_apo_length = resting_AT_GM_length - resting_AT_SOL_length;
+        resting_msc_GM_length = resting_calf_length_abs - resting_AT_GM_length;
+        resting_msc_SOL_length = MTU_length_HH_SOL_abs_rest - resting_AT_SOL_length;
+
+        MTU_elong_array = [...
+            angle_array ...
+            tend_AT_length_array-resting_AT_SOL_length ...% based on resting free AT length           OLD: tend_AT_length_array-tend_AT_length_array(1)
+            tend_GM_length_array-resting_AT_GM_length ... % based on resting whole AT length          OLD: tend_GM_length_array-tend_GM_length_array(1)
+            MTU_GM_length-resting_calf_length_abs ...        % based on resting leg length
+            GMFAS_displ_array ...                            % DISPLACEMENT from GMFAS tracking
+            apo_GM_array-resting_apo_length ...              % based on resting length                 OLD: apo_GM_array-apo_GM_array(1)
+            msc_GM_length_array-resting_msc_GM_length...     % based on resting length                  OLD: msc_GM_length_array-msc_GM_length_array(1)
+            msc_SOL_length_array-resting_msc_SOL_length...   % based on resting_msc_SOL_length               OLD: (like above)
+            msc_GM_elong_Fukunaga ...                        % based on RESTING GM msc length
+            SEE_elong_Fukunaga ...                           % based on RESTING SEE length
+            ]; 
+
+        MTU_strain_array = [ ...
+            angle_array ...
+            (tend_AT_length_array-resting_AT_SOL_length) / resting_AT_SOL_length*100 ...
+            (tend_GM_length_array-resting_AT_GM_length) / resting_AT_GM_length*100 ...     
+            (MTU_GM_length-resting_calf_length_abs) / resting_calf_length_abs*100 ...
+            zeros(length(angle_array),1) ...                                                  % GMFAS has no length --> no strain
+            (apo_GM_array-resting_apo_length) / resting_apo_length*100 ...
+            (msc_GM_length_array-resting_msc_GM_length) /resting_msc_GM_length*100 ...
+            (msc_SOL_length_array-resting_msc_SOL_length) / resting_msc_SOL_length*100 ...
+            msc_GM_strain_Fukunaga ...
+            SEE_strain_Fukunaga ...
+            ]; 
+    else
+        % blazevich style
+        cprintf('red', 'NB: "Blazevich mode" activated - using MTJ videos, not fascicle videos.\n')
+        
+        % no changes to LENGTH:
+        MTU_length_array = [ ...
+            angle_array ...
+            tend_AT_length_array ...    % = free AT
+            tend_GM_length_array ...    % = GM tend, from calc to GM insert
+            MTU_length_HH_GM_abs ...           % leg len: REPLACED with H&H GM leg len from zero degrees
+            MTU_length_HH_SOL_abs ...          % leg len: REPLACED with H&H GM leg len from zero degrees
+            apo_GM_array ...            % = from end of free AT to GM ins
+            msc_GM_length_array ...     % = from GM ins to knee
+            msc_SOL_length_array ...    % = H&H SOL length minus free AT
+            msc_GM_length_Fukunaga ...  % = GM muscle length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+            SEE_length_Fukunaga ...     % = SEE length based on GM faslen + penn.ang. (Lichtwark/Fukunaga)
+            ]; 
+
+        % calculate additional resting lengths:
+        resting_apo_length = resting_AT_GM_length - resting_AT_SOL_length;
+        resting_msc_GM_length = resting_calf_length_abs - resting_AT_GM_length;
+        resting_msc_SOL_length = MTU_length_HH_SOL_abs_rest - resting_AT_SOL_length;
+        
+        % replace elong of SOL and GM tendon and muscle:
+        MTU_elong_array = [...
+            angle_array ...
+            blaz_SOL_tend_elong ...                          % AT elong REPLACED
+            blaz_GM_tend_elong ...                           % GM tend elong REPLACED
+            MTU_length_HH_GM_abs-MTU_length_HH_GM_abs(1) ... % leg elong: REPLACED with H&H GM leg elong from zero degrees --- probably not used
+            GMFAS_displ_array ...                            % DISPLACEMENT from GMFAS tracking
+            MTU_length_HH_SOL_abs-MTU_length_HH_SOL_abs(1)...% GM apo: REPLACED with H&H SOL leg elong from zero degrees --- probably not used
+            blaz_GM_msc_elong...                             % GM muscle elong REPLACED
+            blaz_SOL_msc_elong...                            % SOL muscle elong REPLACED
+            AT_GM_displ ...                                  % archi elong msc REPLACED by GM MTJ DISPL
+            AT_SOL_displ ...                                 % archi elong SEE REPLACED by SOL MTJ DISPL
+            ]; 
+        
+        % CHANGES to muscle, tendon, %contribution to MTU elong added on other unused places
+        MTU_strain_array = [ ...
+            angle_array ...
+            blaz_SOL_tend_strain ...    % REPLACED
+            blaz_GM_tend_strain ...     % REPLACED
+            blaz_SOL_tend_elong ./ (MTU_length_HH_SOL_abs-MTU_length_HH_SOL_abs(1)) * 100 ... % leg - REPLACED AT % contrib
+            zeros(length(angle_array),1) ...   % GMFAS has no length --> no strain
+            blaz_SOL_msc_elong ./ (MTU_length_HH_SOL_abs-MTU_length_HH_SOL_abs(1)) * 100 ... % apo - REPLACED SOL msc % contrib
+            blaz_GM_msc_strain ...      % REPLACED
+            blaz_SOL_msc_strain ...     % REPLACED
+            blaz_GM_msc_elong ./ (MTU_length_HH_GM_abs-MTU_length_HH_GM_abs(1)) * 100 ... % REPLACED GM msc % contrib
+            blaz_GM_tend_elong ./ (MTU_length_HH_GM_abs-MTU_length_HH_GM_abs(1)) * 100 ... % REPLACED GM tend % contrib
+            ]; 
+    end
     
     % GMmsc / SEE in percent of MTU elong:
     % extract elongations from zero angle:

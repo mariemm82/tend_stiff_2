@@ -143,7 +143,7 @@ function [] = tendstiff(input_project, input_plot, input_resumerun)
     global filepath
     dm_filename = 'data/datamaster_stiff.tsv';
     if input_resumerun == 1 % resume running of loop, with new datamaster version (filenames may be edited, line order NOT!)
-        load all_data_stiff_SOL %_inloop
+        load all_data_stiff_GM %_inloop
         line_start = line+1; % all_data_stiff_inloop ended on a line - resume with next line
         input_resumerun = 1; % overwrite variable coming from all_data_stiff_inloop
     else

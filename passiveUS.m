@@ -1700,7 +1700,47 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
                 out_norm_licht_fas_elong_GM_max = NaN;
                 out_norm_licht_fas_length_GM_max = NaN;
             end
-
+            
+            
+% OBSOLETE - I chose a different method in calc_mtu_len
+%             %% Calculate % contribution to MTU elongation, Blazevich style
+%             % added 2018-04-30 MMM:
+%             % quick tweak to extract "Blazevich style":
+%             % NORMALIZED elongation of distal/proximal part = % of total MTU elongation (based on MTJ displacement videos)
+% 
+%             % OVERWRITES other output variables, should be commented out when not in use:
+%             % Reusing: 
+%             % out_norm_elong_SEE_Fuku_max           = out_elong_AT_max
+%             % out_norm_elong_percent_SEE_Fuku_max   = out_elong_GMtend_max
+%             % out_norm_elong_msc_GM_Fuku_max        = out_elong_msc_GM_max
+%             % out_norm_elong_percent_msc_GM_Fuku_max= out_elong_msc_SOL_max
+%             
+%            % choose 1 for classic output (elongation and strain based on tendon resting lengths)
+%            % choose 2 for blazevich output (elongation from 0 degrees point in passive trial, strain from tendon length in Achilles machine = 0 deg)
+%            elong_calculation_method = 2; % TODO MMM
+% 
+%            if elong_calculation_method == 2
+%                 cprintf('red', 'NB: "Blazevich mode" activated - using MTJ videos, not fascicle videos.\n')
+%                
+%                 % maximal values:
+%                 out_norm_elong_SEE_Fuku_max = max(MTU_elong_array(loc_zero:end,col_AT) ./ MTU_elong_array(loc_zero:end,col_leg)); 
+%                 out_norm_elong_percent_SEE_Fuku_max = max(MTU_elong_array(loc_zero:end,col_GMtend) ./ MTU_elong_array(loc_zero:end,col_leg)); 
+%                 out_norm_elong_msc_GM_Fuku_max = max(MTU_elong_array(loc_zero:end,col_GMmsc) ./ MTU_elong_array(loc_zero:end,col_leg)); 
+%                 out_norm_elong_percent_msc_GM_Fuku_max = max(MTU_elong_array(loc_zero:end,col_SOLmsc) ./ MTU_elong_array(loc_zero:end,col_leg)); 
+% 
+%                 % at trial max:
+%                 out_norm_elong_SEE_Fuku_trial_max = out_elong_AT_trial_max / out_elong_leg_trial_max;
+%                 out_norm_elong_percent_SEE_Fuku_trial_max = out_elong_GMtend_trial_max / out_elong_leg_trial_max;
+%                 out_norm_elong_msc_GM_Fuku_trial_max = out_elong_msc_GM_trial_max / out_elong_leg_trial_max;
+%                 out_norm_elong_percent_msc_GM_Fuku_trial_max = out_elong_msc_SOL_trial_max / out_elong_leg_trial_max;
+% 
+%                 % at ind max (leg max):
+%                 out_norm_elong_SEE_Fuku_ind_max = out_elong_AT_ind_max / out_elong_leg_ind_max;
+%                 out_norm_elong_percent_SEE_Fuku_ind_max = out_elong_GMtend_ind_max / out_elong_leg_ind_max;
+%                 out_norm_elong_msc_GM_Fuku_ind_max = out_elong_msc_GM_ind_max / out_elong_leg_ind_max;
+%                 out_norm_elong_percent_msc_GM_Fuku_ind_max = out_elong_msc_SOL_ind_max / out_elong_leg_ind_max;
+%             
+%             end
 
             %% Calculate PASSIVE STIFFNESS and STIFFNESS INDEX (Nordez 2006)
             % gonio angle = data_force_gonio(:,col_angle)
@@ -2524,7 +2564,6 @@ function [] = passiveUS(~, input_plot, input_resumerun) %  = input project
         end
     end
     
-%% TMP  end
 
 
     %% GROUP figures - create variables of MEAN + STDAV 
